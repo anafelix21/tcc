@@ -1,0 +1,44 @@
+name: agropacayales-db
+
+x-liquibase: &liquibase
+  image: ${IMAGE_NAMESPACE:-hugo454}/ase251s4-t05-db-liquibase:${LAB_VERSION:-local}
+  build:
+    context: .
+    dockerfile: docker/liquibase/Dockerfile
+  volumes:
+    - ./db:/workspace/db:ro
+
+services:
+  postgresql:
+    <<: *liquibase
+    environment:
+      LIQUIBASE_COMMAND_URL: ${POSTGRES_URL:?Define POSTGRES_URL en .env}
+      LIQUIBASE_COMMAND_USERNAME: ${POSTGRES_USERNAME:?Define POSTGRES_USERNAME en .env}
+      LIQUIBASE_COMMAND_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}
+      LIQUIBASE_COMMAND_CHANGELOG_FILE: db/postgresql/changelog.xml
+
+  mongodb:
+    <<: *liquibase
+    environment:
+      LIQUIBASE_COMMAND_URL: ${MONGODB_URL:?Define MONGODB_URL en .env}
+      LIQUIBASE_COMMAND_USERNAME: ${MONGODB_USERNAME:?Define MONGODB_USERNAME en .env}
+      LIQUIBASE_COMMAND_PASSWORD: ${MONGODB_PASSWORD:?Define MONGODB_PASSWORD en .env}
+      LIQUIBASE_COMMAND_CHANGELOG_FILE: db/mongodb/changelog.xml
+
+  checker:
+    profiles: [checker]
+    image: ${IMAGE_NAMESPACE:-hugo454}/ase251s4-t05-db-checker:${CHECKER_VERSION:-local}
+    build:
+      context: .
+      dockerfile: check/Dockerfile
+    environment:
+      CHECK_POSTGRES_URL: ${CHECK_POSTGRES_URL:?Define CHECK_POSTGRES_URL en .env}
+      POSTGRES_USERNAME: ${POSTGRES_USERNAME:?Define POSTGRES_USERNAME en .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}
+      MONGODB_URL: ${MONGODB_URL:?Define MONGODB_URL en .env}
+      MONGODB_USERNAME: ${MONGODB_USERNAME:?Define MONGODB_USERNAME en .env}
+      MONGODB_PASSWORD: ${MONGODB_PASSWORD:?Define MONGODB_PASSWORD en .env}
+      MONGODB_DATABASE: ${MONGODB_DATABASE:-agropacayales_db}
+      MONGODB_AUTH_DATABASE: ${MONGODB_AUTH_DATABASE:-admin}
+    ports:
+      - "${CHECKER_PORT:-8080}:8080"

@@ -1,0 +1,279 @@
+<div class="page-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <div class="page-icon"><span class="material-icons">grass</span></div>
+      <div>
+        <h1>Actividades y Consumos Agrícolas</h1>
+        <p>Registra labores en el campo (siembra, riego, abonado) junto con los abonos o agroquímicos consumidos</p>
+      </div>
+    </div>
+    <div class="page-header__actions">
+      <app-toggle-filter [isActive]="verActivos" (onChange)="toggleActivos($event)"></app-toggle-filter>
+      <button class="btn-new" *ngIf="!isOperador" (click)="nuevaActividad()">
+        <span>+</span> Registrar Actividad
+      </button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" *ngIf="mostrarFormulario" (click)="cancelarEdicion()">
+    <div class="form-card" (click)="$event.stopPropagation()" style="width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); animation: modalScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 1200; margin-bottom: 0;">
+      <div class="form-card__header">
+        <h2>Nueva Actividad de Cultivo</h2>
+        <p>Registra la labor general e ingresa de forma atómica los insumos consumidos del stock</p>
+      </div>
+
+      <form (ngSubmit)="guardarActividad()" #actForm="ngForm">
+        <!-- Banner de alerta superior compacto y elegante -->
+        <div *ngIf="actForm.invalid && actForm.submitted" class="validation-summary-banner" style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 10px 16px; margin: 0 28px 20px 28px; border-radius: 8px; display: flex; align-items: center; gap: 8px; animation: slideDown 0.2s ease-out;">
+          <span class="material-icons" style="font-size: 18px; color: #ef4444;">error_outline</span>
+          <span style="color: #991b1b; font-size: 13px; font-weight: 600;">Por favor, revisa y corrige los campos obligatorios marcados en rojo abajo.</span>
+        </div>
+
+        <!-- Cabecera -->
+        <div class="form-grid" style="margin-bottom: 24px;">
+          <div class="form-group">
+            <label for="cultivo">Ciclo de Cultivo Afectado *</label>
+            <select id="cultivo" name="idCultivo" [(ngModel)]="formData.idCultivo" required class="form-control">
+              <option *ngFor="let c of cultivos" [value]="c.idCultivo">{{ c.nombre }} ({{ c.tipoCultivo }})</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="tipoAct">Tipo de Actividad *</label>
+            <select id="tipoAct" name="tipoActividad" [(ngModel)]="formData.tipoActividad" required class="form-control">
+              <option *ngFor="let ta of tiposActividad" [value]="ta">{{ ta }}</option>
+            </select>
+          </div>
+
+          <div class="form-group col-span-2">
+            <label for="desc">Descripción de la labor</label>
+            <textarea id="desc" name="descripcion" [(ngModel)]="formData.descripcion" class="form-control" rows="2" placeholder="Ej. Se aplicó abono de fondo foliar debido a manchas amarillas..."></textarea>
+          </div>
+        </div>
+
+        <!-- Detalle (Cabecera-Detalle) -->
+        <div class="detail-section">
+          <div class="detail-section__header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3>Insumos / Materiales Consumidos</h3>
+            <button type="button" class="btn-add-detail" (click)="agregarDetalle()">
+              + Añadir Insumo
+            </button>
+          </div>
+
+          <!-- Empty details -->
+          <div class="empty-details" *ngIf="formData.detalles.length === 0">
+            <p>No se han añadido insumos consumidos. Haz clic en "+ Añadir Insumo" si esta actividad consumió abonos, pesticidas o semillas.</p>
+          </div>
+
+          <!-- Grid/Table de Detalles -->
+          <div class="details-table-wrapper" *ngIf="formData.detalles.length > 0">
+            <table class="details-table">
+              <thead>
+                <tr>
+                  <th>Insumo Agrícola</th>
+                  <th>Stock Disp.</th>
+                  <th>Cantidad Utilizada</th>
+                  <th>Precio Unit.</th>
+                  <th>Subtotal</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let d of formData.detalles; let idx = index">
+                  <td>
+                    <select name="insumo_{{idx}}" [(ngModel)]="d.idInsumo" (change)="onInsumoChange(idx, d.idInsumo)" required class="form-control table-select">
+                      <option *ngFor="let ins of insumos" [value]="ins.idInsumo">{{ ins.nombre }}</option>
+                    </select>
+                  </td>
+                  <td>
+                    <span style="font-size:13px; color:var(--text-secondary)">
+                      {{ getInsumoStock(d.idInsumo) }}
+                    </span>
+                  </td>
+                  <td>
+                    <input type="number" name="cant_{{idx}}" [(ngModel)]="d.cantidad" (ngModelChange)="onCantidadChange(idx)" min="1" required class="form-control table-input">
+                  </td>
+                  <td style="white-space:nowrap">S/. {{ d.precioUnitario | number:'1.2-2' }}</td>
+                  <td style="white-space:nowrap"><strong>S/. {{ d.subtotal | number:'1.2-2' }}</strong></td>
+                  <td>
+                    <button type="button" class="btn-remove-row" (click)="eliminarDetalle(idx)" title="Quitar Insumo">
+                      <span class="material-icons">close</span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Total Cost -->
+          <div class="total-cost-row">
+            <span>Costo Total Insumos:</span>
+            <strong>S/. {{ getCostoTotalCalculado() | number:'1.2-2' }}</strong>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" (click)="cancelarEdicion()">Cancelar</button>
+          <button type="submit" class="btn-save" [disabled]="!actForm.form.valid">Registrar Actividad</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="actividades.length === 0">
+    <div class="empty-state__icon"><span class="material-icons" style="font-size: inherit;">grass</span></div>
+    <h3 *ngIf="!isOperador">No hay actividades registradas {{ verActivos ? 'activas' : 'inactivas' }}</h3>
+    <h3 *ngIf="isOperador">No tienes labores asignadas {{ verActivos ? 'activas' : 'inactivas' }}</h3>
+    <p *ngIf="!isOperador">Registra labores de cultivo para dar de alta consumos de insumos de tu bodega</p>
+    <p *ngIf="isOperador">Las labores asignadas por tu supervisor aparecerán aquí</p>
+    <button class="btn-new" *ngIf="verActivos && !isOperador" (click)="nuevaActividad()">
+      + Registrar Actividad
+    </button>
+  </div>
+
+  <!-- Listado de Actividades -->
+  <div class="table-card" *ngIf="actividades.length > 0">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Cultivo</th>
+            <th>Tipo Actividad</th>
+            <th>Descripción</th>
+            <th *ngIf="!isOperador">Costo Total</th>
+            <th style="text-align: center;">Estado</th>
+            <th style="text-align: center;">Consumos</th>
+            <th style="text-align: right; padding-right: 24px;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let act of actividades">
+            <tr [class.row--inactive]="!act.estado">
+              <td class="td-id">#{{ act.idActividad }}</td>
+              <td class="td-date">{{ act.fechaActividad }}</td>
+              <td><strong>{{ act.nombreCultivo }}</strong></td>
+              <td><span class="badge badge--purple">{{ act.tipoActividad }}</span></td>
+              <td>{{ act.descripcion }}</td>
+              <td *ngIf="!isOperador"><strong>S/. {{ act.costoTotal | number:'1.2-2' }}</strong></td>
+              <td style="text-align: center;">
+                <span *ngIf="act.completado" class="badge badge--green">Finalizada</span>
+                <span *ngIf="!act.completado" class="badge badge--warning">Pendiente</span>
+              </td>
+              <td style="text-align: center;">
+                <button class="action-btn action-btn--info" (click)="verDetalles(act)" title="Ver detalles de consumos">
+                  <span class="material-icons">visibility</span>
+                </button>
+              </td>
+              <td class="td-actions" style="text-align: right; padding-right: 24px;">
+                <!-- Acción Operador: Confirmar Finalización -->
+                <ng-container *ngIf="isOperador && !act.completado && act.estado">
+                  <button class="action-btn action-btn--restore" (click)="confirmarTerminacion(act)" title="Confirmar finalización de tarea">
+                    <span class="material-icons">check_circle</span>
+                  </button>
+                </ng-container>
+
+                <!-- Acciones Supervisor (Solo si no es operador) -->
+                <ng-container *ngIf="!isOperador">
+                  <ng-container *ngIf="act.estado">
+                    <button class="action-btn action-btn--delete" (click)="confirmarEliminar(act.idActividad!)" title="Dar de baja">
+                      <span class="material-icons">delete</span>
+                    </button>
+                  </ng-container>
+                  <ng-container *ngIf="!act.estado">
+                    <button class="action-btn action-btn--restore" (click)="restaurarActividad(act.idActividad!)" title="Restaurar">
+                      <span class="material-icons">restore</span>
+                    </button>
+                  </ng-container>
+                </ng-container>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Confirm dialog -->
+  <app-confirm-dialog
+    [isOpen]="mostrarConfirmacion"
+    title="Dar de Baja Actividad"
+    message="¿Estás seguro de dar de baja esta actividad? Su estado cambiará a inactivo."
+    confirmButtonText="Dar de Baja"
+    cancelButtonText="Cancelar"
+    [isDanger]="true"
+    (onConfirmClick)="eliminarActividad()"
+    (onCancelClick)="cancelarConfirmacion()">
+  </app-confirm-dialog>
+
+  <!-- Modal de Detalles -->
+  <div class="modal-overlay" *ngIf="actividadSeleccionada" (click)="cerrarDetalles()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Detalles de Consumos</h2>
+        <button class="modal-close-btn" (click)="cerrarDetalles()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Meta Info -->
+        <div class="modal-meta-grid">
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Actividad</span>
+            <span class="modal-meta-value">#{{ actividadSeleccionada.idActividad }} - {{ actividadSeleccionada.tipoActividad }}</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Cultivo</span>
+            <span class="modal-meta-value">{{ actividadSeleccionada.nombreCultivo }}</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Fecha</span>
+            <span class="modal-meta-value">{{ actividadSeleccionada.fechaActividad }}</span>
+          </div>
+          <div class="modal-meta-item" *ngIf="!isOperador">
+            <span class="modal-meta-label">Costo Total</span>
+            <span class="modal-meta-value">S/. {{ actividadSeleccionada.costoTotal | number:'1.2-2' }}</span>
+          </div>
+        </div>
+
+        <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 12px; color: var(--text-primary);">
+          Insumos y Materiales Utilizados
+        </h3>
+
+        <div class="table-wrapper" style="border: 1px solid var(--border); border-radius: 8px; overflow: hidden;" *ngIf="actividadSeleccionada.detalles && actividadSeleccionada.detalles.length > 0">
+          <table class="modal-details-table">
+            <thead>
+              <tr>
+                <th>Insumo</th>
+                <th style="text-align: right;">Cantidad</th>
+                <th style="text-align: right;" *ngIf="!isOperador">Precio Unitario</th>
+                <th style="text-align: right;" *ngIf="!isOperador">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let det of actividadSeleccionada.detalles">
+                <td><strong>{{ det.nombreInsumo }}</strong></td>
+                <td style="text-align: right;">{{ det.cantidad }} u.</td>
+                <td style="text-align: right;" *ngIf="!isOperador">S/. {{ det.precioUnitario | number:'1.2-2' }}</td>
+                <td style="text-align: right;" *ngIf="!isOperador"><strong>S/. {{ det.subtotal | number:'1.2-2' }}</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div *ngIf="!actividadSeleccionada.detalles || actividadSeleccionada.detalles.length === 0" style="text-align: center; padding: 24px; color: var(--text-muted);">
+          Sin insumos consumidos en esta actividad.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn-close" (click)="cerrarDetalles()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+</div>

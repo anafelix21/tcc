@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Reporte de Usuarios</title>
+    <style>
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 11px;
+        }
+        h1 {
+            text-align: center;
+            color: #2e7d32;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th {
+            background-color: #2e7d32;
+            color: #ffffff;
+            padding: 6px;
+            border: 1px solid #999999;
+        }
+        td {
+            padding: 5px;
+            border: 1px solid #999999;
+        }
+        tr:nth-child(even) td {
+            background-color: #f1f8e9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Agro Pacayales - Reporte de Usuarios</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th><th>Apellido</th><th>Correo</th><th>Rol</th>
+                <th>F. Nacimiento</th><th>F. Contratación</th><th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="u : ${usuarios}">
+                <td th:text="${u.nombre}">-</td>
+                <td th:text="${u.apellido}">-</td>
+                <td th:text="${u.correo}">-</td>
+                <td th:text="${u.rol}">-</td>
+                <td th:text="${u.fechaNacimiento}">-</td>
+                <td th:text="${u.fechaContratacion}">-</td>
+                <td th:text="${u.estado} ? 'ACTIVO' : 'INACTIVO'">-</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

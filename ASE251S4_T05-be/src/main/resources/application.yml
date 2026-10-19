@@ -1,0 +1,67 @@
+# GUÍA DE ARRANQUE RÁPIDO (Comandos Maven)
+
+# 1. Para arrancar en modo LOCAL (usado por defecto):
+#    mvn spring-boot:run
+#
+# 2. Para arrancar en modo CLOUD (Nube / MongoDB Atlas):
+#    mvn spring-boot:run -Dspring-boot.run.profiles=cloud
+
+
+# CONFIGURACIÓN GENERAL (Común)
+server:
+  port: ${SERVER_PORT:8081}
+
+spring:
+  application:
+    name: AgroPacayales-WebFlux
+  profiles:
+    active: local
+  # Configuración Reactiva R2DBC para SQL Server 2022 (Transacciones)
+  r2dbc:
+    url: ${R2DBC_URL:r2dbc:sqlserver://${SQL_HOST:localhost}:${SQL_PORT:1433}/${SQL_DATABASE:agropacayales_db}?sendStringParametersAsUnicode=false}
+    username: ${SQL_USERNAME:sa}
+    password: ${SQL_PASSWORD:AgroPacayales2026!}
+    pool:
+      enabled: true
+      initial-size: 2
+      max-size: 10
+
+springdoc:
+  api-docs:
+    enabled: true
+    path: /api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+
+logging:
+  level:
+    root: INFO
+    Agropacayales.valleGrande: DEBUG
+    org.springframework.data.mongodb.core.ReactiveMongoTemplate: DEBUG
+    org.springframework.data.r2dbc: DEBUG
+    io.r2dbc.mssql: INFO
+
+---
+# PERFIL: LOCAL (Tu computadora / Docker)
+spring:
+  config:
+    activate:
+      on-profile: local
+  data:
+    mongodb:
+      # Si tu Mongo local no tiene contraseña, cámbiala a: mongodb://localhost:27017/database_local
+      uri: ${MONGO_URI_LOCAL:mongodb://admin:admin12345@localhost:27017/database_local?authSource=admin}
+      auto-index-creation: true
+
+---
+# PERFIL: CLOUD (MongoDB Atlas - Axel)
+spring:
+  config:
+    activate:
+      on-profile: cloud
+  data:
+    mongodb:
+      uri: ${MONGO_URI:mongodb+srv://axelhuapaya_db_user:lider2021@cluster0.oyk6ogs.mongodb.net/?appName=Cluster0}
+      database: ${MONGO_DATABASE:agropacayales_db}
+      auto-index-creation: true

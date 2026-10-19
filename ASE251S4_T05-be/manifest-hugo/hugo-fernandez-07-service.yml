@@ -1,0 +1,15 @@
+# kubectl apply -f hugo-fernandez-07-service.yml
+# kubectl delete -f hugo-fernandez-07-service.yml
+apiVersion: v1
+kind: Service
+metadata:
+  name: hugo-fernandez-07-service
+  namespace: hugo-fernandez-07-namespace
+spec:
+  type: NodePort      # 30000-32767
+  ports:
+  - port: 30007        # Puerto que el Service expondrá en el clúster
+    targetPort: 8081   # Coincide con SERVER_PORT del Secret/ConfigMap
+    nodePort: 30007    # Puerto asignado en el nodo físico/host
+  selector:
+    app: hugo-fernandez-07-deployment  # Coincide con matchLabels del Deployment

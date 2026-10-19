@@ -1,0 +1,97 @@
+<div class="form-card">
+  <div class="form-card__header">
+    <div class="form-card__icon"><span class="material-icons" style="font-size: inherit;">person</span></div>
+    <div>
+      <h3>{{ esEdicion ? 'Editar Usuario' : 'Registrar Nuevo Usuario' }}</h3>
+      <p>{{ esEdicion ? 'Modifica los datos del usuario' : 'Completa los campos para crear un usuario' }}</p>
+    </div>
+  </div>
+
+  <form [formGroup]="usuarioForm" (ngSubmit)="onSubmit()">
+    <!-- Banner de alerta superior compacto y elegante -->
+    <div *ngIf="(submitted && usuarioForm.invalid) || errorServidor" class="validation-summary-banner" style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 10px 16px; margin-bottom: 20px; border-radius: 8px; display: flex; align-items: center; gap: 8px; animation: slideDown 0.2s ease-out;">
+      <span class="material-icons" style="font-size: 18px; color: #ef4444;">error_outline</span>
+      <span style="color: #991b1b; font-size: 13px; font-weight: 600;">
+        {{ errorServidor ? errorServidor : 'Por favor, revisa y corrige los campos marcados en rojo abajo.' }}
+      </span>
+    </div>
+
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label for="nombre"><span class="label-icon"><span class="material-icons">person</span></span> Nombre *</label>
+        <input type="text" id="nombre" formControlName="nombre" placeholder="Ej: Juan" [class.input--error]="esInvalido('nombre')" />
+        <span class="error-msg" *ngIf="esInvalido('nombre')">
+          <span *ngIf="usuarioForm.get('nombre')?.hasError('required')">Nombre requerido. </span>
+          <span *ngIf="usuarioForm.get('nombre')?.hasError('minlength')">Mínimo 2 caracteres. </span>
+          <span *ngIf="usuarioForm.get('nombre')?.hasError('pattern')">No se permiten números ni símbolos.</span>
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="apellido"><span class="label-icon"><span class="material-icons">person</span></span> Apellido *</label>
+        <input type="text" id="apellido" formControlName="apellido" placeholder="Ej: Pérez" [class.input--error]="esInvalido('apellido')" />
+        <span class="error-msg" *ngIf="esInvalido('apellido')">
+          <span *ngIf="usuarioForm.get('apellido')?.hasError('required')">Apellido requerido. </span>
+          <span *ngIf="usuarioForm.get('apellido')?.hasError('minlength')">Mínimo 2 caracteres. </span>
+          <span *ngIf="usuarioForm.get('apellido')?.hasError('pattern')">No se permiten números ni símbolos.</span>
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="correo"><span class="label-icon"><span class="material-icons">email</span></span> Correo Electrónico *</label>
+        <input type="email" id="correo" formControlName="correo" placeholder="Ej: usuario@agro.com" [class.input--error]="esInvalido('correo')" />
+        <span class="error-msg" *ngIf="esInvalido('correo')">Correo electrónico válido requerido</span>
+      </div>
+
+      <div class="form-group">
+        <label for="rol"><span class="label-icon"><span class="material-icons">vpn_key</span></span> Rol *</label>
+        <select id="rol" formControlName="rol" [class.input--error]="esInvalido('rol')">
+          <option value="">— Seleccionar rol —</option>
+          <option value="ADMIN">Administrador</option>
+          <option value="SUPERVISOR">Supervisor</option>
+          <option value="SUPERVISOR_ALMACEN">Supervisor de Almacén</option>
+          <option value="OPERADOR">Operador</option>
+        </select>
+        <span class="error-msg" *ngIf="esInvalido('rol')">Selecciona un rol</span>
+      </div>
+
+      <div class="form-group">
+        <label for="password">
+          <span class="label-icon"><span class="material-icons">lock</span></span> 
+          Contraseña {{ esEdicion ? '(dejar en blanco para mantener)' : '*' }}
+        </label>
+        <input type="password" id="password" formControlName="password" placeholder="{{ esEdicion ? 'Nueva contraseña' : 'Mínimo 6 caracteres' }}" [class.input--error]="esInvalido('password')" />
+        <span class="error-msg" *ngIf="esInvalido('password')">Contraseña inválida (mín. 6 caracteres)</span>
+      </div>
+
+      <div class="form-group">
+        <label for="fechaNacimiento"><span class="label-icon"><span class="material-icons">cake</span></span> Fecha de Nacimiento *</label>
+        <input type="date" id="fechaNacimiento" formControlName="fechaNacimiento" [class.input--error]="esInvalido('fechaNacimiento')" />
+        <span class="error-msg" *ngIf="esInvalido('fechaNacimiento')">
+          <span *ngIf="usuarioForm.get('fechaNacimiento')?.hasError('required')">Fecha de nacimiento requerida. </span>
+          <span *ngIf="usuarioForm.get('fechaNacimiento')?.hasError('menorDeEdad')">El usuario debe ser mayor de edad (mínimo 18 años).</span>
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="fechaContratacion"><span class="label-icon"><span class="material-icons">calendar_today</span></span> Fecha de Contratación *</label>
+        <input type="date" id="fechaContratacion" formControlName="fechaContratacion" [class.input--error]="esInvalido('fechaContratacion')" />
+        <span class="error-msg" *ngIf="esInvalido('fechaContratacion')">
+          <span *ngIf="usuarioForm.get('fechaContratacion')?.hasError('required')">Fecha de contratación requerida. </span>
+          <span *ngIf="usuarioForm.get('fechaContratacion')?.hasError('relacionInvalida')">Incoherencia: ¡Debió tener mínimo 18 años al ser contratado! </span>
+          <span *ngIf="usuarioForm.get('fechaContratacion')?.hasError('fechaFutura')">La fecha no puede pertenecer al futuro. </span>
+          <span *ngIf="usuarioForm.get('fechaContratacion')?.hasError('rangoInvalido')">Solo se permite registrar contratos desde hace una semana hasta hoy.</span>
+        </span>
+      </div>
+
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn--cancel" (click)="onCancel()">Cancelar</button>
+      <button type="submit" class="btn btn--submit" [disabled]="!usuarioForm.valid">
+        {{ esEdicion ? '✓ Actualizar' : '+ Crear Usuario' }}
+      </button>
+    </div>
+  </form>
+</div>

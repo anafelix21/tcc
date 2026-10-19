@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:mongodb="http://www.liquibase.org/xml/ns/mongodb"
+ xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd http://www.liquibase.org/xml/ns/mongodb https://www.liquibase.org/xml/ns/mongodb/liquibase-mongodb-latest.xsd">
+  <changeSet id="V001" author="hugo-fernandez">
+    <comment>Crear contrato NoSQL de parcelas agrícolas con georreferenciación y condiciones edáficas.</comment>
+    <mongodb:createCollection collectionName="parcelas">
+      <mongodb:options><![CDATA[{
+        "validator": {"$jsonSchema": {
+          "bsonType": "object",
+          "required": ["_id", "nombre", "hectareas", "condiciones_edaficas", "sistema_riego"],
+          "properties": {
+            "_id": {"bsonType": "string", "description": "ID alfanumérico único de la parcela"},
+            "nombre": {"bsonType": "string", "description": "Nombre de la parcela"},
+            "fundo": {"bsonType": "string"},
+            "hectareas": {"bsonType": ["double", "int", "decimal"], "minimum": 0.1},
+            "condiciones_edaficas": {
+              "bsonType": "object",
+              "required": ["textura", "ph_promedio"],
+              "properties": {
+                "textura": {"bsonType": "string"},
+                "ph_promedio": {"bsonType": ["double", "int", "decimal"]}
+              }
+            },
+            "sistema_riego": {
+              "bsonType": "object",
+              "required": ["tipo", "caudal_lph"],
+              "properties": {
+                "tipo": {"bsonType": "string"},
+                "caudal_lph": {"bsonType": ["double", "int", "decimal"]}
+              }
+            }
+          }
+        }},
+        "validationLevel": "strict",
+        "validationAction": "error"
+      }]]></mongodb:options>
+    </mongodb:createCollection>
+    <mongodb:createIndex collectionName="parcelas">
+      <mongodb:keys>{"nombre": 1}</mongodb:keys>
+      <mongodb:options>{"name": "idx_parcelas_nombre"}</mongodb:options>
+    </mongodb:createIndex>
+    <rollback><mongodb:dropCollection collectionName="parcelas"/></rollback>
+  </changeSet>
+</databaseChangeLog>

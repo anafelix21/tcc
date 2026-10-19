@@ -1,0 +1,30 @@
+# Maven & Java
+target/
+*.class
+*.jar
+*.war
+
+# Node & Angular
+node_modules/
+dist/
+.angular/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.pytest_cache/
+
+# Ambientes locales
+.env
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# Submodule git backups
+**/.git_origin/

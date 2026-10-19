@@ -1,0 +1,27 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: agro-pacayales-liquibase-checker
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+checker:
+  postgres:
+    url: ${CHECK_POSTGRES_URL}
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+  mongodb:
+    url: ${MONGODB_URL}
+    username: ${MONGODB_USERNAME}
+    password: ${MONGODB_PASSWORD}
+    database: ${MONGODB_DATABASE:agropacayales_db}
+    authentication-database: ${MONGODB_AUTH_DATABASE:admin}

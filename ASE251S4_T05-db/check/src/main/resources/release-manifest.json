@@ -1,0 +1,18 @@
+{
+  "engines": {
+    "postgresql": [
+      {"id":"V001","author":"hugo-fernandez","file":"db/postgresql/changes/V001__create_cultivo_parcela.sql"},
+      {"id":"V002","author":"ana-felix","file":"db/postgresql/changes/V002__create_insumos_kardex.sql"},
+      {"id":"V003","author":"axel-huapaya","file":"db/postgresql/changes/V003__create_cosechas_calidad.sql"},
+      {"id":"V004","author":"hugo-fernandez","file":"db/postgresql/changes/V004__create_fichas_campo.sql"},
+      {"id":"V005","author":"ana-felix","file":"db/postgresql/changes/V005__create_auditoria_labores.sql"}
+    ],
+    "mongodb": [
+      {"id":"V001","author":"hugo-fernandez","file":"db/mongodb/changes/V001__create_cultivo_parcela.xml"},
+      {"id":"V002","author":"ana-felix","file":"db/mongodb/changes/V002__create_insumos_kardex.xml"},
+      {"id":"V003","author":"axel-huapaya","file":"db/mongodb/changes/V003__create_cosechas_calidad.xml"},
+      {"id":"V004","author":"hugo-fernandez","file":"db/mongodb/changes/V004__create_fichas_campo.xml"},
+      {"id":"V005","author":"ana-felix","file":"db/mongodb/changes/V005__create_auditoria_labores.xml"}
+    ]
+  }
+}

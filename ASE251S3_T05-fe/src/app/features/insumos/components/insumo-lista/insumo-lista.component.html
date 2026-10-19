@@ -1,0 +1,47 @@
+<div class="table-container">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Descripción</th>
+        <th>Precio</th>
+        <th>Stock</th>
+        <th>Unidad</th>
+        <th>Fecha Registro</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (insumo of insumos; track insumo.idInsumo) {
+        <tr>
+          <td>{{ insumo.idInsumo }}</td>
+          <td>{{ insumo.nombre }}</td>
+          <td>{{ insumo.descripcion }}</td>
+          <td>S/. {{ insumo.precio | number:'1.2-2' }}</td>
+          <td>{{ insumo.stock }}</td>
+          <td>{{ insumo.unidadMedida }}</td>
+          <td>{{ insumo.createdAt }}</td>
+          <td class="actions">
+            @if (insumo.estado) {
+              <button class="btn-edit" (click)="onEditar(insumo)">
+                <span class="material-icons">edit</span>
+              </button>
+              <button class="btn-delete" (click)="onEliminar(insumo.idInsumo!)">
+                <span class="material-icons">delete</span>
+              </button>
+            } @else {
+              <button class="btn-restore" (click)="onRestaurar(insumo.idInsumo!)">
+                <span class="material-icons">restore</span>
+              </button>
+            }
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="8" class="empty">No hay insumos registrados</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

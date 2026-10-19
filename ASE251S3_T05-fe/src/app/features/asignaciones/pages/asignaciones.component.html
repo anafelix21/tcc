@@ -1,0 +1,280 @@
+<div class="page-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <div class="page-icon"><span class="material-icons">engineering</span></div>
+      <div>
+        <h1>Asignación de Trabajadores y Mano de Obra</h1>
+        <p>Asigna múltiples operarios agrícolas a las labores de campo y controla las horas y costos de mano de obra</p>
+      </div>
+    </div>
+    <div class="page-header__actions">
+      <app-toggle-filter [isActive]="verActivos" (onChange)="toggleActivos($event)"></app-toggle-filter>
+      <button class="btn-new" (click)="nuevaAsignacion()">
+        <span>+</span> Asignar Grupo
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" *ngIf="asignaciones.length > 0">
+    <div class="stat-pill stat-pill--purple">
+      <span class="stat-pill__icon"><span class="material-icons">people</span></span>
+      <div>
+        <strong>{{ asignaciones.length }}</strong>
+        <span>Jornadas / Cabeceras</span>
+      </div>
+    </div>
+    <div class="stat-pill stat-pill--blue">
+      <span class="stat-pill__icon"><span class="material-icons">schedule</span></span>
+      <div>
+        <strong>{{ getTotalHoras() }} hrs</strong>
+        <span>Horas Totales (Hombre)</span>
+      </div>
+    </div>
+    <div class="stat-pill stat-pill--orange">
+      <span class="stat-pill__icon"><span class="material-icons">payments</span></span>
+      <div>
+        <strong>S/. {{ getTotalManoObra() | number:'1.2-2' }}</strong>
+        <span>Costo Total Mano de Obra</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div class="modal-overlay" *ngIf="mostrarFormulario" (click)="cancelarEdicion()">
+    <div class="form-card" (click)="$event.stopPropagation()" style="width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); animation: modalScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 1200; margin-bottom: 0;">
+      <div class="form-card__header">
+        <h2>Nueva Asignación Transaccional</h2>
+        <p>Registra la participación de múltiples operarios en una labor con las mismas horas de jornada</p>
+      </div>
+
+
+
+      <!-- CABECERA -->
+      <div class="form-grid">
+        <!-- Actividad -->
+        <div class="form-group">
+          <label for="actividad">Actividad de Cultivo Destino *</label>
+          <select id="actividad" name="idActividad" [(ngModel)]="formData.idActividad" required class="form-control">
+            <option *ngFor="let act of actividades" [value]="act.idActividad">#{{ act.idActividad }} - {{ act.tipoActividad }} ({{ act.nombreCultivo }})</option>
+          </select>
+        </div>
+
+        <!-- Horas Trabajadas -->
+        <div class="form-group">
+          <label for="horas">Horas de Jornada (para todos) *</label>
+          <input type="number" id="horas" name="horasTrabajadas" [(ngModel)]="formData.horasTrabajadas" min="0.5" step="0.5" required class="form-control" placeholder="Ej. 8">
+        </div>
+
+        <!-- Observación -->
+        <div class="form-group col-span-2">
+          <label for="obs">Observación / Tarea específica</label>
+          <input type="text" id="obs" name="observacion" [(ngModel)]="formData.observacion" class="form-control" placeholder="Ej. Cosecha sector A, operarios de recolección...">
+        </div>
+      </div>
+
+      <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;" />
+
+      <!-- AGREGAR DETALLES -->
+      <div class="detail-section">
+        <h3 style="margin-bottom: 15px; color: #444;">Agregar Trabajadores al Detalle</h3>
+        
+        <div style="display: grid; grid-template-columns: 2fr 1fr auto; gap: 15px; align-items: end;">
+          <!-- Trabajador -->
+          <div class="form-group">
+            <label for="trabajador">Trabajador Agrícola</label>
+            <select id="trabajador" [(ngModel)]="tempIdUsuario" class="form-control">
+              <option *ngFor="let t of trabajadores" [value]="t.idUsuario">{{ t.nombre }} {{ t.apellido }} ({{ t.rol }})</option>
+            </select>
+          </div>
+
+          <!-- Costo Mano de Obra -->
+          <div class="form-group">
+            <label for="costo">Costo Mano de Obra (S/.)</label>
+            <input type="number" id="costo" [(ngModel)]="tempCostoManoObra" min="0" step="1.0" class="form-control" placeholder="Ej. 40.00">
+          </div>
+
+          <button type="button" class="btn-new" (click)="agregarDetalle()" style="height: 42px; margin-bottom: 2px;">
+            + Agregar
+          </button>
+        </div>
+
+        <!-- Tabla de detalles agregados localmente -->
+        <div class="table-wrapper" style="margin-top: 20px; border: 1px solid #ddd; border-radius: 8px; overflow: hidden;" *ngIf="detallesForm.length > 0">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background-color: #f5f5f5; text-align: left;">
+                <th style="padding: 10px;">Trabajador</th>
+                <th style="padding: 10px;">Costo Individual (S/.)</th>
+                <th style="padding: 10px; width: 80px;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let det of detallesForm; let i = index" style="border-top: 1px solid #eee;">
+                <td style="padding: 10px;"><strong>{{ det.nombreCompletoUsuario }}</strong></td>
+                <td style="padding: 10px;">S/. {{ det.costoManoObra | number:'1.2-2' }}</td>
+                <td style="padding: 10px;">
+                  <button type="button" class="action-btn action-btn--delete" (click)="removerDetalle(i)">
+                    <span class="material-icons">delete</span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        
+        <div *ngIf="detallesForm.length === 0" style="text-align: center; padding: 20px; background: #fafafa; border: 1px dashed #ccc; border-radius: 8px; margin-top: 20px; color: #777;">
+          Ningún trabajador agregado al detalle de esta asignación.
+        </div>
+      </div>
+
+      <!-- Acciones Finales -->
+      <div style="display: flex; justify-content: flex-end; gap: 15px; margin-top: 30px;">
+        <button type="button" class="btn-cancel" (click)="cancelarEdicion()">Cancelar</button>
+        <button type="button" class="btn-save" (click)="guardarAsignacion()" [disabled]="detallesForm.length === 0 || !formData.idActividad">
+          Guardar Asignación Transaccional
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="asignaciones.length === 0">
+    <div class="empty-state__icon"><span class="material-icons" style="font-size: inherit;">engineering</span></div>
+    <h3>No hay asignaciones registradas</h3>
+    <p>Registra asignaciones por cabecera y detalle para controlar costos de mano de obra de forma masiva</p>
+    <button class="btn-new" *ngIf="verActivos" (click)="nuevaAsignacion()">
+      + Registrar Asignación
+    </button>
+  </div>
+
+  <!-- Tabla de Asignaciones -->
+  <div class="table-card" *ngIf="asignaciones.length > 0">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Actividad</th>
+            <th>Cultivo</th>
+            <th>Horas Jornada</th>
+            <th style="text-align: center;">Trabajadores</th>
+            <th>Costo Total M.O.</th>
+            <th>Observación</th>
+            <th>Fecha Asignación</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let a of asignaciones" [class.row--inactive]="!a.estado">
+            <td class="td-id">#{{ a.idAsignacionCabecera }}</td>
+            <td><span class="badge badge--purple">{{ a.tipoActividad }}</span></td>
+            <td><strong>{{ a.nombreCultivo }}</strong></td>
+            <td>{{ a.horasTrabajadas }} hrs</td>
+            <td style="text-align: center;">
+              <button class="action-btn action-btn--info" (click)="verDetalles(a)" title="Ver trabajadores asignados">
+                <span class="material-icons">visibility</span>
+              </button>
+            </td>
+            <td><strong>S/. {{ a.costoTotalManoObra | number:'1.2-2' }}</strong></td>
+            <td>{{ a.observacion || 'Sin observaciones' }}</td>
+            <td class="td-date">{{ a.createdAt }}</td>
+            <td class="td-actions">
+              <ng-container *ngIf="a.estado">
+                <button class="action-btn action-btn--delete" (click)="confirmarEliminar(a.idAsignacionCabecera!)" title="Eliminar">
+                  <span class="material-icons">delete</span>
+                </button>
+              </ng-container>
+              <ng-container *ngIf="!a.estado">
+                <button class="action-btn action-btn--restore" (click)="restaurarAsignacion(a.idAsignacionCabecera!)" title="Restaurar">
+                  <span class="material-icons">restore</span>
+                </button>
+              </ng-container>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Confirm dialog -->
+  <app-confirm-dialog
+    [isOpen]="mostrarConfirmacion"
+    title="Eliminar Asignación Transaccional"
+    message="¿Estás seguro de eliminar esta asignación de mano de obra? Se desactivará la cabecera y todos sus detalles asociados, y el costo total de la mano de obra se restará del total de la actividad."
+    confirmButtonText="Eliminar"
+    cancelButtonText="Cancelar"
+    [isDanger]="true"
+    (onConfirmClick)="eliminarAsignacion()"
+    (onCancelClick)="cancelarConfirmacion()">
+  </app-confirm-dialog>
+
+  <!-- Modal de Detalles -->
+  <div class="modal-overlay" *ngIf="asignacionSeleccionada" (click)="cerrarDetalles()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Trabajadores Asignados</h2>
+        <button class="modal-close-btn" (click)="cerrarDetalles()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Meta Info -->
+        <div class="modal-meta-grid">
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Asignación</span>
+            <span class="modal-meta-value">#{{ asignacionSeleccionada.idAsignacionCabecera }} - {{ asignacionSeleccionada.tipoActividad }}</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Cultivo</span>
+            <span class="modal-meta-value">{{ asignacionSeleccionada.nombreCultivo }}</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Horas Jornada</span>
+            <span class="modal-meta-value">{{ asignacionSeleccionada.horasTrabajadas }} hrs</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Costo Total M.O.</span>
+            <span class="modal-meta-value">S/. {{ asignacionSeleccionada.costoTotalManoObra | number:'1.2-2' }}</span>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;" *ngIf="asignacionSeleccionada.observacion">
+          <span class="modal-meta-label">Observación</span>
+          <p style="margin: 0; font-size: 14px; color: var(--text-secondary);">{{ asignacionSeleccionada.observacion }}</p>
+        </div>
+
+        <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 12px; color: var(--text-primary);">
+          Operarios Colaboradores
+        </h3>
+
+        <div class="table-wrapper" style="border: 1px solid var(--border); border-radius: 8px; overflow: hidden;" *ngIf="asignacionSeleccionada.detalles && asignacionSeleccionada.detalles.length > 0">
+          <table class="modal-details-table">
+            <thead>
+              <tr>
+                <th>Trabajador</th>
+                <th style="text-align: right;">Costo Mano de Obra</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let det of asignacionSeleccionada.detalles">
+                <td><strong>{{ det.nombreCompletoUsuario }}</strong></td>
+                <td style="text-align: right;"><strong>S/. {{ det.costoManoObra | number:'1.2-2' }}</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div *ngIf="!asignacionSeleccionada.detalles || asignacionSeleccionada.detalles.length === 0" style="text-align: center; padding: 24px; color: var(--text-muted);">
+          Ningún trabajador asignado.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn-close" (click)="cerrarDetalles()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+</div>

@@ -1,0 +1,380 @@
+<div class="page-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <div class="page-icon"><span class="material-icons">shopping_basket</span></div>
+      <div>
+        <h1>Cosechas e Indicadores de Rendimiento</h1>
+        <p>Registra las cosechas de tus cultivos y monitorea las mermas críticas de producción</p>
+      </div>
+    </div>
+    <div class="page-header__actions">
+      <button class="btn-new" (click)="nuevaCosecha()">
+        <span>+</span> Registrar Cosecha
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" *ngIf="cosechas.length > 0">
+    <div class="stat-pill stat-pill--purple">
+      <span class="stat-pill__icon"><span class="material-icons">assignment_turned_in</span></span>
+      <div>
+        <strong>{{ cosechas.length }}</strong>
+        <span>Cosechas Registradas</span>
+      </div>
+    </div>
+    <div class="stat-pill stat-pill--green">
+      <span class="stat-pill__icon"><span class="material-icons">scale</span></span>
+      <div>
+        <strong>{{ getTotalKilosCosechados() | number:'1.0-0' }} kg</strong>
+        <span>Producción Total Obtenida</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL FORMULARIO ===== -->
+  <div class="modal-overlay" *ngIf="mostrarFormulario" (click)="cancelarEdicion()">
+    <div class="form-card" (click)="$event.stopPropagation()"
+         style="width: 90%; max-width: 820px; max-height: 90vh; overflow-y: auto; border-radius: 16px;
+                box-shadow: 0 25px 50px -12px rgba(0,0,0,0.35);
+                animation: modalScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                z-index: 1200; margin-bottom: 0;">
+
+      <!-- Header -->
+      <div class="form-card__header">
+        <div class="form-card__icon">
+          <span class="material-icons" style="font-size: inherit;">shopping_basket</span>
+        </div>
+        <div>
+          <h2>Registrar Nueva Cosecha</h2>
+          <p>Ingresa el responsable, fecha y kilos cosechados por lote. Límite de merma tolerada: <strong>20%</strong></p>
+        </div>
+      </div>
+
+      <!-- Banner crítico de merma -->
+      <div *ngIf="tieneExcesoDeMerma()" class="critical-warning-banner">
+        <span class="material-icons" style="margin-right:8px; vertical-align:middle;">warning</span>
+        ¡Alerta Crítica! Uno o más cultivos exceden el 20% de merma permitida. El sistema rechazará guardar esta transacción.
+      </div>
+
+      <!-- Banner error de validación -->
+      <div *ngIf="formSubmitAttempted && !formularioValido && !tieneExcesoDeMerma()"
+           class="validation-summary-banner"
+           style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 10px 16px;
+                  margin: 0 28px 20px 28px; border-radius: 8px; display: flex; align-items: center;
+                  gap: 8px; animation: slideDown 0.2s ease-out;">
+        <span class="material-icons" style="font-size: 18px; color: #ef4444;">error_outline</span>
+        <span style="color: #991b1b; font-size: 13px; font-weight: 600;">
+          Por favor, revisa y corrige los campos obligatorios marcados en rojo.
+        </span>
+      </div>
+
+      <form (ngSubmit)="guardarCosecha()" #cosechaForm="ngForm" novalidate>
+
+        <!-- ── Cabecera del formulario ── -->
+        <div class="form-grid" style="margin-bottom: 8px;">
+
+          <!-- Responsable -->
+          <div class="form-group">
+            <label for="resp">
+              <span class="label-icon"><span class="material-icons">person</span></span>
+              Responsable de Cosecha *
+            </label>
+            <input
+              type="text"
+              id="resp"
+              name="responsable"
+              [(ngModel)]="formData.responsable"
+              class="form-control"
+              placeholder="Ej: Ana Felix"
+              maxlength="100"
+              autocomplete="off"
+              [class.input--error]="formSubmitAttempted && responsableError"
+            />
+            <span class="error-msg" *ngIf="formSubmitAttempted && responsableError">
+              {{ responsableError }}
+            </span>
+          </div>
+
+          <!-- Fecha de Cosecha -->
+          <div class="form-group">
+            <label for="fecha">
+              <span class="label-icon"><span class="material-icons">calendar_today</span></span>
+              Fecha de Cosecha *
+            </label>
+            <input
+              type="date"
+              id="fecha"
+              name="fechaCosecha"
+              [(ngModel)]="formData.fechaCosecha"
+              class="form-control"
+              [max]="fechaMaxima"
+              [min]="fechaMinima"
+              [class.input--error]="formSubmitAttempted && fechaError"
+            />
+            <span class="error-msg" *ngIf="formSubmitAttempted && fechaError">
+              {{ fechaError }}
+            </span>
+            <span class="field-hint" *ngIf="!formSubmitAttempted || !fechaError">
+              Solo fechas hasta hoy, máximo 1 año de antigüedad.
+            </span>
+          </div>
+
+        </div>
+
+        <!-- ── Detalle: Lotes Cosechados ── -->
+        <div class="detail-section">
+          <div class="detail-section__header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3>Lotes Cosechados</h3>
+            <button type="button" class="btn-add-detail"
+                    (click)="agregarDetalle()"
+                    [disabled]="formData.detalles.length >= cultivos.length">
+              + Añadir Lote
+            </button>
+          </div>
+
+          <!-- Error de detalles -->
+          <div *ngIf="formSubmitAttempted && detallesError"
+               style="background:#fef2f2; border-left:4px solid #ef4444; padding:8px 14px;
+                      border-radius:8px; font-size:12px; font-weight:600; color:#dc2626;
+                      margin-bottom:12px; display:flex; align-items:center; gap:6px;">
+            <span class="material-icons" style="font-size:14px;">error</span>
+            {{ detallesError }}
+          </div>
+
+          <!-- Estado vacío -->
+          <div class="empty-details" *ngIf="formData.detalles.length === 0">
+            <p>No se han añadido lotes cosechados. Haz clic en "+ Añadir Lote" para ingresar los kilos obtenidos por cultivo.</p>
+          </div>
+
+          <!-- Tabla de lotes -->
+          <div class="details-table-wrapper" *ngIf="formData.detalles.length > 0">
+            <table class="details-table">
+              <thead>
+                <tr>
+                  <th>Cultivo Cosechado</th>
+                  <th>Kilos Óptimos</th>
+                  <th>Kilos Merma</th>
+                  <th>% Merma</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let d of formData.detalles; let idx = index"
+                    [class.row-merma-critica]="excedeLimiteMerma(d)"
+                    [class.row-merma-aviso]="!excedeLimiteMerma(d) && getPorcentajeMerma(d) > 10">
+
+                  <!-- Cultivo -->
+                  <td>
+                    <select [name]="'cultivo_' + idx"
+                            [(ngModel)]="d.idCultivo"
+                            (change)="onCultivoChange(idx, $event)"
+                            class="form-control table-select">
+                      <ng-container *ngFor="let cult of cultivos">
+                        <option [value]="cult.idCultivo"
+                                [disabled]="isCultivoYaUsado(cult.idCultivo!, idx)">
+                          {{ cult.nombre }}{{ isCultivoYaUsado(cult.idCultivo!, idx) ? ' (ya agregado)' : '' }}
+                        </option>
+                      </ng-container>
+                    </select>
+                  </td>
+
+                  <!-- Kilos Óptimos -->
+                  <td>
+                    <div class="kilos-cell">
+                      <input type="number" [name]="'optimos_' + idx"
+                             [(ngModel)]="d.kilosOptimos"
+                             min="1" step="0.5"
+                             class="form-control table-input"
+                             placeholder="0"
+                             [class.input--error]="formSubmitAttempted && !(d.kilosOptimos > 0)" />
+                      <span class="unit-kg">kg</span>
+                    </div>
+                  </td>
+
+                  <!-- Kilos Merma -->
+                  <td>
+                    <div class="kilos-cell">
+                      <input type="number" [name]="'merma_' + idx"
+                             [(ngModel)]="d.kilosMerma"
+                             min="0" step="0.5"
+                             class="form-control table-input"
+                             placeholder="0"
+                             [class.input--error]="excedeLimiteMerma(d)" />
+                      <span class="unit-kg">kg</span>
+                    </div>
+                  </td>
+
+                  <!-- % Merma con barra -->
+                  <td>
+                    <div class="merma-cell" [ngClass]="getMermaColorClass(d)">
+                      <span class="merma-pct">{{ getPorcentajeMerma(d) | number:'1.1-1' }}%</span>
+                      <div class="merma-bar-track">
+                        <div class="merma-bar-fill"
+                             [style.width.%]="getPorcentajeMerma(d) > 100 ? 100 : getPorcentajeMerma(d)">
+                        </div>
+                        <div class="merma-limit-mark" title="Límite 20%"></div>
+                      </div>
+                      <span class="merma-label-critica" *ngIf="excedeLimiteMerma(d)">
+                        ¡Excede el 20%!
+                      </span>
+                    </div>
+                  </td>
+
+                  <!-- Acción -->
+                  <td>
+                    <button type="button" class="btn-remove-row"
+                            (click)="eliminarDetalle(idx)" title="Quitar lote">
+                      <span class="material-icons">close</span>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ── Acciones ── -->
+        <div class="form-actions">
+          <button type="button" class="btn-cancel" (click)="cancelarEdicion()">Cancelar</button>
+          <button type="submit" class="btn-save"
+                  [disabled]="tieneExcesoDeMerma()">
+            Registrar Cosecha
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="cosechas.length === 0">
+    <div class="empty-state__icon"><span class="material-icons" style="font-size: inherit;">shopping_basket</span></div>
+    <h3>No hay cosechas registradas</h3>
+    <p>Registra las cosechas obtenidas en el campo para monitorear rendimientos</p>
+    <button class="btn-new" (click)="nuevaCosecha()">+ Registrar Cosecha</button>
+  </div>
+
+  <!-- Listado de Cosechas -->
+  <div class="table-card" *ngIf="cosechas.length > 0">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Fecha Cosecha</th>
+            <th>Responsable</th>
+            <th style="text-align: center;">Rendimiento</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let c of cosechas">
+            <td class="td-id">#{{ c.idHarvest }}</td>
+            <td class="td-date">{{ c.fechaCosecha }}</td>
+            <td><strong>{{ c.responsable }}</strong></td>
+            <td style="text-align: center;">
+              <button class="action-btn action-btn--info" (click)="verDetalles(c)" title="Ver detalles de rendimiento">
+                <span class="material-icons">visibility</span>
+              </button>
+            </td>
+            <td class="td-actions">
+              <button class="action-btn action-btn--delete" (click)="confirmarEliminar(c.idHarvest!)" title="Dar de baja">
+                <span class="material-icons">delete</span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Confirm dialog -->
+  <app-confirm-dialog
+    [isOpen]="mostrarConfirmacion"
+    title="Eliminar Registro de Cosecha"
+    message="¿Estás seguro de dar de baja de manera lógica esta cosecha? El registro se marcará como inactivo."
+    confirmButtonText="Dar de baja"
+    cancelButtonText="Cancelar"
+    [isDanger]="true"
+    (onConfirmClick)="eliminarCosecha()"
+    (onCancelClick)="cancelarConfirmacion()">
+  </app-confirm-dialog>
+
+  <!-- Modal de Detalles -->
+  <div class="modal-overlay" *ngIf="cosechaSeleccionada" (click)="cerrarDetalles()">
+    <div class="modal-content" (click)="$event.stopPropagation()"
+         style="max-width: 780px; width: 94%;">
+      <div class="modal-header">
+        <h2>Detalles de Cosecha</h2>
+        <button class="modal-close-btn" (click)="cerrarDetalles()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-meta-grid">
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">ID Cosecha</span>
+            <span class="modal-meta-value">#{{ cosechaSeleccionada.idHarvest }}</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Responsable</span>
+            <span class="modal-meta-value">{{ cosechaSeleccionada.responsable }}</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Fecha</span>
+            <span class="modal-meta-value">{{ cosechaSeleccionada.fechaCosecha }}</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Kilos Totales</span>
+            <span class="modal-meta-value">{{ getTotalKilosCosecha(cosechaSeleccionada) | number:'1.1-1' }} kg</span>
+          </div>
+        </div>
+
+        <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 12px; color: var(--text-primary);">
+          Rendimiento y Producción de Lotes
+        </h3>
+
+        <div class="table-wrapper"
+             style="border: 1px solid var(--border); border-radius: 8px; overflow: hidden; overflow-x: auto;"
+             *ngIf="cosechaSeleccionada.detalles && cosechaSeleccionada.detalles.length > 0">
+          <table class="modal-details-table">
+            <thead>
+              <tr>
+                <th>Cultivo</th>
+                <th style="text-align: right;">Kilos Óptimos</th>
+                <th style="text-align: right;">Kilos Merma</th>
+                <th style="text-align: right;">Kilos Totales</th>
+                <th style="text-align: right;">% Merma</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let det of cosechaSeleccionada.detalles">
+                <td><strong>{{ getNombreCultivo(det.idCultivo) }}</strong></td>
+                <td style="text-align: right;">{{ det.kilosOptimos }} kg</td>
+                <td style="text-align: right;">{{ det.kilosMerma }} kg</td>
+                <td style="text-align: right;"><strong>{{ det.totalKilos | number:'1.1-1' }} kg</strong></td>
+                <td style="text-align: right;">
+                  <span [style.color]="excedeLimiteMerma(det) ? '#dc2626' : '#16a34a'" style="font-weight:700;">
+                    {{ getPorcentajeMerma(det) | number:'1.1-2' }}%
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div *ngIf="!cosechaSeleccionada.detalles || cosechaSeleccionada.detalles.length === 0"
+             style="text-align: center; padding: 24px; color: #9ca3af;">
+          Sin lotes detallados.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn-close" (click)="cerrarDetalles()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+</div>

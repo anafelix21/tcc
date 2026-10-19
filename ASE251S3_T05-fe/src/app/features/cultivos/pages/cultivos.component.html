@@ -1,0 +1,155 @@
+<div class="page-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <div class="page-icon"><span class="material-icons">grass</span></div>
+      <div>
+        <h1>Gestión de Cultivos</h1>
+        <p>Administra los cultivos asociados a tus parcelas</p>
+      </div>
+    </div>
+    <div class="page-header__actions">
+      <app-toggle-filter [isActive]="verActivos" (onChange)="toggleActivos($event)"></app-toggle-filter>
+      <button class="btn-new" (click)="nuevoCultivo()">
+        <span>+</span> Nuevo Cultivo
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" *ngIf="cultivos.length > 0">
+    <div class="stat-pill stat-pill--green">
+      <span class="stat-pill__icon"><span class="material-icons">eco</span></span>
+      <div>
+        <strong>{{ cultivos.length }}</strong>
+        <span>{{ verActivos ? 'Activos' : 'Inactivos' }}</span>
+      </div>
+    </div>
+    <div class="stat-pill stat-pill--blue">
+      <span class="stat-pill__icon"><span class="material-icons">wb_sunny</span></span>
+      <div>
+        <strong>{{ getCultivosConSombra() }}</strong>
+        <span>Requieren sombra</span>
+      </div>
+    </div>
+    <div class="stat-pill stat-pill--orange">
+      <span class="stat-pill__icon"><span class="material-icons">device_thermostat</span></span>
+      <div>
+        <strong>{{ getPromedioTemp() }}°C</strong>
+        <span>Temp. promedio</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" *ngIf="mostrarFormulario" (click)="cancelarEdicion()">
+    <div (click)="$event.stopPropagation()" style="width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); animation: modalScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 1200;">
+      <app-cultivo-form
+        [cultivoEditar]="cultivoEditar"
+        [errorServidor]="errorServidor"
+        (guardar)="guardarCultivo($event)"
+        (cancelar)="cancelarEdicion()">
+      </app-cultivo-form>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="cultivos.length === 0">
+    <div class="empty-state__icon"><span class="material-icons" style="font-size: inherit;">grass</span></div>
+    <h3>No hay cultivos {{ verActivos ? 'activos' : 'inactivos' }}</h3>
+    <p *ngIf="verActivos">Registra tu primer cultivo haciendo clic en "Nuevo Cultivo"</p>
+    <p *ngIf="!verActivos">No hay cultivos eliminados para mostrar</p>
+    <button class="btn-new" *ngIf="verActivos" (click)="nuevoCultivo()">
+      + Registrar Cultivo
+    </button>
+  </div>
+
+  <!-- Cards de cultivos -->
+  <div class="cultivos-grid" *ngIf="cultivos.length > 0">
+    <div class="cultivo-card" *ngFor="let cultivo of cultivos"
+      [class.cultivo-card--inactive]="!cultivo.estado">
+
+      <div class="cultivo-card__header">
+        <div class="cultivo-card__badge">{{ cultivo.tipoCultivo }}</div>
+        <span class="cultivo-card__status" [class.status--active]="cultivo.estado"
+          [class.status--inactive]="!cultivo.estado">
+          {{ cultivo.estado ? 'Activo' : 'Inactivo' }}
+        </span>
+      </div>
+
+      <div class="cultivo-card__body">
+        <h3>{{ cultivo.nombre }}</h3>
+        <div class="cultivo-card__parcela">
+          <span class="material-icons" style="font-size: 16px; vertical-align: middle;">home</span> {{ cultivo.parcela ? cultivo.parcela.nombre : 'Sin parcela' }}
+        </div>
+
+        <div class="cultivo-card__details">
+          <div class="detail-item">
+            <span class="detail-icon"><span class="material-icons">water_drop</span></span>
+            <div>
+              <span class="detail-label">Riego</span>
+              <span class="detail-value">Cada {{ cultivo.frecuenciaRiegoDias }} días</span>
+            </div>
+          </div>
+          <div class="detail-item">
+            <span class="detail-icon"><span class="material-icons">device_thermostat</span></span>
+            <div>
+              <span class="detail-label">Temperatura</span>
+              <span class="detail-value">{{ cultivo.temperaturaIdeal }}°C</span>
+            </div>
+          </div>
+          <div class="detail-item" *ngIf="cultivo.fechaSiembra">
+            <span class="detail-icon"><span class="material-icons">calendar_today</span></span>
+            <div>
+              <span class="detail-label">Siembra</span>
+              <span class="detail-value">{{ cultivo.fechaSiembra }}</span>
+            </div>
+          </div>
+          <div class="detail-item">
+            <span class="detail-icon"><span class="material-icons">wb_sunny</span></span>
+            <div>
+              <span class="detail-label">Sombra</span>
+              <span class="detail-value">{{ cultivo.requiereSombra ? 'Sí' : 'No' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <p class="cultivo-card__obs" *ngIf="cultivo.observaciones">
+          {{ cultivo.observaciones }}
+        </p>
+      </div>
+
+      <div class="cultivo-card__footer">
+        <ng-container *ngIf="cultivo.estado">
+          <button class="card-btn card-btn--edit" (click)="editarCultivo(cultivo)" title="Editar">
+            <span class="material-icons" style="font-size: 20px; vertical-align: middle; margin-right: 4px;">edit</span> Editar
+          </button>
+          <button class="card-btn card-btn--delete" (click)="confirmarEliminar(cultivo.idCultivo!)" title="Eliminar">
+            <span class="material-icons" style="font-size: 20px; vertical-align: middle; margin-right: 4px;">delete</span> Eliminar
+          </button>
+        </ng-container>
+        <ng-container *ngIf="!cultivo.estado">
+          <button class="card-btn card-btn--restore" (click)="restaurarCultivo(cultivo.idCultivo!)" title="Restaurar">
+            <span class="material-icons" style="font-size: 20px; vertical-align: middle; margin-right: 4px;">restore</span> Restaurar
+          </button>
+        </ng-container>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Confirm dialog -->
+  <app-confirm-dialog
+    [isOpen]="mostrarConfirmacion"
+    title="Eliminar Cultivo"
+    message="¿Estás seguro de eliminar este cultivo? El registro quedará inactivo."
+    confirmButtonText="Eliminar"
+    cancelButtonText="Cancelar"
+    [isDanger]="true"
+    (onConfirmClick)="eliminarCultivo()"
+    (onCancelClick)="cancelarConfirmacion()">
+  </app-confirm-dialog>
+
+</div>
+
+

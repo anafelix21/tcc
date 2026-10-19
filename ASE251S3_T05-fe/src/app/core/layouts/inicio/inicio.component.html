@@ -1,0 +1,248 @@
+<div class="inicio-container">
+
+  <!-- Hero Welcome Banner -->
+  <div class="welcome-section">
+    <div class="welcome-text">
+      <div class="welcome-date-badge">{{ currentDate }}</div>
+      <h1>¡Hola de vuelta, {{ currentUserNombre }}!</h1>
+      <p class="subtitle">Bienvenido al panel central de AgroPacayales. Monitorea y optimiza la producción agrícola.</p>
+    </div>
+
+  </div>
+
+  <!-- A: ADMIN & SUPERVISOR VIEWS -->
+  <ng-container *ngIf="isAdmin || isSupervisor">
+    
+    <!-- Stats Row -->
+    <div class="stats-grid">
+      <a routerLink="/insumos" class="stat-card stat-card--amber">
+        <div class="stat-card__icon-wrapper">
+          <span class="material-icons">inventory</span>
+        </div>
+        <div class="stat-card__info">
+          <strong>{{ totalInsumos }}</strong>
+          <span>Insumos Activos</span>
+          <span class="stat-card__trend"><span class="bullet"></span> En Inventario</span>
+        </div>
+        <span class="stat-card__arrow">→</span>
+      </a>
+
+      <a routerLink="/parcelas" class="stat-card stat-card--green">
+        <div class="stat-card__icon-wrapper">
+          <span class="material-icons">landscape</span>
+        </div>
+        <div class="stat-card__info">
+          <strong>{{ totalParcelas }}</strong>
+          <span>Parcelas</span>
+          <span class="stat-card__trend"><span class="bullet"></span> Zonas Operativas</span>
+        </div>
+        <span class="stat-card__arrow">→</span>
+      </a>
+
+      <a routerLink="/cultivos" class="stat-card stat-card--teal">
+        <div class="stat-card__icon-wrapper">
+          <span class="material-icons">grass</span>
+        </div>
+        <div class="stat-card__info">
+          <strong>{{ totalCultivos }}</strong>
+          <span>Cultivos</span>
+          <span class="stat-card__trend"><span class="bullet"></span> En Crecimiento</span>
+        </div>
+        <span class="stat-card__arrow">→</span>
+      </a>
+
+      <a routerLink="/usuarios" *ngIf="isAdmin" class="stat-card stat-card--purple">
+        <div class="stat-card__icon-wrapper">
+          <span class="material-icons">people</span>
+        </div>
+        <div class="stat-card__info">
+          <strong>{{ totalUsuarios }}</strong>
+          <span>Usuarios</span>
+          <span class="stat-card__trend"><span class="bullet"></span> Equipo Activo</span>
+        </div>
+        <span class="stat-card__arrow">→</span>
+      </a>
+    </div>
+
+    <!-- Módulos de Acceso Rápido -->
+    <h2 class="section-title">Módulos del Sistema</h2>
+    
+    <div class="modules-grid">
+      <!-- 1. Cultivos -->
+      <a routerLink="/cultivos" class="module-card">
+        <div class="module-card__header module-card__header--green">
+          <span class="module-icon"><span class="material-icons">grass</span></span>
+        </div>
+        <div class="module-card__body">
+          <h3>Cultivos y Siembra</h3>
+          <p>Monitorea la siembra, estado fenológico y evolución de los cultivos de la campaña.</p>
+          <span class="module-link">Gestionar Cultivos <span class="arrow">→</span></span>
+        </div>
+      </a>
+
+      <!-- 2. Parcelas -->
+      <a routerLink="/parcelas" class="module-card">
+        <div class="module-card__header module-card__header--teal">
+          <span class="module-icon"><span class="material-icons">landscape</span></span>
+        </div>
+        <div class="module-card__body">
+          <h3>Zonas y Parcelas</h3>
+          <p>Administra las extensiones de tierra, ubicación satelital, tipos de suelo y responsables.</p>
+          <span class="module-link">Ver Parcelas <span class="arrow">→</span></span>
+        </div>
+      </a>
+
+      <!-- 3. Insumos -->
+      <a routerLink="/insumos" class="module-card">
+        <div class="module-card__header module-card__header--amber">
+          <span class="module-icon"><span class="material-icons">inventory_2</span></span>
+        </div>
+        <div class="module-card__body">
+          <h3>Bodega de Insumos</h3>
+          <p>Controla el stock disponible, precios unitarios, proveedores y alertas de bajo stock.</p>
+          <span class="module-link">Ver Inventario <span class="arrow">→</span></span>
+        </div>
+      </a>
+
+      <!-- 4. Kardex -->
+      <a routerLink="/movimiento-insumos" class="module-card">
+        <div class="module-card__header module-card__header--blue">
+          <span class="module-icon"><span class="material-icons">swap_horiz</span></span>
+        </div>
+        <div class="module-card__body">
+          <h3>Kardex de Inventario</h3>
+          <p>Audita los movimientos de entrada por compras y salidas por aplicación a cultivos.</p>
+          <span class="module-link">Ver Movimientos <span class="arrow">→</span></span>
+        </div>
+      </a>
+
+      <!-- 5. Actividades -->
+      <a routerLink="/actividades" class="module-card">
+        <div class="module-card__header module-card__header--purple">
+          <span class="module-icon"><span class="material-icons">agriculture</span></span>
+        </div>
+        <div class="module-card__body">
+          <h3>Labores y Actividades</h3>
+          <p>Programa labores en el campo (riego, fertilización) y el consumo atómico de insumos.</p>
+          <span class="module-link">Ver Actividades <span class="arrow">→</span></span>
+        </div>
+      </a>
+
+      <!-- 6. Cosechas -->
+      <a routerLink="/cosechas" class="module-card">
+        <div class="module-card__header module-card__header--red">
+          <span class="module-icon"><span class="material-icons">shopping_basket</span></span>
+        </div>
+        <div class="module-card__body">
+          <h3>Cosechas y Rendimiento</h3>
+          <p>Registra las toneladas obtenidas, calidad de producción y cierra ciclos de cultivo.</p>
+          <span class="module-link">Ver Cosechas <span class="arrow">→</span></span>
+        </div>
+      </a>
+      
+      <!-- 7. Fichas de Campo -->
+      <a routerLink="/fichas-campo" class="module-card">
+        <div class="module-card__header module-card__header--cyan">
+          <span class="module-icon"><span class="material-icons">assignment_turned_in</span></span>
+        </div>
+        <div class="module-card__body">
+          <h3>Monitoreo de Fichas</h3>
+          <p>Consulta evaluaciones fitosanitarias de plagas, humedad y diagnóstico en campo.</p>
+          <span class="module-link">Ver Evaluaciones <span class="arrow">→</span></span>
+        </div>
+      </a>
+
+      <!-- 8. Asignaciones -->
+      <a routerLink="/asignaciones" class="module-card">
+        <div class="module-card__header module-card__header--indigo">
+          <span class="module-icon"><span class="material-icons">assignment_ind</span></span>
+        </div>
+        <div class="module-card__body">
+          <h3>Asignaciones de Personal</h3>
+          <p>Controla las tareas asignadas a operarios y realiza seguimiento de responsabilidades.</p>
+          <span class="module-link">Ver Asignaciones <span class="arrow">→</span></span>
+        </div>
+      </a>
+
+      <!-- 9. Usuarios (Solo Admin) -->
+      <a routerLink="/usuarios" *ngIf="isAdmin" class="module-card">
+        <div class="module-card__header module-card__header--slate">
+          <span class="module-icon"><span class="material-icons">people</span></span>
+        </div>
+        <div class="module-card__body">
+          <h3>Usuarios y Roles</h3>
+          <p>Administra las cuentas de trabajadores, accesos y roles del sistema agrícola.</p>
+          <span class="module-link">Ver Usuarios <span class="arrow">→</span></span>
+        </div>
+      </a>
+    </div>
+  </ng-container>
+
+  <!-- B: SUPERVISOR_ALMACEN VIEW -->
+  <ng-container *ngIf="isSupervisorAlmacen">
+    <!-- Stats -->
+    <div class="stats-grid">
+      <a routerLink="/insumos" class="stat-card stat-card--amber" style="grid-column: span 4;">
+        <div class="stat-card__icon-wrapper">
+          <span class="material-icons">inventory</span>
+        </div>
+        <div class="stat-card__info">
+          <strong>{{ totalInsumos }}</strong>
+          <span>Insumos activos en bodega</span>
+          <span class="stat-card__trend"><span class="bullet"></span> Almacén Central</span>
+        </div>
+        <span class="stat-card__arrow">→</span>
+      </a>
+    </div>
+
+    <!-- Módulos -->
+    <h2 class="section-title">Gestión de Almacén</h2>
+    <div class="modules-grid">
+      <a routerLink="/insumos" class="module-card">
+        <div class="module-card__header module-card__header--amber">
+          <span class="module-icon"><span class="material-icons">inventory_2</span></span>
+        </div>
+        <div class="module-card__body">
+          <h3>Bodega Insumos</h3>
+          <p>Controla el inventario de insumos agrícolas, precios, stock y proveedores.</p>
+          <span class="module-link">Ir a Insumos →</span>
+        </div>
+      </a>
+
+      <a routerLink="/movimiento-insumos" class="module-card">
+        <div class="module-card__header module-card__header--blue">
+          <span class="module-icon"><span class="material-icons">swap_horiz</span></span>
+        </div>
+        <div class="module-card__body">
+          <h3>Kardex de Bodega</h3>
+          <p>Registra las entradas y salidas de materiales agrícolas del almacén.</p>
+          <span class="module-link">Ir a Kardex Stock →</span>
+        </div>
+      </a>
+    </div>
+  </ng-container>
+
+  <!-- C: OPERADOR VIEW -->
+  <ng-container *ngIf="isOperador">
+    <div class="operator-panel">
+      <div class="operator-panel__header">
+        <div class="operator-icon-bg">
+          <span class="material-icons">agriculture</span>
+        </div>
+        <div>
+          <h2>Tus Labores Asignadas</h2>
+          <p>Consulta las actividades del día programadas para ti en los campos.</p>
+        </div>
+      </div>
+      <div class="operator-panel__body">
+        <p>
+          Como Operador de Campo, tienes acceso para visualizar la lista de labores asignadas por el supervisor de campo. Podrás consultar detalles de descripción e insumos requeridos para tu trabajo diario.
+        </p>
+        <a routerLink="/actividades" class="btn-primary-action">
+          <span class="material-icons">assignment_turned_in</span> Ver Mis Tareas Asignadas
+        </a>
+      </div>
+    </div>
+  </ng-container>
+
+</div>

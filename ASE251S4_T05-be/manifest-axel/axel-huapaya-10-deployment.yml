@@ -1,0 +1,26 @@
+# kubectl apply -f axel-huapaya-10-deployment.yml
+# kubectl delete -f axel-huapaya-10-deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: axel-huapaya-10-deployment
+  namespace: axel-huapaya-10-namespace
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: axel-huapaya-10-deployment        # Debe coincidir con las etiquetas del Service
+  template:
+    metadata:
+      labels:
+        app: axel-huapaya-10-deployment      # Debe coincidir con las etiquetas del Service
+    spec:
+      containers:
+      - name: axel-huapaya-10-container
+        image: axelhuapaya/s5-springwebflux-mongodb:1.0
+        imagePullPolicy: Always        # IfNotPresent | Always
+        envFrom:
+        - secretRef:
+            name: axel-huapaya-10-secret   # Carga todos los valores del Secret como variables de entorno
+        #- configMapRef:
+        #    name: axel-huapaya-10-configmap   # Alternativa: cargar desde el ConfigMap en vez del Secret

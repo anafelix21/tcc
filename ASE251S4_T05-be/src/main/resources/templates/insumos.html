@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Reporte de Insumos</title>
+    <style>
+        @page { size: A4 landscape; margin: 20px; }
+        body { font-family: Helvetica, Arial, sans-serif; font-size: 10px; }
+        h1 { text-align: center; color: #2e7d32; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background-color: #2e7d32; color: #ffffff; padding: 5px; border: 1px solid #999999; }
+        td { padding: 4px; border: 1px solid #999999; }
+    </style>
+</head>
+<body>
+    <h1>Agro Pacayales - Reporte de Insumos</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th><th>Descripción</th><th>Precio</th><th>Stock</th><th>Unidad</th>
+                <th>Tipo</th><th>Proveedor</th><th>Presentación</th><th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="i : ${insumos}">
+                <td th:text="${i.nombre}">-</td>
+                <td th:text="${i.descripcion}">-</td>
+                <td th:text="${i.precio}">-</td>
+                <td th:text="${i.stock}">-</td>
+                <td th:text="${i.unidadMedida}">-</td>
+                <td th:text="${i.tipoInsumo}">-</td>
+                <td th:text="${i.proveedor}">-</td>
+                <td th:text="${i.presentacion}">-</td>
+                <td th:text="${i.estado} ? 'ACTIVO' : 'INACTIVO'">-</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

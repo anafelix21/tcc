@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Reporte de Parcelas</title>
+    <style>
+        @page { size: A4 landscape; margin: 20px; }
+        body { font-family: Helvetica, Arial, sans-serif; font-size: 9px; }
+        h1 { text-align: center; color: #2e7d32; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background-color: #2e7d32; color: #ffffff; padding: 5px; border: 1px solid #999999; }
+        td { padding: 4px; border: 1px solid #999999; }
+    </style>
+</head>
+<body>
+    <h1>Agro Pacayales - Reporte de Parcelas</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th><th>Ubicación</th><th>Área (ha)</th><th>Tipo suelo</th><th>Responsable</th>
+                <th>Riego</th><th>Última siembra</th><th>Producción est.</th><th>Cultivo</th>
+                <th>En uso</th><th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="p : ${parcelas}">
+                <td th:text="${p.nombre}">-</td>
+                <td th:text="${p.ubicacion}">-</td>
+                <td th:text="${p.areaHectareas}">-</td>
+                <td th:text="${p.tipoSuelo}">-</td>
+                <td th:text="${p.responsable}">-</td>
+                <td th:text="${p.estadoRiego}">-</td>
+                <td th:text="${p.fechaUltimaSiembra}">-</td>
+                <td th:text="${p.produccionEstimada}">-</td>
+                <td th:text="${p.cultivoActual}">-</td>
+                <td th:text="${p.enUso} ? 'SI' : 'NO'">-</td>
+                <td th:text="${p.estado} ? 'ACTIVO' : 'INACTIVO'">-</td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

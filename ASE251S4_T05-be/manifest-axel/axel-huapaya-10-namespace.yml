@@ -1,0 +1,7 @@
+# kubectl create namespace axel-huapaya-10-namespace (COMANDO)
+# kubectl apply -f axel-huapaya-10-namespace.yml (yml)
+# kubectl delete -f axel-huapaya-10-namespace.yml (yml)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: axel-huapaya-10-namespace

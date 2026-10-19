@@ -1,0 +1,115 @@
+.table-container {
+  overflow-x: auto;
+  animation: slideUp 0.5s ease-out;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.data-table th,
+.data-table td {
+  padding: 16px 20px;
+  text-align: left;
+}
+
+.data-table th {
+  background: linear-gradient(135deg, #1f2937 0%, #374151 100%);
+  color: white;
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.data-table th:first-child { border-radius: 16px 0 0 0; }
+.data-table th:last-child { border-radius: 0 16px 0 0; }
+
+.data-table tbody tr {
+  transition: all 0.2s ease;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.data-table tbody tr:hover {
+  background: linear-gradient(90deg, #eff6ff 0%, #dbeafe 100%);
+  transform: scale(1.01);
+}
+
+.data-table td {
+  color: #4b5563;
+  font-size: 0.95rem;
+}
+
+.data-table td:first-child {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-edit,
+.btn-delete,
+.btn-restore {
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-edit {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+
+.btn-delete {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+}
+
+.btn-restore {
+  background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+}
+
+.btn-edit:hover,
+.btn-delete:hover,
+.btn-restore:hover {
+  transform: translateY(-3px) scale(1.05);
+}
+
+.material-icons { font-size: 20px; }
+
+.empty {
+  text-align: center;
+  color: #9ca3af;
+  padding: 60px;
+  font-size: 1.1rem;
+}
+
+.empty::before {
+  content: '🌾';
+  display: block;
+  font-size: 48px;
+  margin-bottom: 15px;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}

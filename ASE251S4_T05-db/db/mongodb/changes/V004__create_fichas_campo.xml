@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:mongodb="http://www.liquibase.org/xml/ns/mongodb"
+ xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd http://www.liquibase.org/xml/ns/mongodb https://www.liquibase.org/xml/ns/mongodb/liquibase-mongodb-latest.xsd">
+  <changeSet id="V004" author="hugo-fernandez">
+    <comment>Crear colección de fichas de campo con protocolo de certificación GlobalGAP y monitoreo de plagas embebido.</comment>
+    <mongodb:createCollection collectionName="fichas_campo">
+      <mongodb:options><![CDATA[{
+        "validator": {"$jsonSchema": {
+          "bsonType": "object",
+          "required": ["codigo_ficha", "id_parcela", "evaluador", "protocolo_certificacion", "monitoreo_plagas_evaluadas"],
+          "properties": {
+            "codigo_ficha": {"bsonType": "string"},
+            "id_parcela": {"bsonType": "string"},
+            "evaluador": {"bsonType": "string"},
+            "protocolo_certificacion": {
+              "bsonType": "object",
+              "required": ["norma", "cumplimiento_pct"],
+              "properties": {
+                "norma": {"bsonType": "string"},
+                "cumplimiento_pct": {"bsonType": ["double", "int", "decimal"]}
+              }
+            },
+            "monitoreo_plagas_evaluadas": {
+              "bsonType": "array",
+              "items": {
+                "bsonType": "object",
+                "required": ["plaga", "severidad_pct"],
+                "properties": {
+                  "plaga": {"bsonType": "string"},
+                  "severidad_pct": {"bsonType": ["double", "int", "decimal"]}
+                }
+              }
+            }
+          }
+        }},
+        "validationLevel": "strict",
+        "validationAction": "error"
+      }]]></mongodb:options>
+    </mongodb:createCollection>
+    <mongodb:createIndex collectionName="fichas_campo">
+      <mongodb:keys>{"codigo_ficha": 1}</mongodb:keys>
+      <mongodb:options>{"name": "uq_fichas_campo_codigo", "unique": true}</mongodb:options>
+    </mongodb:createIndex>
+    <rollback><mongodb:dropCollection collectionName="fichas_campo"/></rollback>
+  </changeSet>
+</databaseChangeLog>

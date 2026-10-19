@@ -1,0 +1,150 @@
+<div class="page-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <div class="page-icon"><span class="material-icons">landscape</span></div>
+      <div>
+        <h1>Gestión de Parcelas</h1>
+        <p>Administra las parcelas y sus características</p>
+      </div>
+    </div>
+    <div class="page-header__actions">
+      <app-toggle-filter [isActive]="verActivos" (onChange)="toggleActivos($event)"></app-toggle-filter>
+      
+      <button class="btn-export-pdf" (click)="exportarPdf()" [title]="verActivos ? 'Exportar activos a PDF' : 'Exportar inactivos a PDF'">
+        <span class="material-icons">picture_as_pdf</span> PDF
+      </button>
+      <button class="btn-export-excel" (click)="exportarExcel()" [title]="verActivos ? 'Exportar activos a Excel' : 'Exportar inactivos a Excel'">
+        <span class="material-icons">table_view</span> Excel
+      </button>
+
+      <div class="export-dropdown">
+        <button class="btn-export-total" type="button">
+          <span class="material-icons">download</span> Todo <span style="font-size: 10px; margin-left: 2px;">▼</span>
+        </button>
+        <div class="dropdown-content">
+          <a (click)="exportarPdfTotal()"><span class="material-icons">picture_as_pdf</span> PDF Total</a>
+          <a (click)="exportarExcelTotal()"><span class="material-icons">table_view</span> Excel Total</a>
+        </div>
+      </div>
+      <button class="btn-new" (click)="nuevaParcela()">
+        <span>+</span> Nueva Parcela
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" *ngIf="parcelas.length > 0">
+    <div class="stat-pill stat-pill--green">
+      <span class="stat-pill__icon"><span class="material-icons">landscape</span></span>
+      <div>
+        <strong>{{ parcelas.length }}</strong>
+        <span>{{ verActivos ? 'Activas' : 'Inactivas' }}</span>
+      </div>
+    </div>
+    <div class="stat-pill stat-pill--blue">
+      <span class="stat-pill__icon"><span class="material-icons">square_foot</span></span>
+      <div>
+        <strong>{{ getTotalArea().toFixed(1) }} Ha</strong>
+        <span>Área total</span>
+      </div>
+    </div>
+    <div class="stat-pill stat-pill--orange">
+      <span class="stat-pill__icon"><span class="material-icons">agriculture</span></span>
+      <div>
+        <strong>{{ getEnUso() }}</strong>
+        <span>En uso</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" *ngIf="mostrarFormulario" (click)="cancelarEdicion()">
+    <div (click)="$event.stopPropagation()" style="width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); animation: modalScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 1200;">
+      <app-parcela-form
+        [parcelaEditar]="parcelaEditar"
+        [errorServidor]="errorServidor"
+        (guardar)="guardarParcela($event)"
+        (cancelar)="cancelarEdicion()">
+      </app-parcela-form>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="parcelas.length === 0">
+    <div class="empty-state__icon"><span class="material-icons" style="font-size: inherit;">landscape</span></div>
+    <h3>No hay parcelas {{ verActivos ? 'activas' : 'inactivas' }}</h3>
+    <p *ngIf="verActivos">Registra tu primera parcela haciendo clic en "Nueva Parcela"</p>
+    <button class="btn-new" *ngIf="verActivos" (click)="nuevaParcela()">+ Nueva Parcela</button>
+  </div>
+
+  <!-- Tabla -->
+  <div class="table-card" *ngIf="parcelas.length > 0">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Ubicación</th>
+            <th>Área (Ha)</th>
+            <th>Cultivo</th>
+            <th>Responsable</th>
+            <th>Riego</th>
+            <th>En Uso</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of parcelas" [class.row--inactive]="!p.estado">
+            <td class="td-id">#{{ p.idParcela }}</td>
+            <td>
+              <div class="parcela-name">
+                <span class="parcela-dot"></span>
+                <strong>{{ p.nombre }}</strong>
+              </div>
+            </td>
+            <td class="td-secondary">{{ p.ubicacion }}</td>
+            <td>
+              <span class="area-badge">{{ p.areaHectareas }} Ha</span>
+            </td>
+            <td class="td-secondary">{{ p.cultivoActual || '—' }}</td>
+            <td class="td-secondary">{{ p.responsable }}</td>
+            <td class="td-secondary">{{ p.estadoRiego }}</td>
+            <td>
+              <span class="uso-badge" [class.uso-badge--on]="p.enUso" [class.uso-badge--off]="!p.enUso">
+                {{ p.enUso ? 'Sí' : 'No' }}
+              </span>
+            </td>
+            <td>
+              <span class="status-dot" [class.status-dot--on]="p.estado" [class.status-dot--off]="!p.estado">
+                {{ p.estado ? 'Activa' : 'Inactiva' }}
+              </span>
+            </td>
+            <td class="td-actions">
+              <button *ngIf="p.estado" class="action-btn action-btn--edit" (click)="editarParcela(p)" title="Editar"><span class="material-icons" style="font-size: 20px;">edit</span></button>
+              <button *ngIf="p.estado" class="action-btn action-btn--delete" (click)="confirmarEliminar(p.idParcela!)" title="Eliminar"><span class="material-icons" style="font-size: 20px;">delete</span></button>
+              <button *ngIf="!p.estado" class="action-btn action-btn--restore" (click)="restaurarParcela(p.idParcela!)" title="Restaurar"><span class="material-icons" style="font-size: 20px;">restore</span></button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Confirm dialog -->
+  <app-confirm-dialog
+    [isOpen]="mostrarConfirmacion"
+    title="Eliminar Parcela"
+    message="¿Estás seguro de eliminar esta parcela? El registro quedará inactivo."
+    confirmButtonText="Eliminar"
+    cancelButtonText="Cancelar"
+    [isDanger]="true"
+    (onConfirmClick)="eliminarParcela()"
+    (onCancelClick)="cancelarConfirmacion()">
+  </app-confirm-dialog>
+
+</div>
+
+

@@ -1,0 +1,12 @@
+# kubectl apply -f ana-felix-05-configmap.yml
+# kubectl delete -f ana-felix-05-configmap.yml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ana-felix-05-configmap
+  namespace: ana-felix-05-namespace
+data:
+  MONGO_DATABASE: "agropacayales_db"
+  MONGO_URI: "mongodb+srv://ani:212121ana@cluster0-asimarket.hcm4nrw.mongodb.net/?appName=Cluster0-asimarket"
+  SERVER_PORT: "8081"
+  SPRING_PROFILES_ACTIVE: "cloud"

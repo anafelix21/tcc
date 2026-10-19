@@ -1,0 +1,127 @@
+<div class="form-card">
+  <div class="form-card__header">
+    <div class="form-card__icon"><span class="material-icons" style="font-size: inherit;">inventory_2</span></div>
+    <div>
+      <h3>{{ esEdicion ? 'Editar Insumo' : 'Registrar Nuevo Insumo' }}</h3>
+      <p>{{ esEdicion ? 'Modifica los datos del insumo' : 'Completa los campos para registrar un insumo' }}</p>
+    </div>
+  </div>
+
+  <form [formGroup]="insumoForm" (ngSubmit)="onSubmit()">
+    <!-- Banner de alerta superior compacto y elegante -->
+    <div *ngIf="(submitted && insumoForm.invalid) || errorServidor" class="validation-summary-banner" style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 10px 16px; margin-bottom: 20px; border-radius: 8px; display: flex; align-items: center; gap: 8px; animation: slideDown 0.2s ease-out;">
+      <span class="material-icons" style="font-size: 18px; color: #ef4444;">error_outline</span>
+      <span style="color: #991b1b; font-size: 13px; font-weight: 600;">
+        {{ errorServidor ? errorServidor : 'Por favor, revisa y corrige los campos marcados en rojo abajo.' }}
+      </span>
+    </div>
+
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label for="nombre"><span class="label-icon"><span class="material-icons">label</span></span> Nombre *</label>
+        <input type="text" id="nombre" formControlName="nombre"
+          placeholder="Ej: Fertilizante NPK"
+          [class.input--error]="esInvalido('nombre')" />
+        <span class="error-msg" *ngIf="esInvalido('nombre')">
+          <span *ngIf="insumoForm.get('nombre')?.errors?.['required']">El nombre del insumo es obligatorio.</span>
+          <span *ngIf="insumoForm.get('nombre')?.errors?.['minlength']">Debe tener al menos 2 caracteres.</span>
+          <span *ngIf="insumoForm.get('nombre')?.errors?.['maxlength']">El nombre no puede superar los 100 caracteres.</span>
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="tipoInsumo"><span class="label-icon"><span class="material-icons">category</span></span> Tipo de Insumo *</label>
+        <select id="tipoInsumo" formControlName="tipoInsumo"
+          [class.input--error]="esInvalido('tipoInsumo')">
+          <option value="">— Seleccionar tipo —</option>
+          <option value="FERTILIZANTE">Fertilizante</option>
+          <option value="PESTICIDA">Pesticida</option>
+          <option value="HERBICIDA">Herbicida</option>
+          <option value="FUNGICIDA">Fungicida</option>
+          <option value="SEMILLA">Semilla</option>
+          <option value="OTRO">Otro</option>
+        </select>
+        <span class="error-msg" *ngIf="esInvalido('tipoInsumo')">El tipo de insumo es obligatorio.</span>
+      </div>
+
+      <div class="form-group">
+        <label for="precio"><span class="label-icon"><span class="material-icons">attach_money</span></span> Precio (S/) *</label>
+        <input type="number" id="precio" formControlName="precio"
+          placeholder="Ej: 45.50" step="0.01" min="0"
+          [class.input--error]="esInvalido('precio')" />
+        <span class="error-msg" *ngIf="esInvalido('precio')">
+          <span *ngIf="insumoForm.get('precio')?.errors?.['required']">El precio es obligatorio.</span>
+          <span *ngIf="insumoForm.get('precio')?.errors?.['min']">El precio del insumo debe ser un número positivo mayor que cero.</span>
+          <span *ngIf="insumoForm.get('precio')?.errors?.['max']">El precio no puede superar el límite de S/ 50,000.00.</span>
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="stock"><span class="label-icon"><span class="material-icons">bar_chart</span></span> Stock *</label>
+        <input type="number" id="stock" formControlName="stock"
+          placeholder="Ej: 100" min="0"
+          [class.input--error]="esInvalido('stock')" />
+        <span class="error-msg" *ngIf="esInvalido('stock')">
+          <span *ngIf="insumoForm.get('stock')?.errors?.['required']">El stock es obligatorio.</span>
+          <span *ngIf="insumoForm.get('stock')?.errors?.['min']">El stock disponible no puede ser un número negativo.</span>
+          <span *ngIf="insumoForm.get('stock')?.errors?.['max']">El stock no puede superar el límite de 1,000,000 unidades.</span>
+        </span>
+      </div>
+
+      <div class="form-group">
+        <label for="unidadMedida"><span class="label-icon"><span class="material-icons">balance</span></span> Unidad de Medida *</label>
+        <select id="unidadMedida" formControlName="unidadMedida"
+          [class.input--error]="esInvalido('unidadMedida')">
+          <option value="">— Seleccionar unidad —</option>
+          <option *ngFor="let u of unidadesPermitidas" [value]="u.value">{{ u.label }}</option>
+        </select>
+        <span class="error-msg" *ngIf="esInvalido('unidadMedida')">La unidad de medida es obligatoria.</span>
+      </div>
+
+      <div class="form-group">
+        <label for="presentacion"><span class="label-icon"><span class="material-icons">assignment</span></span> Presentación *</label>
+        <input type="text" id="presentacion" formControlName="presentacion"
+          placeholder="Ej: Bolsa 50kg, Frasco 1L"
+          [class.input--error]="esInvalido('presentacion')" />
+        <span class="error-msg" *ngIf="esInvalido('presentacion')">
+          <span *ngIf="insumoForm.get('presentacion')?.errors?.['required']">La presentación es obligatoria.</span>
+          <span *ngIf="insumoForm.get('presentacion')?.errors?.['minlength']">Debe tener al menos 2 caracteres.</span>
+          <span *ngIf="insumoForm.get('presentacion')?.errors?.['maxlength']">No puede superar los 100 caracteres.</span>
+        </span>
+      </div>
+
+      <div class="form-group form-group--full">
+        <label for="proveedor"><span class="label-icon"><span class="material-icons">factory</span></span> Proveedor *</label>
+        <input type="text" id="proveedor" formControlName="proveedor"
+          placeholder="Ej: Agroquímicos del Valle S.A."
+          [class.input--error]="esInvalido('proveedor')" />
+        <span class="error-msg" *ngIf="esInvalido('proveedor')">
+          <span *ngIf="insumoForm.get('proveedor')?.errors?.['required']">El proveedor es obligatorio.</span>
+          <span *ngIf="insumoForm.get('proveedor')?.errors?.['minlength']">Debe tener al menos 2 caracteres.</span>
+          <span *ngIf="insumoForm.get('proveedor')?.errors?.['maxlength']">No puede superar los 100 caracteres.</span>
+        </span>
+      </div>
+
+    </div>
+
+    <div class="form-group">
+      <label for="descripcion"><span class="label-icon"><span class="material-icons">notes</span></span> Descripción *</label>
+      <textarea id="descripcion" formControlName="descripcion"
+        placeholder="Descripción detallada del insumo..."
+        rows="3" [class.input--error]="esInvalido('descripcion')"></textarea>
+      <span class="error-msg" *ngIf="esInvalido('descripcion')">
+        <span *ngIf="insumoForm.get('descripcion')?.errors?.['required']">La descripción es obligatoria.</span>
+        <span *ngIf="insumoForm.get('descripcion')?.errors?.['minlength']">Debe tener al menos 5 caracteres.</span>
+        <span *ngIf="insumoForm.get('descripcion')?.errors?.['maxlength']">La descripción no puede superar los 1000 caracteres.</span>
+      </span>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn--cancel" (click)="onCancel()">Cancelar</button>
+      <button type="submit" class="btn btn--submit" [disabled]="!insumoForm.valid">
+        {{ esEdicion ? '✓ Actualizar' : '+ Registrar' }}
+      </button>
+    </div>
+  </form>
+</div>

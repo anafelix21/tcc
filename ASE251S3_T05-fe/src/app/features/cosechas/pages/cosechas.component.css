@@ -1,0 +1,115 @@
+@import "../../actividades/pages/actividades.component.css";
+
+/* ============================================================
+   COSECHAS — Solo clases propias no cubiertas por la cadena
+   de imports. Todo lo demás (form-card, form-grid, btn-save,
+   btn-cancel, table, etc.) viene de usuarios → fichas → actividades.
+   ============================================================ */
+
+/* ── stat-pill verde (no está en la cadena base) ── */
+.stat-pill--green { border-left: 4px solid #16a34a; }
+.stat-pill--green .stat-pill__icon { background: #dcfce7; color: #15803d; }
+
+/* ── action-btn info ── */
+.action-btn--info { background: #eff6ff; color: #1d4ed8; }
+.action-btn--info:hover { background: #dbeafe; transform: scale(1.1); }
+
+/* ── Banner de alerta crítica de merma ── */
+.critical-warning-banner {
+  background-color: #fee2e2;
+  border-left: 4px solid #ef4444;
+  color: #991b1b;
+  padding: 14px 18px;
+  border-radius: 8px;
+  margin: 0 28px 20px 28px;
+  font-size: 13.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.1);
+  animation: pulse 2s infinite;
+}
+
+/* ── Hint de campo ── */
+.field-hint {
+  font-size: 11.5px;
+  color: #9ca3af;
+  margin-top: 4px;
+}
+
+/* ── Filas de tabla con nivel de merma ── */
+.row-merma-critica { background: rgba(239, 68, 68, 0.04); }
+.row-merma-critica:hover { background: rgba(239, 68, 68, 0.08) !important; }
+.row-merma-aviso { background: rgba(245, 158, 11, 0.03); }
+
+/* ── Celda de kilos (input + unidad) ── */
+.kilos-cell {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.unit-kg {
+  font-size: 12px;
+  color: #9ca3af;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* ── Celda de % merma con barra visual ── */
+.merma-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 90px;
+}
+
+.merma-pct {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* Barra de merma */
+.merma-bar-track {
+  position: relative;
+  height: 5px;
+  background: #e5e7eb;
+  border-radius: 99px;
+}
+.merma-bar-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+/* Línea marcadora del límite 20% */
+.merma-limit-mark {
+  position: absolute;
+  top: -3px;
+  left: 20%;
+  width: 2px;
+  height: 11px;
+  background: #f59e0b;
+  border-radius: 1px;
+  opacity: 0.75;
+}
+
+.merma-label-critica {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #dc2626;
+}
+
+/* ── Colores de merma ── */
+.merma-ok .merma-pct       { color: #16a34a; }
+.merma-ok .merma-bar-fill  { background: #22c55e; }
+
+.merma-advertencia .merma-pct      { color: #b45309; }
+.merma-advertencia .merma-bar-fill { background: #f59e0b; }
+
+.merma-critica .merma-pct      { color: #dc2626; }
+.merma-critica .merma-bar-fill { background: #ef4444; }
+
+/* ── Tabla de detalles del modal: celdas no se comprimen ── */
+.modal-details-table th,
+.modal-details-table td {
+  white-space: nowrap;
+}

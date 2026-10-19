@@ -1,0 +1,71 @@
+name: Publish Liquibase runner
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - docker/liquibase/**
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-liquibase-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout immutable commit
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate runner tags
+        id: version
+        shell: bash
+        run: |
+          short_sha="${GITHUB_SHA::8}"
+          release_date="$(TZ=America/Lima git show -s --format=%cd --date=format-local:'%Y.%m.%d' "$GITHUB_SHA")"
+          tag="runner-v${release_date}-${short_sha}"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "Publishing $tag" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and publish amd64/arm64
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: docker/liquibase/Dockerfile
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/ase251s4-t05-db-liquibase:${{ steps.version.outputs.tag }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/ase251s4-t05-db-liquibase:runner-4.33.0
+            ${{ secrets.DOCKERHUB_USERNAME }}/ase251s4-t05-db-liquibase:runner-latest
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ steps.version.outputs.tag }}
+          cache-from: type=gha,scope=ase251s4-t05-db-liquibase
+          cache-to: type=gha,mode=max,scope=ase251s4-t05-db-liquibase
+
+      - name: Publication summary
+        run: |
+          echo "### Docker Hub" >> "$GITHUB_STEP_SUMMARY"
+          echo '- `${{ secrets.DOCKERHUB_USERNAME }}/ase251s4-t05-db-liquibase:${{ steps.version.outputs.tag }}`' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Reusable runner only; changelogs come from the checked-out commit.' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Platforms: `linux/amd64`, `linux/arm64`' >> "$GITHUB_STEP_SUMMARY"

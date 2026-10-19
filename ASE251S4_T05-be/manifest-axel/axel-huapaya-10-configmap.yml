@@ -1,0 +1,11 @@
+# kubectl apply -f axel-huapaya-10-configmap.yml
+# kubectl delete -f axel-huapaya-10-configmap.yml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: axel-huapaya-10-configmap
+  namespace: axel-huapaya-10-namespace
+data:
+  MONGO_DATABASE: "agropacayales_db"
+  MONGO_URI: "mongodb+srv://axelhuapaya_db_user:lider2021@cluster0.oyk6ogs.mongodb.net/?appName=Cluster0"
+  SERVER_PORT: "8081"

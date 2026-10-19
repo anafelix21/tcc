@@ -1,0 +1,84 @@
+# Despliegue en Kubernetes (Docker Desktop) — Hugo Fernández #07
+
+## 1. Verificar que Kubernetes de Docker Desktop esté activo
+
+```powershell
+kubectl config get-contexts
+kubectl config use-context docker-desktop
+kubectl get nodes
+```
+Debes ver el nodo `desktop-control-plane` en estado `Ready`.
+
+## 2. Ir a la carpeta de manifiestos
+
+```powershell
+cd manifest-hugo
+dir
+```
+Confirma que estén los archivos: `hugo-fernandez-07-namespace.yml`, `hugo-fernandez-07-secret.yml`, `hugo-fernandez-07-configmap.yml`, `hugo-fernandez-07-deployment.yml`, `hugo-fernandez-07-service.yml`.
+
+## 3. Aplicar los manifiestos (en este orden)
+
+```powershell
+kubectl apply -f hugo-fernandez-07-namespace.yml
+kubectl apply -f hugo-fernandez-07-secret.yml
+kubectl apply -f hugo-fernandez-07-configmap.yml
+kubectl apply -f hugo-fernandez-07-deployment.yml
+kubectl apply -f hugo-fernandez-07-service.yml
+```
+
+## 4. Poner tu namespace como el de uso por defecto (opcional, cómodo)
+
+```powershell
+kubectl config set-context --current --namespace=hugo-fernandez-07-namespace
+```
+A partir de aquí ya no necesitas escribir `-n hugo-fernandez-07-namespace` en cada comando.
+
+## 5. Verificar que todo esté corriendo
+
+```powershell
+kubectl get ns
+kubectl get all,secrets,configmaps
+kubectl get pods
+```
+Los pods deben quedar en estado `Running` (1/1) y el deployment con `2/2`. Si necesitas depurar:
+```powershell
+kubectl describe pod <nombre-del-pod>
+kubectl logs -f deployment/hugo-fernandez-07-deployment
+```
+
+## 6. Probar la API
+
+```powershell
+kubectl port-forward service/hugo-fernandez-07-service 8081:30007
+```
+En otra terminal, navegador o Swagger:
+```powershell
+curl http://localhost:8081/api/usuarios
+```
+o abre `http://localhost:8081/swagger-ui.html` en tu navegador. Debe devolver código 200 con la conexión activa a MongoDB Atlas.
+
+## 7. Comandos útiles de mantenimiento
+
+```powershell
+# Reiniciar el deployment después de cambiar un Secret/ConfigMap
+kubectl rollout restart deployment hugo-fernandez-07-deployment
+
+# Aplicar o eliminar un manifiesto puntual
+kubectl apply -f hugo-fernandez-07-secret.yml
+kubectl delete -f hugo-fernandez-07-secret.yml
+
+# Ver el namespace actualmente en uso (Windows)
+kubectl config view --minify | findstr namespace
+```
+
+## 8. Eliminar todo el despliegue cuando termines
+
+```powershell
+kubectl delete -f hugo-fernandez-07-service.yml
+kubectl delete -f hugo-fernandez-07-deployment.yml
+kubectl delete -f hugo-fernandez-07-configmap.yml
+kubectl delete -f hugo-fernandez-07-secret.yml
+kubectl delete -f hugo-fernandez-07-namespace.yml
+```
+(Borrar el namespace también elimina automáticamente todo lo que esté dentro: `kubectl delete namespace hugo-fernandez-07-namespace`).

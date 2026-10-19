@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:mongodb="http://www.liquibase.org/xml/ns/mongodb"
+ xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd http://www.liquibase.org/xml/ns/mongodb https://www.liquibase.org/xml/ns/mongodb/liquibase-mongodb-latest.xsd">
+  <changeSet id="V003" author="axel-huapaya">
+    <comment>Crear colección de cosechas con desglose de calidades exportables y control de laboratorio embebido.</comment>
+    <mongodb:createCollection collectionName="cosechas">
+      <mongodb:options><![CDATA[{
+        "validator": {"$jsonSchema": {
+          "bsonType": "object",
+          "required": ["codigo_lote", "variedad", "kilos_totales", "desgloseCalidades", "control_calidad_laboratorio"],
+          "properties": {
+            "codigo_lote": {"bsonType": "string"},
+            "variedad": {"bsonType": "string"},
+            "kilos_totales": {"bsonType": ["double", "int", "decimal"], "minimum": 0},
+            "desgloseCalidades": {
+              "bsonType": "object",
+              "required": ["cat_extra_kg", "cat_primera_kg", "descarte_kg"],
+              "properties": {
+                "cat_extra_kg": {"bsonType": ["double", "int", "decimal"]},
+                "cat_primera_kg": {"bsonType": ["double", "int", "decimal"]},
+                "descarte_kg": {"bsonType": ["double", "int", "decimal"]}
+              }
+            },
+            "control_calidad_laboratorio": {
+              "bsonType": "object",
+              "required": ["brix", "calibre_mm", "conforme_exportacion"],
+              "properties": {
+                "brix": {"bsonType": ["double", "int", "decimal"]},
+                "calibre_mm": {"bsonType": ["double", "int", "decimal"]},
+                "conforme_exportacion": {"bsonType": "bool"}
+              }
+            }
+          }
+        }},
+        "validationLevel": "strict",
+        "validationAction": "error"
+      }]]></mongodb:options>
+    </mongodb:createCollection>
+    <mongodb:createIndex collectionName="cosechas">
+      <mongodb:keys>{"codigo_lote": 1}</mongodb:keys>
+      <mongodb:options>{"name": "uq_cosechas_lote", "unique": true}</mongodb:options>
+    </mongodb:createIndex>
+    <rollback><mongodb:dropCollection collectionName="cosechas"/></rollback>
+  </changeSet>
+</databaseChangeLog>

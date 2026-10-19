@@ -1,0 +1,122 @@
+<div class="form-card">
+  <div class="form-card__header">
+    <div class="form-card__icon"><span class="material-icons" style="font-size: inherit;">grass</span></div>
+    <div>
+      <h3>{{ esEdicion ? 'Editar Cultivo' : 'Registrar Nuevo Cultivo' }}</h3>
+      <p>{{ esEdicion ? 'Modifica los datos del cultivo' : 'Completa los campos para registrar un cultivo' }}</p>
+    </div>
+  </div>
+
+  <form [formGroup]="cultivoForm" (ngSubmit)="onSubmit()">
+    <!-- Banner de alerta superior compacto y elegante -->
+    <div *ngIf="(submitted && cultivoForm.invalid) || errorServidor" class="validation-summary-banner" style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 10px 16px; margin-bottom: 20px; border-radius: 8px; display: flex; align-items: center; gap: 8px; animation: slideDown 0.2s ease-out;">
+      <span class="material-icons" style="font-size: 18px; color: #ef4444;">error_outline</span>
+      <span style="color: #991b1b; font-size: 13px; font-weight: 600;">
+        {{ errorServidor ? errorServidor : 'Por favor, revisa y corrige los campos marcados en rojo abajo.' }}
+      </span>
+    </div>
+
+    <div class="form-grid">
+
+      <!-- Parcela -->
+      <div class="form-group form-group--full">
+        <label for="parcelaId">
+          <span class="label-icon"><span class="material-icons">home</span></span> Parcela Asociada *
+        </label>
+        <select id="parcelaId" formControlName="parcelaId"
+          [class.input--error]="esInvalido('parcelaId')">
+          <option value="">— Seleccionar parcela —</option>
+          <option *ngFor="let p of parcelas" [value]="p.idParcela">
+            {{ p.nombre }} ({{ p.ubicacion }})
+          </option>
+        </select>
+        <span class="error-msg" *ngIf="esInvalido('parcelaId')">Debes seleccionar en qué parcela sembrar este cultivo.</span>
+      </div>
+
+      <!-- Nombre -->
+      <div class="form-group">
+        <label for="nombre">
+          <span class="label-icon"><span class="material-icons">eco</span></span> Nombre del Cultivo *
+        </label>
+        <input type="text" id="nombre" formControlName="nombre"
+          placeholder="Ej: Maíz Híbrido 2026"
+          [class.input--error]="esInvalido('nombre')" />
+        <span class="error-msg" *ngIf="esInvalido('nombre')">Escribe un nombre para identificar el cultivo (mínimo 3 letras).</span>
+      </div>
+
+      <!-- Tipo de Cultivo -->
+      <div class="form-group">
+        <label for="tipoCultivo">
+          <span class="label-icon"><span class="material-icons">landscape</span></span> Tipo de Cultivo *
+        </label>
+        <input type="text" id="tipoCultivo" formControlName="tipoCultivo"
+          placeholder="Ej: Maíz, Trigo, Tomate"
+          [class.input--error]="esInvalido('tipoCultivo')" />
+        <span class="error-msg" *ngIf="esInvalido('tipoCultivo')">Indica qué planta o variedad es (ejemplo: Tomate).</span>
+      </div>
+
+      <!-- Frecuencia de Riego -->
+      <div class="form-group">
+        <label for="frecuenciaRiegoDias">
+          <span class="label-icon"><span class="material-icons">water_drop</span></span> Frecuencia de Riego (días) *
+        </label>
+        <input type="number" id="frecuenciaRiegoDias" formControlName="frecuenciaRiegoDias"
+          placeholder="Ej: 7" min="1" max="365"
+          [class.input--error]="esInvalido('frecuenciaRiegoDias')" />
+        <span class="error-msg" *ngIf="esInvalido('frecuenciaRiegoDias')">Frecuencia válida requerida (1-365 días)</span>
+      </div>
+
+      <!-- Temperatura Ideal -->
+      <div class="form-group">
+        <label for="temperaturaIdeal">
+          <span class="label-icon"><span class="material-icons">device_thermostat</span></span> Temperatura Ideal (°C) *
+        </label>
+        <input type="number" id="temperaturaIdeal" formControlName="temperaturaIdeal"
+          placeholder="Ej: 25.5" step="0.1"
+          [class.input--error]="esInvalido('temperaturaIdeal')" />
+        <span class="error-msg" *ngIf="esInvalido('temperaturaIdeal')">Temperatura válida requerida</span>
+      </div>
+
+      <!-- Fecha de Siembra -->
+      <div class="form-group">
+        <label for="fechaSiembra">
+          <span class="label-icon"><span class="material-icons">calendar_today</span></span> Fecha de Siembra
+        </label>
+        <input type="date" id="fechaSiembra" formControlName="fechaSiembra" [class.input--error]="esInvalido('fechaSiembra')" />
+        <span class="error-msg" *ngIf="esInvalido('fechaSiembra')">
+          <span *ngIf="cultivoForm.get('fechaSiembra')?.hasError('fechaFutura')">La fecha de siembra no puede ser una fecha en el futuro (después de hoy).</span>
+        </span>
+      </div>
+
+      <!-- Requiere Sombra -->
+      <div class="form-group form-group--checkbox">
+        <label class="checkbox-label">
+          <input type="checkbox" formControlName="requiereSombra" />
+          <span class="checkbox-custom"></span>
+          <span class="label-icon"><span class="material-icons">wb_sunny</span></span> Requiere sombra
+        </label>
+      </div>
+
+    </div>
+
+    <!-- Observaciones -->
+    <div class="form-group">
+      <label for="observaciones">
+        <span class="label-icon"><span class="material-icons">notes</span></span> Observaciones
+      </label>
+      <textarea id="observaciones" formControlName="observaciones"
+        placeholder="Notas adicionales sobre el cultivo..."
+        rows="3"></textarea>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn--cancel" (click)="onCancel()">
+        Cancelar
+      </button>
+      <button type="submit" class="btn btn--submit"
+        [disabled]="!cultivoForm.valid">
+        <span>{{ esEdicion ? '✓ Actualizar' : '+ Registrar' }}</span>
+      </button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,43 @@
+<div class="table-container">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Ubicación</th>
+        <th>Área (Ha)</th>
+        <th>Tipo Cultivo</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (parcela of parcelas; track parcela.idParcela) {
+        <tr>
+          <td>{{ parcela.idParcela }}</td>
+          <td>{{ parcela.nombre }}</td>
+          <td>{{ parcela.ubicacion }}</td>
+          <td>{{ parcela.areaHectareas }}</td>
+          <td>{{ parcela.cultivoActual }}</td>
+          <td class="actions">
+            @if (parcela.estado) {
+              <button class="btn-edit" (click)="onEditar(parcela)">
+                <span class="material-icons">edit</span>
+              </button>
+              <button class="btn-delete" (click)="onEliminar(parcela.idParcela!)">
+                <span class="material-icons">delete</span>
+              </button>
+            } @else {
+              <button class="btn-restore" (click)="onRestaurar(parcela.idParcela!)">
+                <span class="material-icons">restore</span>
+              </button>
+            }
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="6" class="empty">No hay parcelas registradas</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

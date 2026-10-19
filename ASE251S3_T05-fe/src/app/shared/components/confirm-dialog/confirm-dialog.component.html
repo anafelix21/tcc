@@ -1,0 +1,43 @@
+<div *ngIf="isOpen" 
+  class="dialog-overlay"
+  [@fadeIn]
+  (click)="onCancel()">
+  <div 
+    class="dialog-content"
+    [class.dialog-content--danger]="isDanger"
+    [@slideIn]
+    (click)="$event.stopPropagation()">
+    
+    <div class="dialog-header">
+      <div class="header-icon">
+        <span class="material-icons">{{ isDanger ? 'report_problem' : 'help_outline' }}</span>
+      </div>
+      <div class="header-text">
+        <h2>{{ title }}</h2>
+      </div>
+      <button class="close-btn" (click)="onCancel()" aria-label="Cerrar">
+        <span class="material-icons">close</span>
+      </button>
+    </div>
+    
+    <div class="dialog-body">
+      <p>{{ message }}</p>
+    </div>
+    
+    <div class="dialog-footer">
+      <button 
+        class="btn btn--cancel" 
+        (click)="onCancel()">
+        <span class="material-icons">close</span>
+        {{ cancelButtonText }}
+      </button>
+      <button 
+        class="btn btn--confirm" 
+        [class.btn--danger]="isDanger"
+        (click)="onConfirm()">
+        <span class="material-icons">{{ isDanger ? 'delete' : 'check' }}</span>
+        {{ confirmButtonText }}
+      </button>
+    </div>
+  </div>
+</div>

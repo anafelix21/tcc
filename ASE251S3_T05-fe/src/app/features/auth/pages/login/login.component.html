@@ -1,0 +1,68 @@
+<div class="login-wrapper">
+  <!-- Capa de color decorativa -->
+  <div class="overlay"></div>
+
+  <div class="login-container">
+    <div class="glass-card">
+      <div class="login-header">
+        <div class="logo-box">
+          <span class="material-icons logo-icon">agriculture</span>
+        </div>
+        <h1>AgroPacayales</h1>
+        <p class="subtitle">Portal de Gestión Agrícola</p>
+      </div>
+
+      <form (ngSubmit)="onSubmit()" #loginForm="ngForm" class="login-form">
+        <!-- Mensaje de Error -->
+        <div class="error-alert" *ngIf="errorMessage()">
+          <span class="material-icons error-icon">error_outline</span>
+          <span class="error-text">{{ errorMessage() }}</span>
+        </div>
+
+        <!-- Input Correo -->
+        <div class="input-group">
+          <label for="correo">Correo Electrónico</label>
+          <div class="input-wrapper">
+            <span class="material-icons input-icon">email</span>
+            <input 
+              type="email" 
+              id="correo" 
+              name="correo" 
+              [(ngModel)]="correo" 
+              required 
+              placeholder="ejemplo@agropacayales.com"
+              class="form-input"
+            />
+          </div>
+        </div>
+
+        <!-- Input Contraseña -->
+        <div class="input-group">
+          <label for="password">Contraseña</label>
+          <div class="input-wrapper">
+            <span class="material-icons input-icon">lock</span>
+            <input 
+              type="password" 
+              id="password" 
+              name="password" 
+              [(ngModel)]="password" 
+              required 
+              placeholder="••••••••"
+              class="form-input"
+            />
+          </div>
+        </div>
+
+        <!-- Botón de Envío -->
+        <button 
+          type="submit" 
+          [disabled]="!loginForm.form.valid || loading()" 
+          class="btn-login"
+        >
+          <span *ngIf="!loading()">Acceder al Sistema</span>
+          <div class="spinner" *ngIf="loading()"></div>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

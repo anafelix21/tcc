@@ -1,0 +1,12 @@
+# kubectl apply -f hugo-fernandez-07-configmap.yml
+# kubectl delete -f hugo-fernandez-07-configmap.yml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: hugo-fernandez-07-configmap
+  namespace: hugo-fernandez-07-namespace
+data:
+  MONGO_DATABASE: "agropacayales_db"
+  MONGO_URI: "mongodb+srv://hugofernandez_db_user:PmHQ4BXXbNvyxo6v@cluster0.pzehdgj.mongodb.net/?appName=Cluster0"
+  SERVER_PORT: "8081"
+  SPRING_PROFILES_ACTIVE: "cloud"

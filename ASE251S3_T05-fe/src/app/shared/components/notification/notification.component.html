@@ -1,0 +1,32 @@
+<ng-container *ngIf="notification">
+  <!-- Si es de tipo Success (Éxito), mostrar la animación de check en el medio -->
+  <div *ngIf="notification.type === 'success'" class="checkmark-overlay" (click)="close()">
+    <div class="checkmark-card" (click)="$event.stopPropagation()">
+      <div class="checkmark-wrapper">
+        <svg class="checkmark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 52 52">
+          <circle class="checkmark__circle" cx="26" cy="26" r="25" fill="none"/>
+          <path class="checkmark__check" fill="none" d="M14.1 27.2l7.1 7.2 16.7-16.8"/>
+        </svg>
+      </div>
+      <p class="checkmark-message">{{ notification.message }}</p>
+      <button class="checkmark-btn" (click)="close()">Aceptar</button>
+    </div>
+  </div>
+
+  <!-- Si NO es de tipo Success, mostrar la notificación toast clásica en la esquina -->
+  <div *ngIf="notification.type !== 'success'" 
+    class="notification"
+    [ngClass]="'notification--' + notification.type"
+    [@slideIn]>
+    <div class="notification__content">
+      <span class="notification__icon">{{ getIcon() }}</span>
+      <span class="notification__message">{{ notification.message }}</span>
+    </div>
+    <button 
+      class="notification__close" 
+      (click)="close()"
+      aria-label="Cerrar notificación">
+      ×
+    </button>
+  </div>
+</ng-container>

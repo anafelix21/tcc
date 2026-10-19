@@ -1,0 +1,27 @@
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo-placeholder"><img src="icono.png" alt="Logo" class="sidebar-logo"></div>
+    <div class="header-text">
+      <span class="title" [title]="getUserName()">{{ getUserName() }}</span>
+      <span class="subtitle">{{ getUserRoleLabel() }}</span>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    @for (item of menuItems; track item.route) {
+      <a [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+        <span class="material-icons">{{ item.icon }}</span>
+        <span class="nav-label">{{ item.label }}</span>
+      </a>
+    }
+
+    <!-- Línea divisoria elegante -->
+    <hr class="nav-divider" />
+
+    <!-- Cerrar sesión forma parte de la misma lista de navegación -->
+    <a href="#" (click)="logout($event)" class="nav-item logout-item">
+      <span class="material-icons">logout</span>
+      <span class="nav-label">Cerrar sesión</span>
+    </a>
+  </nav>
+</aside>

@@ -1,0 +1,15 @@
+# kubectl apply -f ana-felix-05-service.yml
+# kubectl delete -f ana-felix-05-service.yml
+apiVersion: v1
+kind: Service
+metadata:
+  name: ana-felix-05-service
+  namespace: ana-felix-05-namespace
+spec:
+  type: NodePort      # 30000-32767
+  ports:
+  - port: 30005        # Puerto que el Service expondrá en el clúster
+    targetPort: 8081   # Coincide con SERVER_PORT del Secret/ConfigMap
+    nodePort: 30005    # Puerto asignado en el nodo físico/host
+  selector:
+    app: ana-felix-05-deployment  # Coincide con matchLabels del Deployment

@@ -1,0 +1,7 @@
+# kubectl create namespace hugo-fernandez-07-namespace (COMANDO)
+# kubectl apply -f hugo-fernandez-07-namespace.yml (yml)
+# kubectl delete -f hugo-fernandez-07-namespace.yml (yml)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: hugo-fernandez-07-namespace

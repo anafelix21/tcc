@@ -1,0 +1,109 @@
+name: Apply approved database changes
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - db/**
+      - .github/workflows/apply.yml
+  workflow_dispatch:
+    inputs:
+      confirm_apply:
+        description: Validar solamente o solicitar aplicación cloud
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: apply-shared-cloud-databases
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    outputs:
+      has_db_changes: ${{ steps.changes.outputs.has_db_changes }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Validate changelogs and immutable history
+        run: |
+          echo "QUALITY GATE: revisa archivos; no se conecta ni modifica cloud."
+          echo '$ ./tests/test-lab.sh'
+          ./tests/test-lab.sh
+
+      - name: Detect database contract changes
+        id: changes
+        shell: bash
+        run: |
+          has_db_changes=false
+          if [[ "${{ github.event_name }}" == workflow_dispatch ]]; then
+            has_db_changes=true
+          elif [[ "${{ github.event.before }}" == 0000000000000000000000000000000000000000 ]]; then
+            has_db_changes=true
+          elif ! git diff --quiet "${{ github.event.before }}" "$GITHUB_SHA" -- db/; then
+            has_db_changes=true
+          fi
+          echo "has_db_changes=$has_db_changes" >> "$GITHUB_OUTPUT"
+          echo "Database contract changed: $has_db_changes"
+          if [[ "$has_db_changes" == true ]]; then
+            echo "A protected deployment will now wait for approval."
+          else
+            echo "Workflow-only change: no cloud deployment requested."
+          fi
+
+  plan:
+    name: Plan remote pending changes (read-only)
+    if: >-
+      needs.validate.outputs.has_db_changes == 'true' &&
+      (github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && inputs.confirm_apply))
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      RUNNER_IMAGE: hugo454/ase251s4-t05-db-liquibase:runner-4.33.0
+      POSTGRES_URL: ${{ vars.POSTGRES_URL }}
+      POSTGRES_USERNAME: ${{ vars.POSTGRES_PLAN_USERNAME }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PLAN_PASSWORD }}
+      MONGODB_URL: ${{ vars.MONGODB_URL }}
+      MONGODB_USERNAME: ${{ vars.MONGODB_PLAN_USERNAME }}
+      MONGODB_PASSWORD: ${{ secrets.MONGODB_PLAN_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Calculate remote plan without applying changes
+        run: ./demo/sync-cloud.sh plan
+
+  apply:
+    if: >-
+      needs.validate.outputs.has_db_changes == 'true' &&
+      (github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && inputs.confirm_apply))
+    needs: [validate, plan]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: database-production
+    env:
+      RUNNER_IMAGE: hugo454/ase251s4-t05-db-liquibase:runner-4.33.0
+      POSTGRES_URL: ${{ vars.POSTGRES_URL }}
+      POSTGRES_USERNAME: ${{ vars.POSTGRES_APPLY_USERNAME }}
+      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_APPLY_PASSWORD }}
+      MONGODB_URL: ${{ vars.MONGODB_URL }}
+      MONGODB_USERNAME: ${{ vars.MONGODB_APPLY_USERNAME }}
+      MONGODB_PASSWORD: ${{ secrets.MONGODB_APPLY_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Synchronize approved commit and record evidence
+        env:
+          CI_APPROVED: YES
+        run: ./demo/sync-cloud.sh ci

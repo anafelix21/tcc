@@ -1,0 +1,123 @@
+@import "../../fichas-campo/pages/fichas-campo.component.css";
+
+/* Estilos de Tabla de Detalles específicos */
+.detail-section {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.detail-section__header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.btn-add-detail {
+  padding: 8px 16px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.2);
+  transition: all 0.2s;
+}
+
+.btn-add-detail:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.empty-details {
+  text-align: center;
+  padding: 20px;
+  color: #94a3b8;
+  font-size: 13px;
+  background: white;
+  border-radius: 8px;
+  border: 1px dashed #cbd5e1;
+}
+
+.details-table-wrapper {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.details-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.details-table th {
+  background: #f1f5f9;
+  padding: 10px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.details-table td {
+  padding: 8px 14px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.details-table tr:last-child td {
+  border-bottom: none;
+}
+
+.table-select {
+  padding: 6px 10px;
+  font-size: 13px;
+  width: 100%;
+}
+
+.table-input {
+  padding: 6px 10px;
+  font-size: 13px;
+  width: 100px;
+}
+
+.btn-remove-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: #fee2e2;
+  color: #ef4444;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-remove-row:hover {
+  background: #fecaca;
+  transform: scale(1.05);
+}
+
+.total-cost-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  color: #1e293b;
+  padding-top: 12px;
+  border-top: 1px solid #cbd5e1;
+}
+
+.total-cost-row strong {
+  font-size: 18px;
+  color: #1b4332;
+  font-weight: 700;
+}

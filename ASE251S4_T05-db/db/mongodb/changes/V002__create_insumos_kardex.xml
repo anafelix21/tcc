@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:mongodb="http://www.liquibase.org/xml/ns/mongodb"
+ xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd http://www.liquibase.org/xml/ns/mongodb https://www.liquibase.org/xml/ns/mongodb/liquibase-mongodb-latest.xsd">
+  <changeSet id="V002" author="ana-felix">
+    <comment>Crear catálogo NoSQL de insumos agrícolas con tabla de dosificación por cultivo embebida.</comment>
+    <mongodb:createCollection collectionName="insumos">
+      <mongodb:options><![CDATA[{
+        "validator": {"$jsonSchema": {
+          "bsonType": "object",
+          "required": ["sku", "nombre", "tipo", "stock_disponible", "unidad_medida"],
+          "properties": {
+            "sku": {"bsonType": "string"},
+            "nombre": {"bsonType": "string"},
+            "tipo": {"bsonType": "string"},
+            "stock_disponible": {"bsonType": ["double", "int", "decimal"], "minimum": 0},
+            "unidad_medida": {"bsonType": "string"},
+            "tabla_dosificacion_cultivo": {
+              "bsonType": "array",
+              "items": {
+                "bsonType": "object",
+                "required": ["cultivo", "dosis_por_ha"],
+                "properties": {
+                  "cultivo": {"bsonType": "string"},
+                  "dosis_por_ha": {"bsonType": ["double", "int", "decimal"]}
+                }
+              }
+            }
+          }
+        }},
+        "validationLevel": "strict",
+        "validationAction": "error"
+      }]]></mongodb:options>
+    </mongodb:createCollection>
+    <mongodb:createIndex collectionName="insumos">
+      <mongodb:keys>{"sku": 1}</mongodb:keys>
+      <mongodb:options>{"name": "uq_insumos_sku", "unique": true}</mongodb:options>
+    </mongodb:createIndex>
+    <rollback><mongodb:dropCollection collectionName="insumos"/></rollback>
+  </changeSet>
+</databaseChangeLog>

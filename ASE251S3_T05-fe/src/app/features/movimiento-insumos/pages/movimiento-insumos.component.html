@@ -1,0 +1,255 @@
+<div class="page-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <div class="page-icon"><span class="material-icons">swap_horiz</span></div>
+      <div>
+        <h1>Kardex e Historial de Inventario</h1>
+        <p>Controla las entradas, salidas y ajustes de stock de tus insumos agrícolas</p>
+      </div>
+    </div>
+    <div class="page-header__actions">
+      <button class="btn-new" (click)="nuevoMovimiento()">
+        <span>+</span> Registrar Transacción
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" *ngIf="movimientos.length > 0">
+    <div class="stat-pill stat-pill--purple">
+      <span class="stat-pill__icon"><span class="material-icons">inventory</span></span>
+      <div>
+        <strong>{{ movimientos.length }}</strong>
+        <span>Movimientos Totales</span>
+      </div>
+    </div>
+    <div class="stat-pill stat-pill--blue">
+      <span class="stat-pill__icon"><span class="material-icons">add_box</span></span>
+      <div>
+        <strong>{{ getTotalEntradas() }}</strong>
+        <span>Entradas de Stock</span>
+      </div>
+    </div>
+    <div class="stat-pill stat-pill--red">
+      <span class="stat-pill__icon"><span class="material-icons">indeterminate_check_box</span></span>
+      <div>
+        <strong>{{ getTotalSalidas() }}</strong>
+        <span>Salidas / Consumos</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div class="modal-overlay" *ngIf="mostrarFormulario" (click)="cancelarEdicion()">
+    <div class="form-card" (click)="$event.stopPropagation()" style="width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); animation: modalScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 1200; margin-bottom: 0;">
+      <div class="form-card__header">
+        <h2>Registrar Transacción de Stock</h2>
+        <p>Ajusta el inventario por compras, consumos, mermas o devoluciones</p>
+      </div>
+
+      <form (ngSubmit)="guardarMovimiento()" #movForm="ngForm" class="form-grid" style="padding: 24px 28px;">
+        <!-- Banner de alerta superior compacto y elegante -->
+        <div *ngIf="movForm.invalid && movForm.submitted" class="validation-summary-banner" style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 10px 16px; grid-column: span 2; margin-bottom: 20px; border-radius: 8px; display: flex; align-items: center; gap: 8px; animation: slideDown 0.2s ease-out;">
+          <span class="material-icons" style="font-size: 18px; color: #ef4444;">error_outline</span>
+          <span style="color: #991b1b; font-size: 13px; font-weight: 600;">Por favor, revisa y corrige los campos obligatorios marcados en rojo abajo.</span>
+        </div>
+        <!-- Insumo -->
+        <div class="form-group">
+          <label for="insumo">Insumo Agrícola *</label>
+          <select id="insumo" name="idInsumo" [(ngModel)]="formData.idInsumo" (change)="onInsumoChange(formData.idInsumo)" required class="form-control">
+            <option *ngFor="let i of insumos" [value]="i.idInsumo">{{ i.nombre }} (Disponible: {{ i.stock }} {{ i.unidadMedida }})</option>
+          </select>
+        </div>
+
+        <!-- Registrador -->
+        <div class="form-group">
+          <label for="usuario">Registrado Por *</label>
+          <select id="usuario" name="idUsuario" [(ngModel)]="formData.idUsuario" required class="form-control">
+            <option *ngFor="let u of usuarios" [value]="u.idUsuario">{{ u.nombre }} {{ u.apellido }}</option>
+          </select>
+        </div>
+
+        <!-- Tipo de Movimiento -->
+        <div class="form-group">
+          <label for="tipoMov">Tipo de Transacción *</label>
+          <select id="tipoMov" name="tipoMovimiento" [(ngModel)]="formData.tipoMovimiento" (change)="onTipoChange()" required class="form-control">
+            <option value="ENTRADA">ENTRADA (Aumento de stock)</option>
+            <option value="SALIDA">SALIDA (Consumo, merma, pérdida)</option>
+          </select>
+        </div>
+
+        <!-- Motivo -->
+        <div class="form-group">
+          <label for="motivo">Motivo *</label>
+          <select id="motivo" name="motivo" [(ngModel)]="formData.motivo" required class="form-control">
+            <option *ngFor="let m of getMotivosDisponibles()" [value]="m">{{ m }}</option>
+          </select>
+        </div>
+
+        <!-- Cantidad -->
+        <div class="form-group">
+          <label for="cant">Cantidad *</label>
+          <input type="number" id="cant" name="cantidad" [(ngModel)]="formData.cantidad" min="1" required class="form-control" placeholder="Ej. 10">
+        </div>
+
+        <!-- Precio Unitario -->
+        <div class="form-group">
+          <label for="precio">Precio Unitario (S/.) *</label>
+          <input type="number" id="precio" name="precioUnitario" [(ngModel)]="formData.precioUnitario" min="0" step="0.01" required class="form-control" placeholder="Ej. 45.50">
+        </div>
+
+        <!-- Referencia -->
+        <div class="form-group">
+          <label for="ref">Documento de Referencia</label>
+          <input type="text" id="ref" name="referencia" [(ngModel)]="formData.referencia" class="form-control" placeholder="Ej. FAC-001-2025, ACT-003">
+        </div>
+
+        <!-- Observación -->
+        <div class="form-group">
+          <label for="obs">Observaciones / Detalles</label>
+          <input type="text" id="obs" name="observacion" [(ngModel)]="formData.observacion" class="form-control" placeholder="Ej. Reposición de campaña, pérdida por fecha vencida...">
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions col-span-2">
+          <button type="button" class="btn-cancel" (click)="cancelarEdicion()">Cancelar</button>
+          <button type="submit" class="btn-save" [disabled]="!movForm.form.valid">Confirmar Transacción</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="movimientos.length === 0">
+    <div class="empty-state__icon"><span class="material-icons" style="font-size: inherit;">swap_horiz</span></div>
+    <h3>No hay transacciones registradas</h3>
+    <p>Registra movimientos para comenzar a auditar el stock de insumos</p>
+    <button class="btn-new" (click)="nuevoMovimiento()">
+      + Registrar Movimiento
+    </button>
+  </div>
+
+  <!-- Tabla de Movimientos -->
+  <div class="table-card" *ngIf="movimientos.length > 0">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Insumo</th>
+            <th>Tipo</th>
+            <th>Cantidad</th>
+            <th>Subtotal</th>
+            <th style="text-align: center;">Detalle</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let m of movimientos">
+            <td class="td-id">#{{ m.idMovimiento }}</td>
+            <td class="td-date">{{ m.fechaMovimiento }}</td>
+            <td><strong>{{ m.nombreInsumo }}</strong></td>
+            <td>
+              <span class="badge" [ngClass]="m.tipoMovimiento === 'ENTRADA' ? 'badge--green' : 'badge--red'">
+                {{ m.tipoMovimiento }}
+              </span>
+            </td>
+            <td>{{ m.cantidad }}</td>
+            <td><strong>S/. {{ m.subtotal | number:'1.2-2' }}</strong></td>
+            <td style="text-align: center;">
+              <button class="action-btn action-btn--info" (click)="verDetalles(m)" title="Ver detalles de transacción">
+                <span class="material-icons">visibility</span>
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal de Detalles -->
+  <div class="modal-overlay" *ngIf="movimientoSeleccionado" (click)="cerrarDetalles()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 style="display: flex; align-items: center; gap: 8px;">
+          <span class="material-icons">receipt_long</span>
+          Detalle de Transacción
+        </h2>
+        <button class="modal-close-btn" (click)="cerrarDetalles()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-meta-grid">
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">ID Transacción</span>
+            <span class="modal-meta-value">#{{ movimientoSeleccionado.idMovimiento }}</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Fecha de Registro</span>
+            <span class="modal-meta-value">{{ movimientoSeleccionado.fechaMovimiento }}</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Insumo Agrícola</span>
+            <span class="modal-meta-value">{{ movimientoSeleccionado.nombreInsumo }}</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Tipo de Movimiento</span>
+            <span class="modal-meta-value">
+              <span class="badge" [ngClass]="movimientoSeleccionado.tipoMovimiento === 'ENTRADA' ? 'badge--green' : 'badge--red'" style="display: inline-block;">
+                {{ movimientoSeleccionado.tipoMovimiento }}
+              </span>
+            </span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Motivo detallado</span>
+            <span class="modal-meta-value">
+              <span class="badge badge--gray">{{ movimientoSeleccionado.motivo }}</span>
+            </span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Documento de Referencia</span>
+            <span class="modal-meta-value" style="font-family: monospace; font-size: 13px; font-weight: 700; color: var(--primary-light);">{{ movimientoSeleccionado.referencia || 'Sin Referencia' }}</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Cantidad Transada</span>
+            <span class="modal-meta-value">{{ movimientoSeleccionado.cantidad }}</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Precio Unitario</span>
+            <span class="modal-meta-value">S/. {{ movimientoSeleccionado.precioUnitario | number:'1.2-2' }}</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Subtotal Monetario</span>
+            <span class="modal-meta-value" style="font-size: 15px; font-weight: 700;">S/. {{ movimientoSeleccionado.subtotal | number:'1.2-2' }}</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Usuario Auditor</span>
+            <span class="modal-meta-value">{{ movimientoSeleccionado.nombreUsuario }}</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Stock Previo al Ajuste</span>
+            <span class="modal-meta-value">{{ movimientoSeleccionado.stockAnterior }}</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Stock Posterior al Ajuste</span>
+            <span class="modal-meta-value" style="color: #10b981; font-weight: 700;">{{ movimientoSeleccionado.stockNuevo }}</span>
+          </div>
+        </div>
+        
+        <div style="border-top: 1px solid var(--border); padding-top: 16px; margin-top: 16px;">
+          <span class="modal-meta-label" style="display: block; margin-bottom: 6px;">Observaciones / Notas de Auditoría</span>
+          <p style="margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.5; font-style: italic;">
+            {{ movimientoSeleccionado.observacion || 'Ninguna observación registrada para este movimiento.' }}
+          </p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn-close" (click)="cerrarDetalles()">Cerrar Auditoría</button>
+      </div>
+    </div>
+  </div>
+
+</div>

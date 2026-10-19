@@ -1,0 +1,28 @@
+# kubectl apply -f hugo-fernandez-07-deployment.yml
+# kubectl delete -f hugo-fernandez-07-deployment.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hugo-fernandez-07-deployment
+  namespace: hugo-fernandez-07-namespace
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: hugo-fernandez-07-deployment        # Debe coincidir con las etiquetas del Service
+  template:
+    metadata:
+      labels:
+        app: hugo-fernandez-07-deployment      # Debe coincidir con las etiquetas del Service
+    spec:
+      containers:
+      - name: hugo-fernandez-07-container
+        image: hugo454/s5-springwebflux-mongodb:1.0
+        imagePullPolicy: IfNotPresent          # IfNotPresent (usa imagen local) | Always (descarga de Docker Hub)
+        ports:
+        - containerPort: 8081
+        envFrom:
+        - secretRef:
+            name: hugo-fernandez-07-secret     # Carga todos los valores del Secret como variables de entorno
+        #- configMapRef:
+        #    name: hugo-fernandez-07-configmap # Alternativa: cargar desde el ConfigMap en vez del Secret

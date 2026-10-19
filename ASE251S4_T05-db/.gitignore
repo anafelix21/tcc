@@ -1,0 +1,13 @@
+.env
+.env.local
+*.log
+.DS_Store
+Thumbs.db
+target/
+**/target/
+
+# Documentos locales de entrega académica (informes y guías de video para Google Docs)
+*.docx
+docs/INFORME_TECNICO*
+docs/GUIA_VIDEO*
+docs/build_docx_documents.py

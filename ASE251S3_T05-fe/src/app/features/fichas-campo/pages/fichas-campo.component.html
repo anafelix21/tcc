@@ -1,0 +1,282 @@
+<div class="page-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="page-header__left">
+      <div class="page-icon"><span class="material-icons">assignment</span></div>
+      <div>
+        <h1>Diario Técnico / Fichas de Campo</h1>
+        <p>Registra el desarrollo, clima, riego e incidencias de tus cultivos en tiempo real</p>
+      </div>
+    </div>
+    <div class="page-header__actions">
+      <app-toggle-filter [isActive]="verActivos" (onChange)="toggleActivos($event)"></app-toggle-filter>
+      <button class="btn-new" (click)="nuevaFicha()">
+        <span>+</span> Nueva Ficha
+      </button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" *ngIf="mostrarFormulario" (click)="cancelarEdicion()">
+    <div class="form-card" (click)="$event.stopPropagation()" style="width: 90%; max-width: 800px; max-height: 90vh; overflow-y: auto; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); animation: modalScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 1200; margin-bottom: 0;">
+      <div class="form-card__header">
+        <h2>{{ fichaEditar ? 'Editar Ficha de Campo' : 'Nueva Ficha de Campo' }}</h2>
+        <p>Registra las observaciones y parámetros actuales del cultivo</p>
+      </div>
+
+      <form (ngSubmit)="guardarFicha()" #fichaForm="ngForm" class="form-grid" style="padding: 24px 28px;">
+        <!-- Banner de alerta superior compacto y elegante -->
+        <div *ngIf="fichaForm.invalid && fichaForm.submitted" class="validation-summary-banner" style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 10px 16px; grid-column: span 2; margin-bottom: 20px; border-radius: 8px; display: flex; align-items: center; gap: 8px; animation: slideDown 0.2s ease-out;">
+          <span class="material-icons" style="font-size: 18px; color: #ef4444;">error_outline</span>
+          <span style="color: #991b1b; font-size: 13px; font-weight: 600;">Por favor, revisa y corrige los campos obligatorios marcados en rojo abajo.</span>
+        </div>
+        <!-- Cultivo -->
+        <div class="form-group">
+          <label for="cultivo">Cultivo *</label>
+          <select id="cultivo" name="idCultivo" [(ngModel)]="formData.idCultivo" required class="form-control">
+            <option *ngFor="let c of cultivos" [value]="c.idCultivo">{{ c.nombre }} ({{ c.tipoCultivo }})</option>
+          </select>
+        </div>
+
+        <!-- Técnico / Registrador -->
+        <div class="form-group">
+          <label for="usuario">Registrado Por (Usuario) *</label>
+          <select id="usuario" name="idUsuario" [(ngModel)]="formData.idUsuario" required class="form-control">
+            <option *ngFor="let u of usuarios" [value]="u.idUsuario">{{ u.nombre }} {{ u.apellido }} ({{ u.rol }})</option>
+          </select>
+        </div>
+
+        <!-- Etapa Fenológica -->
+        <div class="form-group">
+          <label for="etapa">Etapa Fenológica *</label>
+          <select id="etapa" name="etapaFenologica" [(ngModel)]="formData.etapaFenologica" required class="form-control">
+            <option *ngFor="let et of etapas" [value]="et">{{ et }}</option>
+          </select>
+        </div>
+
+        <!-- Clima -->
+        <div class="form-group">
+          <label for="clima">Condición del Clima *</label>
+          <select id="clima" name="condicionClima" [(ngModel)]="formData.condicionClima" required class="form-control">
+            <option *ngFor="let cl of climas" [value]="cl">{{ cl }}</option>
+          </select>
+        </div>
+
+        <!-- Temperatura -->
+        <div class="form-group">
+          <label for="temp">Temperatura Amb. (°C)</label>
+          <input type="number" id="temp" name="temperaturaAmb" [(ngModel)]="formData.temperaturaAmb" class="form-control" placeholder="Ej. 24.5" step="0.1">
+        </div>
+
+        <!-- Humedad -->
+        <div class="form-group">
+          <label for="humedad">Humedad Relativa (%)</label>
+          <input type="number" id="humedad" name="humedadRelativa" [(ngModel)]="formData.humedadRelativa" class="form-control" placeholder="Ej. 65" step="0.1">
+        </div>
+
+        <!-- Estado Cultivo -->
+        <div class="form-group">
+          <label for="estadoCult">Estado del Cultivo *</label>
+          <select id="estadoCult" name="estadoCultivo" [(ngModel)]="formData.estadoCultivo" required class="form-control">
+            <option *ngFor="let es of estados" [value]="es">{{ es }}</option>
+          </select>
+        </div>
+
+        <!-- Checks -->
+        <div class="form-group checkbox-group" style="display: flex; gap: 20px; align-items: center; padding-top: 25px;">
+          <label class="checkbox-container">
+            <input type="checkbox" name="necesitaRiego" [(ngModel)]="formData.necesitaRiego">
+            <span class="checkmark"></span>
+            ¿Necesita Riego?
+          </label>
+          <label class="checkbox-container">
+            <input type="checkbox" name="necesitaFumigacion" [(ngModel)]="formData.necesitaFumigacion">
+            <span class="checkmark"></span>
+            ¿Necesita Fumigación?
+          </label>
+        </div>
+
+        <!-- Diagnóstico -->
+        <div class="form-group col-span-2">
+          <label for="diag">Diagnóstico / Observación</label>
+          <textarea id="diag" name="diagnostico" [(ngModel)]="formData.diagnostico" class="form-control" rows="3" placeholder="Describe síntomas de plagas, deficiencias o desarrollo..."></textarea>
+        </div>
+
+        <!-- Acciones -->
+        <div class="form-group">
+          <label for="accionT">Acción Tomada</label>
+          <textarea id="accionT" name="accionTomada" [(ngModel)]="formData.accionTomada" class="form-control" rows="2" placeholder="Ej. Se aplicó riego ligero o fertilización..."></textarea>
+        </div>
+        <div class="form-group">
+          <label for="accionP">Acción Pendiente</label>
+          <textarea id="accionP" name="accionPendiente" [(ngModel)]="formData.accionPendiente" class="form-control" rows="2" placeholder="Ej. Monitorear humedad en 48 horas..."></textarea>
+        </div>
+
+        <!-- Actions -->
+        <div class="form-actions col-span-2">
+          <button type="button" class="btn-cancel" (click)="cancelarEdicion()">Cancelar</button>
+          <button type="submit" class="btn-save" [disabled]="!fichaForm.form.valid">Guardar Ficha</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="fichas.length === 0">
+    <div class="empty-state__icon"><span class="material-icons" style="font-size: inherit;">assignment</span></div>
+    <h3>No hay fichas registradas {{ verActivos ? 'activas' : 'inactivas' }}</h3>
+    <p>Registra las observaciones y parámetros actuales de tus cultivos</p>
+    <button class="btn-new" *ngIf="verActivos" (click)="nuevaFicha()">
+      + Crear Ficha
+    </button>
+  </div>
+
+  <!-- Tabla de Fichas -->
+  <div class="table-card" *ngIf="fichas.length > 0">
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Cultivo</th>
+            <th>Etapa</th>
+            <th>Estado Cultivo</th>
+            <th style="text-align: center;">Detalle</th>
+            <th style="text-align: right; padding-right: 24px;">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let f of fichas" [class.row--inactive]="!f.estado">
+            <td class="td-id">#{{ f.idFicha }}</td>
+            <td class="td-date">{{ f.fechaRegistro }}</td>
+            <td><strong>{{ f.nombreCultivo }}</strong></td>
+            <td><span class="badge badge--gray">{{ f.etapaFenologica }}</span></td>
+            <td>
+              <span class="badge" [ngClass]="getEstadoClase(f.estadoCultivo)">{{ f.estadoCultivo }}</span>
+            </td>
+            <td style="text-align: center;">
+              <button class="action-btn action-btn--info" (click)="verDetalles(f)" title="Ver ficha completa">
+                <span class="material-icons">visibility</span>
+              </button>
+            </td>
+            <td class="td-actions" style="text-align: right; padding-right: 24px;">
+              <ng-container *ngIf="f.estado">
+                <button class="action-btn action-btn--edit" (click)="editarFicha(f)" title="Editar">
+                  <span class="material-icons">edit</span>
+                </button>
+                <button class="action-btn action-btn--delete" (click)="confirmarEliminar(f.idFicha!)" title="Eliminar">
+                  <span class="material-icons">delete</span>
+                </button>
+              </ng-container>
+              <ng-container *ngIf="!f.estado">
+                <button class="action-btn action-btn--restore" (click)="restaurarFicha(f.idFicha!)" title="Restaurar">
+                  <span class="material-icons">restore</span>
+                </button>
+              </ng-container>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal de Detalles -->
+  <div class="modal-overlay" *ngIf="fichaSeleccionada" (click)="cerrarDetalles()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2 style="display: flex; align-items: center; gap: 8px;">
+          <span class="material-icons">assignment</span>
+          Ficha de Campo #{{ fichaSeleccionada.idFicha }}
+        </h2>
+        <button class="modal-close-btn" (click)="cerrarDetalles()">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-meta-grid">
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Cultivo</span>
+            <span class="modal-meta-value">{{ fichaSeleccionada.nombreCultivo }}</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Fecha de Registro</span>
+            <span class="modal-meta-value">{{ fichaSeleccionada.fechaRegistro }}</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Registrado Por</span>
+            <span class="modal-meta-value">{{ fichaSeleccionada.nombreUsuario }}</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Etapa Fenológica</span>
+            <span class="modal-meta-value">{{ fichaSeleccionada.etapaFenologica }}</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Clima / Temperatura</span>
+            <span class="modal-meta-value">{{ fichaSeleccionada.condicionClima }} ({{ fichaSeleccionada.temperaturaAmb }}°C)</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Humedad Relativa</span>
+            <span class="modal-meta-value">{{ fichaSeleccionada.humedadRelativa }}%</span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Estado de Cultivo</span>
+            <span class="modal-meta-value">
+              <span class="badge" [ngClass]="getEstadoClase(fichaSeleccionada.estadoCultivo)">
+                {{ fichaSeleccionada.estadoCultivo }}
+              </span>
+            </span>
+          </div>
+          <div class="modal-meta-item">
+            <span class="modal-meta-label">Alertas / Requerimientos</span>
+            <span class="modal-meta-value">
+              <div style="display: flex; gap: 4px;">
+                <span class="badge badge--blue" *ngIf="fichaSeleccionada.necesitaRiego">Riego</span>
+                <span class="badge badge--red" *ngIf="fichaSeleccionada.necesitaFumigacion">Fumigar</span>
+                <span *ngIf="!fichaSeleccionada.necesitaRiego && !fichaSeleccionada.necesitaFumigacion" style="color:var(--text-secondary); font-size:13px; font-weight:600;">Ninguna</span>
+              </div>
+            </span>
+          </div>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 16px; margin-top: 16px;">
+          <span class="modal-meta-label" style="display: block; margin-bottom: 6px;">Diagnóstico / Observación</span>
+          <p style="margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.5; font-style: italic;">
+            {{ fichaSeleccionada.diagnostico || 'Ninguna observación registrada.' }}
+          </p>
+        </div>
+
+        <div style="border-top: 1px solid var(--border); padding-top: 16px; margin-top: 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div>
+            <span class="modal-meta-label" style="display: block; margin-bottom: 6px;">Acción Tomada</span>
+            <p style="margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+              {{ fichaSeleccionada.accionTomada || 'Ninguna' }}
+            </p>
+          </div>
+          <div>
+            <span class="modal-meta-label" style="display: block; margin-bottom: 6px;">Acción Pendiente</span>
+            <p style="margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.5;">
+              {{ fichaSeleccionada.accionPendiente || 'Ninguna' }}
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="modal-btn-close" (click)="cerrarDetalles()">Cerrar Ficha</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm dialog -->
+  <app-confirm-dialog
+    [isOpen]="mostrarConfirmacion"
+    title="Desactivar Ficha"
+    message="¿Estás seguro de desactivar esta ficha de campo? El registro quedará inactivo."
+    confirmButtonText="Desactivar"
+    cancelButtonText="Cancelar"
+    [isDanger]="true"
+    (onConfirmClick)="eliminarFicha()"
+    (onCancelClick)="cancelarConfirmacion()">
+  </app-confirm-dialog>
+
+</div>

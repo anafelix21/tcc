@@ -1,0 +1,416 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  /* Brand Colors - Agricultural Palette */
+  --primary: #1b4332;       /* Verde Bosque Profundo */
+  --primary-light: #2d6a4f; /* Verde Medio */
+  --accent: #40916c;        /* Verde Hoja */
+  --accent-soft: #d8f3dc;   /* Menta suave */
+  
+  /* Neutral Colors */
+  --bg-main: #f1f5f9;       /* Gris azulado muy claro */
+  --bg-sidebar: #1b4332;
+  --bg-card: #ffffff;
+  
+  /* Text Colors */
+  --text-primary: #0f172a;  /* Slate 900 */
+  --text-secondary: #475569; /* Slate 600 */
+  --text-muted: #94a3b8;    /* Slate 400 */
+  
+  /* Status Colors */
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --info: #3b82f6;
+
+  /* UI Elements */
+  --border: #e2e8f0;
+  --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --radius: 16px;
+  --transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body {
+  font-family: 'Outfit', 'Inter', sans-serif; /* Outfit gives a more premium feel */
+  background: var(--bg-main);
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+.main-content {
+  flex: 1;
+  background: var(--bg-main);
+  padding: 30px;
+  overflow-y: auto;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary-light);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--primary);
+}
+
+/* ── Estado tabs (global, usado en todos los módulos) ── */
+.estado-tabs {
+  display: flex;
+  background: #f3f4f6;
+  border-radius: 10px;
+  padding: 4px;
+  gap: 2px;
+}
+
+.estado-tab {
+  padding: 7px 16px;
+  border: none;
+  border-radius: 7px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  background: transparent;
+  color: #6b7280;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.estado-tab:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+/* Tab activo — verde */
+.estado-tab--active {
+  background: white;
+  color: #065f46;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+/* Tab inactivos — cuando está seleccionado */
+.estado-tab--inactive {
+  background: white;
+  color: #991b1b;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+/* ── Modal de Detalles Transaccionales ── */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.4); /* Slate 900 soft overlay */
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  animation: modalFadeIn 0.25s ease-out;
+}
+
+.modal-content {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  width: 90%;
+  max-width: 600px;
+  max-height: 85vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: modalScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 1px solid var(--border);
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: white;
+}
+
+.modal-header h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.modal-close-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: white;
+  transition: var(--transition);
+}
+
+.modal-close-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
+}
+
+.modal-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  background: #f8fafc;
+}
+
+.modal-btn-close {
+  background-color: var(--text-secondary);
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.modal-btn-close:hover {
+  background-color: var(--text-primary);
+  transform: translateY(-1px);
+}
+
+/* Modal details list / tables */
+.modal-details-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 8px;
+}
+
+.modal-details-table th {
+  text-align: left;
+  padding: 12px;
+  background-color: #f1f5f9;
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 13px;
+  border-bottom: 2px solid var(--border);
+}
+
+.modal-details-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.modal-details-table tr:last-child td {
+  border-bottom: none;
+}
+
+.modal-meta-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 24px;
+  background: #f8fafc;
+  padding: 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.modal-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modal-meta-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.modal-meta-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modalScaleIn {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.action-btn--info {
+  background: #ede9fe !important;
+  color: #7c3aed !important;
+}
+
+.action-btn--info:hover {
+  background: #7c3aed !important;
+  color: white !important;
+  transform: scale(1.1);
+}
+
+.badge--warning {
+  background: #fef3c7 !important;
+  color: #92400e !important;
+}
+
+/* ── Dropdown de Exportación ── */
+.export-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.btn-export-total {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #475569; /* Slate 600 */
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(71, 85, 105, 0.2);
+  transition: all 0.2s ease-in-out;
+}
+
+.btn-export-total:hover {
+  background: #334155; /* Slate 700 */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(71, 85, 105, 0.3);
+}
+
+.dropdown-content {
+  display: none;
+  position: absolute;
+  right: 0;
+  background-color: #ffffff;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.15);
+  border-radius: 10px;
+  z-index: 100;
+  overflow: hidden;
+  margin-top: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.dropdown-content a {
+  color: #334155;
+  padding: 10px 16px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.dropdown-content a:hover {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+.dropdown-content a .material-icons {
+  font-size: 18px;
+}
+
+/* Mostrar dropdown al pasar el mouse o hover */
+.export-dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Forzar tamaño de icono limpio y elegante para botones de acción en tablas */
+.action-btn .material-icons {
+  font-size: 16px !important;
+}
+

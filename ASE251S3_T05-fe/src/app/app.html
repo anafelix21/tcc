@@ -1,0 +1,7 @@
+<div class="app-container" [class.no-sidebar]="!authService.isAuthenticated()">
+  <app-sidebar *ngIf="authService.isAuthenticated()"></app-sidebar>
+  <main class="main-content">
+    <router-outlet />
+  </main>
+  <app-notification></app-notification>
+</div>

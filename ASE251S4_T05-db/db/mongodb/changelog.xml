@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:mongodb="http://www.liquibase.org/xml/ns/mongodb"
+ xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd http://www.liquibase.org/xml/ns/mongodb https://www.liquibase.org/xml/ns/mongodb/liquibase-mongodb-latest.xsd">
+  <include file="changes/V001__create_cultivo_parcela.xml" relativeToChangelogFile="true"/>
+  <include file="changes/V002__create_insumos_kardex.xml" relativeToChangelogFile="true"/>
+  <include file="changes/V003__create_cosechas_calidad.xml" relativeToChangelogFile="true"/>
+  <include file="changes/V004__create_fichas_campo.xml" relativeToChangelogFile="true"/>
+  <include file="changes/V005__create_auditoria_labores.xml" relativeToChangelogFile="true"/>
+</databaseChangeLog>

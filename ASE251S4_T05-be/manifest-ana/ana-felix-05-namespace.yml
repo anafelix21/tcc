@@ -1,0 +1,7 @@
+# kubectl create namespace ana-felix-05-namespace (COMANDO)
+# kubectl apply -f ana-felix-05-namespace.yml (yml)
+# kubectl delete -f ana-felix-05-namespace.yml (yml)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ana-felix-05-namespace

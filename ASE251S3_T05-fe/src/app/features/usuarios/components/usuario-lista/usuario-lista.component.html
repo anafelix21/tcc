@@ -1,0 +1,43 @@
+<div class="table-container">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre Completo</th>
+        <th>Correo</th>
+        <th>Rol</th>
+        <th>Fecha Contratación</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (usuario of usuarios; track usuario.idUsuario) {
+        <tr>
+          <td>{{ usuario.idUsuario }}</td>
+          <td>{{ usuario.nombre }} {{ usuario.apellido }}</td>
+          <td>{{ usuario.correo }}</td>
+          <td>{{ usuario.rol }}</td>
+          <td>{{ usuario.fechaContratacion }}</td>
+          <td class="actions">
+            @if (usuario.estado) {
+              <button class="btn-edit" (click)="onEditar(usuario)">
+                <span class="material-icons">edit</span>
+              </button>
+              <button class="btn-delete" (click)="onEliminar(usuario.idUsuario!)">
+                <span class="material-icons">delete</span>
+              </button>
+            } @else {
+              <button class="btn-restore" (click)="onRestaurar(usuario.idUsuario!)">
+                <span class="material-icons">restore</span>
+              </button>
+            }
+          </td>
+        </tr>
+      } @empty {
+        <tr>
+          <td colspan="6" class="empty">No hay usuarios registrados</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

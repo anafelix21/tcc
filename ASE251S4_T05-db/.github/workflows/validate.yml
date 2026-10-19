@@ -1,0 +1,40 @@
+name: Validate Agro Pacayales database-as-code
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate Bash and changelog conventions
+        run: |
+          echo "QUALITY GATE ONLY: no cloud credentials, no validate remoto, no update."
+          echo '$ ./tests/test-lab.sh'
+          ./tests/test-lab.sh
+          echo "### Quality gate" >> "$GITHUB_STEP_SUMMARY"
+          echo "Validated Bash, VNNN sequence, engine parity, rollback declarations and generated checker manifest. No database was contacted." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Protect published changesets in pull requests
+        if: github.event_name == 'pull_request'
+        run: ./tests/check-release-diff.sh "${{ github.event.pull_request.base.sha }}"
+
+      - name: Protect published changesets in direct pushes
+        if: github.event_name == 'push' && github.event.before != '0000000000000000000000000000000000000000'
+        run: ./tests/check-release-diff.sh "${{ github.event.before }}"
+
+      - name: Build the same Liquibase runner used locally
+        run: docker build -f docker/liquibase/Dockerfile -t ase251s4-t05-db-liquibase:ci .
+
+      - name: Build the read-only WebFlux checker
+        run: docker build -f check/Dockerfile -t ase251s4-t05-db-checker:ci .

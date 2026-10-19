@@ -1,0 +1,99 @@
+<div class="page-container">
+
+  <div class="page-header">
+    <div class="page-header__left">
+      <div class="page-icon"><span class="material-icons">people</span></div>
+      <div>
+        <h1>Gestión de Usuarios</h1>
+        <p>Administra los usuarios y sus roles en el sistema</p>
+      </div>
+    </div>
+    <div class="page-header__actions">
+      <app-toggle-filter [isActive]="verActivos" (onChange)="toggleActivos($event)"></app-toggle-filter>
+      
+      <button class="btn-export-pdf" (click)="exportarPdf()" [title]="verActivos ? 'Exportar activos a PDF' : 'Exportar inactivos a PDF'">
+        <span class="material-icons">picture_as_pdf</span> PDF
+      </button>
+      <button class="btn-export-excel" (click)="exportarExcel()" [title]="verActivos ? 'Exportar activos a Excel' : 'Exportar inactivos a Excel'">
+        <span class="material-icons">table_view</span> Excel
+      </button>
+
+      <div class="export-dropdown">
+        <button class="btn-export-total" type="button">
+          <span class="material-icons">download</span> Todo <span style="font-size: 10px; margin-left: 2px;">▼</span>
+        </button>
+        <div class="dropdown-content">
+          <a (click)="exportarPdfTotal()"><span class="material-icons">picture_as_pdf</span> PDF Total</a>
+          <a (click)="exportarExcelTotal()"><span class="material-icons">table_view</span> Excel Total</a>
+        </div>
+      </div>
+      <button class="btn-new" (click)="nuevoUsuario()">
+        <span>+</span> Nuevo Usuario
+      </button>
+    </div>
+  </div>
+
+  <div class="stats-row" *ngIf="usuarios.length > 0">
+    <div class="stat-pill stat-pill--purple">
+      <span class="stat-pill__icon"><span class="material-icons">person</span></span>
+      <div>
+        <strong>{{ usuarios.length }}</strong>
+        <span>{{ verActivos ? 'Activos' : 'Inactivos' }}</span>
+      </div>
+    </div>
+    <div class="stat-pill stat-pill--red">
+      <span class="stat-pill__icon"><span class="material-icons">vpn_key</span></span>
+      <div>
+        <strong>{{ getAdmins() }}</strong>
+        <span>Administradores</span>
+      </div>
+    </div>
+    <div class="stat-pill stat-pill--blue">
+      <span class="stat-pill__icon"><span class="material-icons">engineering</span></span>
+      <div>
+        <strong>{{ getOperadores() }}</strong>
+        <span>Operadores</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" *ngIf="mostrarFormulario" (click)="cancelarEdicion()">
+    <div (click)="$event.stopPropagation()" style="width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35); animation: modalScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); z-index: 1200;">
+      <app-usuario-form
+        [usuarioEditar]="usuarioEditar"
+        [errorServidor]="errorServidor"
+        (guardar)="guardarUsuario($event)"
+        (cancelar)="cancelarEdicion()">
+      </app-usuario-form>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="usuarios.length === 0">
+    <div class="empty-state__icon"><span class="material-icons" style="font-size: inherit;">person</span></div>
+    <h3>No hay usuarios {{ verActivos ? 'activos' : 'inactivos' }}</h3>
+    <p *ngIf="verActivos">Crea el primer usuario haciendo clic en "Nuevo Usuario"</p>
+    <button class="btn-new" *ngIf="verActivos" (click)="nuevoUsuario()">+ Nuevo Usuario</button>
+  </div>
+
+  <div class="table-card" *ngIf="usuarios.length > 0">
+    <app-usuario-lista 
+      [usuarios]="usuarios" 
+      [mostrarInactivos]="!verActivos"
+      (editar)="editarUsuario($event)"
+      (eliminar)="confirmarEliminar($event)"
+      (restaurar)="restaurarUsuario($event)">
+    </app-usuario-lista>
+  </div>
+
+  <app-confirm-dialog
+    [isOpen]="mostrarConfirmacion"
+    title="Eliminar Usuario"
+    message="¿Estás seguro de eliminar este usuario? El registro quedará inactivo."
+    confirmButtonText="Eliminar"
+    cancelButtonText="Cancelar"
+    [isDanger]="true"
+    (onConfirmClick)="eliminarUsuario()"
+    (onCancelClick)="cancelarConfirmacion()">
+  </app-confirm-dialog>
+
+</div>

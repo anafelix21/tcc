@@ -1,0 +1,101 @@
+<div class="form-card">
+  <div class="form-card__header">
+    <div class="form-card__icon"><span class="material-icons" style="font-size: inherit;">landscape</span></div>
+    <div>
+      <h3>{{ esEdicion ? 'Editar Parcela' : 'Registrar Nueva Parcela' }}</h3>
+      <p>{{ esEdicion ? 'Modifica los datos de la parcela' : 'Completa los campos para registrar una parcela' }}</p>
+    </div>
+  </div>
+
+  <form [formGroup]="parcelaForm" (ngSubmit)="onSubmit()">
+    <!-- Banner de alerta superior compacto y elegante -->
+    <div *ngIf="(submitted && parcelaForm.invalid) || errorServidor" class="validation-summary-banner" style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 10px 16px; margin-bottom: 20px; border-radius: 8px; display: flex; align-items: center; gap: 8px; animation: slideDown 0.2s ease-out;">
+      <span class="material-icons" style="font-size: 18px; color: #ef4444;">error_outline</span>
+      <span style="color: #991b1b; font-size: 13px; font-weight: 600;">
+        {{ errorServidor ? errorServidor : 'Por favor, revisa y corrige los campos marcados en rojo abajo.' }}
+      </span>
+    </div>
+
+    <div class="form-grid">
+
+      <div class="form-group">
+        <label for="nombre"><span class="label-icon"><span class="material-icons">label</span></span> Nombre *</label>
+        <input type="text" id="nombre" formControlName="nombre"
+          placeholder="Ej: Lote A - Valle Norte"
+          [class.input--error]="esInvalido('nombre')" />
+        <span class="error-msg" *ngIf="esInvalido('nombre')">Nombre requerido (mín. 3 caracteres)</span>
+      </div>
+
+      <div class="form-group">
+        <label for="ubicacion"><span class="label-icon"><span class="material-icons">place</span></span> Ubicación *</label>
+        <input type="text" id="ubicacion" formControlName="ubicacion"
+          placeholder="Ej: Sector Norte, Km 5"
+          [class.input--error]="esInvalido('ubicacion')" />
+        <span class="error-msg" *ngIf="esInvalido('ubicacion')">Ubicación requerida</span>
+      </div>
+
+      <div class="form-group">
+        <label for="areaHectareas"><span class="label-icon"><span class="material-icons">square_foot</span></span> Área (Hectáreas) *</label>
+        <input type="number" id="areaHectareas" formControlName="areaHectareas"
+          placeholder="Ej: 2.5" step="0.01" min="0.01"
+          [class.input--error]="esInvalido('areaHectareas')" />
+        <span class="error-msg" *ngIf="esInvalido('areaHectareas')">Área válida requerida</span>
+      </div>
+
+      <div class="form-group">
+        <label for="tipoSuelo"><span class="label-icon"><span class="material-icons">terrain</span></span> Tipo de Suelo *</label>
+        <input type="text" id="tipoSuelo" formControlName="tipoSuelo"
+          placeholder="Ej: Franco, Arcilloso"
+          [class.input--error]="esInvalido('tipoSuelo')" />
+        <span class="error-msg" *ngIf="esInvalido('tipoSuelo')">Tipo de suelo requerido</span>
+      </div>
+
+      <div class="form-group">
+        <label for="responsable"><span class="label-icon"><span class="material-icons">engineering</span></span> Responsable *</label>
+        <input type="text" id="responsable" formControlName="responsable"
+          placeholder="Ej: Juan Pérez"
+          [class.input--error]="esInvalido('responsable')" />
+        <span class="error-msg" *ngIf="esInvalido('responsable')">Responsable requerido</span>
+      </div>
+
+      <div class="form-group">
+        <label for="estadoRiego"><span class="label-icon"><span class="material-icons">water_drop</span></span> Estado del Riego *</label>
+        <input type="text" id="estadoRiego" formControlName="estadoRiego"
+          placeholder="Ej: Goteo, Aspersión"
+          [class.input--error]="esInvalido('estadoRiego')" />
+        <span class="error-msg" *ngIf="esInvalido('estadoRiego')">Estado del riego requerido</span>
+      </div>
+
+      <div class="form-group">
+        <label for="produccionEstimada"><span class="label-icon"><span class="material-icons">inventory_2</span></span> Producción Estimada *</label>
+        <input type="text" id="produccionEstimada" formControlName="produccionEstimada"
+          placeholder="Ej: 500 kg"
+          [class.input--error]="esInvalido('produccionEstimada')" />
+        <span class="error-msg" *ngIf="esInvalido('produccionEstimada')">Producción estimada requerida</span>
+      </div>
+
+      <div class="form-group">
+        <label for="fechaUltimaSiembra"><span class="label-icon"><span class="material-icons">calendar_today</span></span> Fecha Última Siembra</label>
+        <input type="date" id="fechaUltimaSiembra" formControlName="fechaUltimaSiembra" [class.input--error]="esInvalido('fechaUltimaSiembra')" />
+        <span class="error-msg" *ngIf="esInvalido('fechaUltimaSiembra')">
+          <span *ngIf="parcelaForm.get('fechaUltimaSiembra')?.hasError('fechaFutura')">La fecha de siembra no puede ser una fecha en el futuro (después de hoy).</span>
+        </span>
+      </div>
+
+    </div>
+
+    <div class="form-group">
+      <label for="observaciones"><span class="label-icon"><span class="material-icons">notes</span></span> Observaciones</label>
+      <textarea id="observaciones" formControlName="observaciones"
+        placeholder="Notas adicionales sobre la parcela..."
+        rows="3"></textarea>
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn--cancel" (click)="onCancel()">Cancelar</button>
+      <button type="submit" class="btn btn--submit" [disabled]="!parcelaForm.valid">
+        {{ esEdicion ? '✓ Actualizar' : '+ Registrar' }}
+      </button>
+    </div>
+  </form>
+</div>
