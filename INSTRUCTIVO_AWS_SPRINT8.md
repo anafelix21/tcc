@@ -66,41 +66,75 @@ Basado en el estándar del curso y la arquitectura de microservicios políglota,
 
 ## 🛠️ 3. Paso a Paso: Despliegue en AWS
 
-### PASO 1: Lanzamiento de la Instancia Amazon EC2
-1. En la consola de AWS, ir a **EC2** > **Launch Instance**.
+### PASO 1: Lanzamiento de la Instancia Amazon EC2 con Datos de Usuario (User Data)
+1. En la consola de AWS, ir a **EC2** > **Launch Instance** (Lanzar instancia).
 2. **Nombre:** `agropacayales-server-t05`
 3. **AMI:** Ubuntu Server 24.04 LTS (x86_64).
 4. **Tipo de instancia:** `t3.medium` (2 vCPU, 4 GiB RAM) o `t3.small`.
 5. **Key Pair:** Seleccionar par de claves `.pem` existente.
 6. **Security Group (Reglas de Entrada - Inbound Rules):**
-   * **Puerto 22 (SSH):** Mi IP o `0.0.0.0/0`
-   * **Puerto 80 (HTTP):** `0.0.0.0/0` (Frontend Nginx en EC2)
+   * **Puerto 22 (SSH):** `0.0.0.0/0` (Acceso terminal)
+   * **Puerto 80 (HTTP):** `0.0.0.0/0` (Frontend Web Angular Nginx)
    * **Puerto 8081 (Custom TCP):** `0.0.0.0/0` (Backend Transaccional Java WebFlux)
    * **Puerto 5000 (Custom TCP):** `0.0.0.0/0` (Backend Analítico Python Flask)
-   * **Puerto 1433 (Custom TCP):** `0.0.0.0/0` (SQL Server)
-7. **Almacenamiento:** 25 GB gp3. Lanzar instancia y copiar la **IP Pública IPv4** (ej. `54.210.85.90`).
+   * **Puerto 1433 (Custom TCP):** `0.0.0.0/0` (SQL Server 2022)
+7. **Almacenamiento:** 25 GB gp3.
+
+8. ⚡ **DATOS DE USUARIO (User Data - Despliegue 100% Automático):**
+   * Despliega la sección **Detalles avanzados** (Advanced details) al final de la página.
+   * En el campo **Datos de usuario (User data)**, copia y pega el siguiente script completo:
+
+```bash
+#!/bin/bash
+# ==============================================================================
+# SCRIPT DE DATOS DE USUARIO (EC2 USER DATA) — AGROPACAYALES T05 SPRINT 8
+# Se ejecuta automáticamente con permisos root al encender la instancia
+# ==============================================================================
+
+# 1. Actualizar paquetes e instalar dependencias
+apt-get update -y
+apt-get install -y docker.io docker-compose git curl
+
+# 2. Habilitar y levantar servicio Docker
+systemctl enable --now docker
+usermod -aG docker ubuntu
+
+# 3. Clonar repositorio público (no requiere token)
+cd /home/ubuntu
+git clone https://github.com/anafelix21/tcc.git
+chown -R ubuntu:ubuntu /home/ubuntu/tcc
+cd /home/ubuntu/tcc
+
+# 4. Descargar imágenes de Docker Hub y levantar los 4 contenedores
+docker compose -f docker-compose.aws.yml up -d
+
+# 5. Esperar inicialización interna de SQL Server (25 segundos)
+sleep 25
+
+# 6. Crear base de datos e inicializar tablas transaccionales
+docker exec -i agropacayales-sqlserver /opt/mssql-tools18/bin/sqlcmd \
+  -S localhost -U sa -P 'AgroPacayales2026!' -C -Q "CREATE DATABASE agropacayales_db;"
+
+cat /home/ubuntu/tcc/ASE251S4_T05-be/src/main/resources/sql/init_transaccionales_sqlserver.sql | \
+docker exec -i agropacayales-sqlserver /opt/mssql-tools18/bin/sqlcmd \
+  -S localhost -U sa -P 'AgroPacayales2026!' -C -d agropacayales_db
+
+echo ">>> DESPLIEGUE AGROPACAYALES COMPLETADO CON EXITO <<<"
+```
+
+9. Haz clic en **Launch instance** (Lanzar instancia).
+10. ¡Y listo! Espera **2 minutos**. La máquina se encenderá, instalará todo, clonará el proyecto, levantará los 4 contenedores e inicializará SQL Server automáticamente. ¡No tienes que hacer nada más por terminal!
+11. Copia la **IP Pública IPv4** de la instancia (ejemplo: `54.210.85.90`).
 
 ---
 
-### PASO 2: Instalación de Docker y Puesta en Marcha en EC2
-1. Conectarse por SSH a la instancia EC2 desde tu terminal:
+### PASO 2: Verificación (Opcional por SSH si deseas ver los logs)
+Si deseas ingresar por terminal para revisar el estado o para mostrarlo en el video:
+1. Conectarse por SSH:
    ```bash
    ssh -i "tu-clave.pem" ubuntu@<IP-PUBLICA-EC2>
    ```
-2. Instalar Docker y Docker Compose (un solo comando):
-   ```bash
-   sudo apt update && sudo apt install -y docker.io docker-compose git
-   sudo systemctl enable --now docker
-   sudo usermod -aG docker ubuntu
-   newgrp docker
-   ```
-3. Clonar el repositorio unificado de GitHub y levantar la arquitectura:
-   ```bash
-   git clone https://github.com/anafelix21/tcc.git
-   cd tcc
-   docker compose -f docker-compose.aws.yml up -d
-   ```
-4. Verificar que los 4 contenedores estén corriendo (`Up`):
+2. Verificar los contenedores activos:
    ```bash
    docker ps
    ```
@@ -112,31 +146,12 @@ Basado en el estándar del curso y la arquitectura de microservicios políglota,
 
 ---
 
-### PASO 3: Inicialización de Tablas en SQL Server 2022
-Esperar unos 15 segundos a que SQL Server inicialice y ejecutar dentro de la carpeta `~/tcc`:
-```bash
-# 1. Crear base de datos
-docker exec -i agropacayales-sqlserver /opt/mssql-tools18/bin/sqlcmd \
-  -S localhost -U sa -P 'AgroPacayales2026!' -C -Q "CREATE DATABASE agropacayales_db;"
-
-# 2. Inicializar tablas transaccionales (cultivos, cosechas, actividades)
-cat ASE251S4_T05-be/src/main/resources/sql/init_transaccionales_sqlserver.sql | \
-docker exec -i agropacayales-sqlserver /opt/mssql-tools18/bin/sqlcmd \
-  -S localhost -U sa -P 'AgroPacayales2026!' -C -d agropacayales_db
-
-# 3. Verificar que se crearon los registros
-docker exec -i agropacayales-sqlserver /opt/mssql-tools18/bin/sqlcmd \
-  -S localhost -U sa -P 'AgroPacayales2026!' -C -d agropacayales_db \
-  -Q "SELECT id, nombre, variedad, area_hectareas FROM cultivos;"
-```
-
----
-
-### 🔑 Credenciales y Datos de Prueba para la Demo
+### 🔑 Credenciales y Cuentas de Usuario para la Demo
 * **Frontend Web:** `http://<IP-PUBLICA-EC2>`
-  * **Usuario Admin 1:** `elena.flores@agropacayales.com` / `Pass123!`
-  * **Usuario Admin 2:** `sofia.leon@agropacayales.com` / `Pass123!`
-  * **Usuario Supervisor:** `jorge.torres@agropacayales.com` / `Pass123!`
+  * **Usuario Ana Félix (ADMIN):** `ana.felix@agropacayales.com` / `Pass123!`
+  * **Usuario Elena Flores (ADMIN):** `elena.flores@agropacayales.com` / `Pass123!`
+  * **Usuario Sofia León (ADMIN):** `sofia.leon@agropacayales.com` / `Pass123!`
+  * **Usuario Jorge Torres (SUPERVISOR):** `jorge.torres@agropacayales.com` / `Pass123!`
 * **Backend 1 - Transaccional (Spring Boot WebFlux):**
   * Swagger UI: `http://<IP-PUBLICA-EC2>:8081/swagger-ui.html`
   * Endpoint de prueba: `GET http://<IP-PUBLICA-EC2>:8081/api/usuarios`
