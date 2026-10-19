@@ -49,9 +49,6 @@ services:
   # Swagger: http://<IP>:5000/apidocs
   # ============================================================================
   backend-analitico:
-    build:
-      context: ./ASE251S4_T05-be-analitico
-      dockerfile: Dockerfile
     image: anafelixmendoza21/agropacayales-backend-analitico:1.0
     container_name: agropacayales-backend-analitico
     restart: always
