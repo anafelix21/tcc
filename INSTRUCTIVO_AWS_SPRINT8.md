@@ -83,52 +83,73 @@ Basado en el estándar del curso y la arquitectura de microservicios políglota,
 ---
 
 ### PASO 2: Instalación de Docker y Puesta en Marcha en EC2
-1. Conectarse por SSH a la instancia EC2:
+1. Conectarse por SSH a la instancia EC2 desde tu terminal:
    ```bash
    ssh -i "tu-clave.pem" ubuntu@<IP-PUBLICA-EC2>
    ```
-2. Instalar Docker y Docker Compose:
+2. Instalar Docker y Docker Compose (un solo comando):
    ```bash
-   sudo apt update && sudo apt upgrade -y
-   sudo apt install -y docker.io docker-compose git
+   sudo apt update && sudo apt install -y docker.io docker-compose git
    sudo systemctl enable --now docker
    sudo usermod -aG docker ubuntu
    newgrp docker
    ```
-3. Descargar o copiar el archivo `docker-compose.aws.yml`:
+3. Clonar el repositorio unificado de GitHub y levantar la arquitectura:
    ```bash
-   mkdir -p ~/agropacayales && cd ~/agropacayales
-   nano docker-compose.yml
-   # (Pegar el contenido del docker-compose.aws.yml del proyecto)
+   git clone https://github.com/anafelix21/tcc.git
+   cd tcc
+   docker compose -f docker-compose.aws.yml up -d
    ```
-4. Levantar los 4 contenedores en la nube:
-   ```bash
-   docker compose up -d
-   ```
-5. Verificar el estado con:
+4. Verificar que los 4 contenedores estén corriendo (`Up`):
    ```bash
    docker ps
    ```
    Debes observar en ejecución:
-   * `agropacayales-sqlserver` (Puerto `1433->1433`)
-   * `agropacayales-backend-transaccional` (Puerto `8081->8081`)
-   * `agropacayales-backend-analitico` (Puerto `5000->5000`)
-   * `agropacayales-frontend-web` (Puerto `80->80`)
+   * `agropacayales-sqlserver` (Puerto `0.0.0.0:1433->1433/tcp`)
+   * `agropacayales-backend-transaccional` (Puerto `0.0.0.0:8081->8081/tcp`)
+   * `agropacayales-backend-analitico` (Puerto `0.0.0.0:5000->5000/tcp`)
+   * `agropacayales-frontend-web` (Puerto `0.0.0.0:80->80/tcp`)
 
 ---
 
 ### PASO 3: Inicialización de Tablas en SQL Server 2022
-Esperar 20 segundos a que el contenedor de SQL Server esté listo y ejecutar:
+Esperar unos 15 segundos a que SQL Server inicialice y ejecutar dentro de la carpeta `~/tcc`:
 ```bash
 # 1. Crear base de datos
 docker exec -i agropacayales-sqlserver /opt/mssql-tools18/bin/sqlcmd \
   -S localhost -U sa -P 'AgroPacayales2026!' -C -Q "CREATE DATABASE agropacayales_db;"
 
-# 2. Ejecutar script DDL de creación de tablas transaccionales y semillas
-curl -sSL https://raw.githubusercontent.com/vallegrande/ASE251S4_T05-be/develop/src/main/resources/sql/init_transaccionales_sqlserver.sql | \
+# 2. Inicializar tablas transaccionales (cultivos, cosechas, actividades)
+cat ASE251S4_T05-be/src/main/resources/sql/init_transaccionales_sqlserver.sql | \
 docker exec -i agropacayales-sqlserver /opt/mssql-tools18/bin/sqlcmd \
   -S localhost -U sa -P 'AgroPacayales2026!' -C -d agropacayales_db
+
+# 3. Verificar que se crearon los registros
+docker exec -i agropacayales-sqlserver /opt/mssql-tools18/bin/sqlcmd \
+  -S localhost -U sa -P 'AgroPacayales2026!' -C -d agropacayales_db \
+  -Q "SELECT id, nombre, variedad, area_hectareas FROM cultivos;"
 ```
+
+---
+
+### 🔑 Credenciales y Datos de Prueba para la Demo
+* **Frontend Web:** `http://<IP-PUBLICA-EC2>`
+  * **Usuario Admin 1:** `elena.flores@agropacayales.com` / `Pass123!`
+  * **Usuario Admin 2:** `sofia.leon@agropacayales.com` / `Pass123!`
+  * **Usuario Supervisor:** `jorge.torres@agropacayales.com` / `Pass123!`
+* **Backend 1 - Transaccional (Spring Boot WebFlux):**
+  * Swagger UI: `http://<IP-PUBLICA-EC2>:8081/swagger-ui.html`
+  * Endpoint de prueba: `GET http://<IP-PUBLICA-EC2>:8081/api/usuarios`
+* **Backend 2 - Analítico (Python Flask):**
+  * Swagger UI (Flasgger): `http://<IP-PUBLICA-EC2>:5000/apidocs`
+  * Endpoint KPIs: `GET http://<IP-PUBLICA-EC2>:5000/api/v1/analytics/dashboard/kpis`
+  * Endpoint Cosechas: `GET http://<IP-PUBLICA-EC2>:5000/api/v1/analytics/cosechas/resumen`
+* **Base de Datos 1 - MongoDB Atlas (NoSQL):**
+  * Colecciones: `usuarios`, `insumos`, `parcelas`
+* **Base de Datos 2 - SQL Server 2022 (Relacional):**
+  * Servidor: `<IP-PUBLICA-EC2>,1433`
+  * Usuario: `sa` | Contraseña: `AgroPacayales2026!` | Base de Datos: `agropacayales_db`
+
 
 ---
 
