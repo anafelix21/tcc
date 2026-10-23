@@ -1,1 +1,1 @@
-# Package repositories
+# Repositorios: acceso a datos. Siempre devuelven DataFrames de Pandas.

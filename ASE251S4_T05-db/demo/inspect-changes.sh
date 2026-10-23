@@ -28,16 +28,16 @@ inspect_engine() {
     expected=$((expected + 1)); count=$((count + 1))
   done <<< "$includes"
 
-  actual="$(find "db/$engine/changes" -maxdepth 1 -type f -name "*.${extension}" -exec basename {} \; | sort)"
+  actual="$(find "db/$engine/changes" -maxdepth 1 -type f -name "V[0-9][0-9][0-9]__*.${extension}" -exec basename {} \; | sort)"
   [[ "$includes" == "$actual" ]] || fail "$engine tiene archivos huérfanos o includes fuera de orden."
   printf '%s' "$count"
 }
 
-postgres_count="$(inspect_engine postgresql sql)"
+sqlserver_count="$(inspect_engine sqlserver sql)"
 mongo_count="$(inspect_engine mongodb xml)"
-[[ "$postgres_count" == "$mongo_count" ]] || fail "Los motores difieren: PostgreSQL=$postgres_count, MongoDB=$mongo_count."
+[[ "$sqlserver_count" == "$mongo_count" ]] || fail "Los motores difieren: SQL Server=$sqlserver_count, MongoDB=$mongo_count."
 
-printf '    Contrato esperado por motor: V%03d\n' "$postgres_count"
-printf '    PostgreSQL: %s cambios en SQL\n' "$postgres_count"
+printf '    Contrato esperado por motor: V%03d\n' "$sqlserver_count"
+printf '    SQL Server: %s cambios en SQL (T-SQL Formatted)\n' "$sqlserver_count"
 printf '    MongoDB:    %s cambios en XML Community\n' "$mongo_count"
 ok "Secuencia, includes, identidades y rollback están alineados."

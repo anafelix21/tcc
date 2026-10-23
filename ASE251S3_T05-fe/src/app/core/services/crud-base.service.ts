@@ -20,7 +20,7 @@ export function obtenerPorEstadoConFallback<T extends { estado?: boolean }>(
   // silent=true → no muestra toast de error si el endpoint /estado no existe
   return apiService.getBy<T>(endpoint, 'estado', estado, true).pipe(
     catchError(() =>
-      apiService.getAll<T>(endpoint).pipe(
+      apiService.getAll<T>(endpoint, true).pipe(
         map(items => items.filter(item => !!item.estado === !!estado)),
         catchError(() => of([]))
       )

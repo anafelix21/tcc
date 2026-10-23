@@ -9,9 +9,9 @@
 
 | Integrante | Rol | Asignación Técnica | Entregables y Responsabilidades |
 | :--- | :--- | :--- | :--- |
-| **Hugo Fernández** | **DevOps / Líder Técnico** | Orquestación Docker, Runner Liquibase 4.33.0, CI/CD GitHub Actions, Inspección Estática | Contratos V001 (`cultivos`/`parcelas`), V004 (`fichas_campo`), Dockerfile multi-stage, suite de pruebas `test-lab.sh`. |
-| **Ana Félix** | **Database Developer (Relacional)** | Módulo PostgreSQL / Relacional, Kardex de Insumos, Auditoría de Labores y Rollback | Contratos V002 (`insumos_kardex`), V005 (`auditoria_labores`), simulación de conflictos y reversión controlada. |
-| **Axel Huapaya** | **Database Developer (NoSQL MongoDB)** | Módulo MongoDB 8.0, Validadores `$jsonSchema`, Extensión Oficial XML y Transacciones ACID | Contrato V003 (`cosechas_lote`/`cosechas`), scripts transaccionales de despacho, consumo y simulación de locks/WriteConflict. |
+| **Hugo Fernández** | **DevOps / Líder Técnico** | Orquestación Docker, Runner de Despliegue, CI/CD GitHub Actions, Inspección Estática | Contratos V001 (`cultivos`/`parcelas`), V004 (`fichas_campo`), Dockerfile multi-stage, suite de pruebas `test-lab.sh`. |
+| **Ana Félix** | **Database Developer (Relacional)** | Módulo Microsoft SQL Server 2022 / Relacional, Kardex de Insumos, Auditoría de Labores y Rollback | Contratos V001 (`baseline.sql`), V002 (`auditoria_labores.sql`), simulación de transacciones y reversión controlada. |
+| **Axel Huapaya** | **Database Developer (NoSQL MongoDB)** | Módulo MongoDB, Validadores `$jsonSchema`, Modelado Documental y Transacciones ACID | Contrato V001 (`baseline.js`), V002 (`modelado_estrategias.js`), scripts transaccionales de despacho, consumo y simulación de locks/WriteConflict. |
 
 ---
 
@@ -26,33 +26,37 @@
 
 ## 🏗️ 1. Arquitectura del Repositorio (Database-as-Code)
 
-La arquitectura sigue el estándar determinista de persistencia como código, desacoplando los motores del ciclo de vida de los datos mediante contenedores runner efímeros y un microservicio de diagnóstico reactivo:
+La arquitectura sigue el estándar determinista de persistencia políglota como código (**Microsoft SQL Server 2022 + MongoDB**), desacoplando los motores del ciclo de vida de los datos mediante contenedores y microservicios de diagnóstico:
 
 ```text
 ASE251S4_T05-db/
 ├── .github/workflows/          # Automatización CI/CD con GitHub Actions
 │   ├── validate.yml            # Quality Gate en Pull Requests (inspección y build)
 │   ├── apply.yml               # Despliegue con aprobación en 'database-production'
-│   ├── publish.yml             # Publicación de imagen runner Liquibase multi-arch
+│   ├── publish.yml             # Publicación de imagen runner multi-arch
 │   └── publish-checker.yml     # Publicación de microservicio checker
 ├── .env.example                # Variables de configuración y credenciales cloud
 ├── .gitattributes              # Normalización LF obligatoria para Linux/Docker
-├── compose.yaml                # Orquestación multi-contenedor (Runners Liquibase + Checker)
+├── compose.yaml                # Orquestación multi-contenedor (SQL Server + MongoDB + Checker)
 ├── docker/
-│   └── liquibase/              # Runner reutilizable Liquibase Community 4.33.0
-│       ├── Dockerfile          # Imagen con extensión liquibase-mongodb 4.33.0.1
-│       └── pom.xml             # Driver sync 5.5.1, bson y jackson
-├── check/                      # Microservicio diagnóstico WebFlux (R2DBC + Mongo Reactivo)
+│   └── liquibase/              # Runner reutilizable Liquibase Community
+│       ├── Dockerfile          # Imagen con extensión liquibase-mongodb
+│       └── pom.xml             # Driver sync, bson y mssql-jdbc
+├── check/                      # Microservicio diagnóstico WebFlux (R2DBC SQL Server + Mongo Reactivo)
 │   ├── Dockerfile              # Construcción multi-etapa en Java 21
 │   ├── pom.xml                 # Spring Boot WebFlux + SpringDoc OpenAPI (/swagger-ui.html)
 │   └── src/main/...            # Controladores y servicios de diagnóstico
 ├── db/
-│   ├── postgresql/             # Persistencia Relacional (Formatted SQL)
-│   │   ├── changelog.xml       # Changelog maestro con inclusión secuencial
-│   │   └── changes/            # Changesets V001..V005 con rollback
-│   └── mongodb/                # Persistencia NoSQL (Extensión Oficial XML)
-│       ├── changelog.xml       # Changelog maestro con inclusión secuencial
-│       └── changes/            # Changesets V001..V005 con validadores $jsonSchema
+│   ├── sqlserver/              # Persistencia Relacional SQL Server 2022 (T-SQL)
+│   │   ├── bootstrap/          # V001_baseline.sql (esquema inicial, tablas y semillas)
+│   │   ├── changes/            # V002_auditoria_labores.sql (trigger y tabla de auditoría)
+│   │   ├── checks/             # Verificación de contratos y objetos
+│   │   └── metadata/           # Registro en dbo.schema_changes
+│   └── mongodb/                # Persistencia NoSQL (JavaScript / Validadores $jsonSchema)
+│       ├── bootstrap/          # V001__baseline.js
+│       ├── changes/            # V002_modelado_estrategias.js (embedding y validadores)
+│       ├── checks/             # contract.js
+│       └── metadata/           # record-change.js
 ├── demo/                       # Suite de scripts interactivos de gestión y sustentación
 │   ├── lab.sh                  # CLI unificada (inspect, build, validate, apply, history, etc.)
 │   ├── demo-versionamiento.sh  # Demostración paso a paso guiada para la exposición
@@ -76,41 +80,32 @@ ASE251S4_T05-db/
 ### Paso 1: Configurar variables de entorno
 ```bash
 cp .env.example .env
-# Completar credenciales de PostgreSQL (Aiven) y MongoDB (Atlas)
+# Completar credenciales de Microsoft SQL Server 2022 (Docker / Amazon RDS) y MongoDB (Atlas)
 ```
 
-### Paso 2: Ejecutar inspección estática local
+### Paso 2: Ejecutar scripts de inicialización SQL Server
 ```bash
-./demo/lab.sh inspect
+# Aplica V001 (baseline) y V002 (auditoría)
+docker exec -i agropacayales-sqlserver /opt/mssql-tools18/bin/sqlcmd \
+  -S localhost -U sa -P 'AgroPacayales2026!' -C -d agropacayales_db -i /scripts/bootstrap/V001_baseline.sql
 ```
 
-### Paso 3: Ejecutar suite de pruebas de integridad
+### Paso 3: Aplicar cambios de MongoDB
 ```bash
-./tests/test-lab.sh
-```
-
-### Paso 4: Construir runner y consultar estado
-```bash
-./demo/lab.sh build
-./demo/lab.sh status all
-```
-
-### Paso 5: Aplicar cambios a las bases de datos
-```bash
-./demo/lab.sh apply all
+# Aplica validadores $jsonSchema y modelos embebidos
+mongosh "mongodb+srv://..." db/mongodb/bootstrap/V001__baseline.js
+mongosh "mongodb+srv://..." db/mongodb/changes/V002_modelado_estrategias.js
 ```
 
 ---
 
-## 🔄 3. Contratos Versionados Simétricos (V001..V005)
+## 🔄 3. Contratos Versionados Simétricos (V001..V002)
 
-| Versión | Capacidad del Negocio | PostgreSQL (SQL DDL) | MongoDB (XML `$jsonSchema`) | Autor |
+| Versión | Capacidad del Negocio | Microsoft SQL Server 2022 (T-SQL) | MongoDB (JSON Schema / JS) | Autor |
 | :--- | :--- | :--- | :--- | :--- |
-| **V001** | Cultivos y Parcelas | `cultivos` (ID, variedad, hectáreas, fecha_siembra) | `parcelas` (GeoJSON, edáficas, riego) | `hugo-fernandez` |
-| **V002** | Kardex de Insumos | `insumos_kardex` (SKU, tipo, stock, precio) | `insumos` (tabla_dosificacion embebida) | `ana-felix` |
-| **V003** | Lotes de Cosecha | `cosechas_lote` (lote, FK cultivo, kilos) | `cosechas` (desgloseCalidades, laboratorio) | `axel-huapaya` |
-| **V004** | Fichas de Campo | `fichas_campo` (visitas, evaluador, estado) | `fichas_campo` (GlobalGAP, plagas) | `hugo-fernandez` |
-| **V005** | Auditoría de Labores | `auditoria_labores` (entidad, acción, usuario) | `auditoria_labores` (trazabilidad legal) | `ana-felix` |
+| **V001** | Transacciones y Maestros Base | `cultivos`, `actividad_cultivo`, `harvest`, `asignacion` | `parcelas`, `insumos`, `usuarios` ($jsonSchema) | `hugo-fernandez` / `ana-felix` |
+| **V002** | Auditoría y Modelado Avanzado | `auditoria_actividades` (trigger `trg_auditar_actividades`) | Embedding de suelo y riego en `parcelas`, kardex | `ana-felix` / `axel-huapaya` |
+
 
 ---
 

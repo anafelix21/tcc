@@ -1,0 +1,68 @@
+# ==============================================================================
+# Frontend Web: Angular 19 / SPA — Interfaz de Usuario y Dashboard
+# Aislamiento en Nodo Dedicado: role: frontend-node (EC2)
+# ==============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-web
+  namespace: agropacayales
+  labels:
+    app: frontend-web
+    tier: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend-web
+  template:
+    metadata:
+      labels:
+        app: frontend-web
+        tier: frontend
+    spec:
+      # Aislamiento de nodos dedicados en EC2 (Rúbrica Orquestadores 1.0 pto)
+      nodeSelector:
+        role: frontend-node
+      containers:
+        - name: frontend-web
+          image: anafelixmendoza21/agropacayales-frontend:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+              name: http
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-svc
+  namespace: agropacayales
+  labels:
+    app: frontend-web
+spec:
+  type: ClusterIP
+  selector:
+    app: frontend-web
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80

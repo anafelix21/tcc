@@ -45,9 +45,18 @@ Una vez iniciada la aplicación en cualquiera de los dos perfiles, la documentac
 
 ---
 
-## 📝 4. JSON de Pruebas para Creación (CRUD)
+## 📝 4. JSON de Pruebas para Swagger UI
 
-A continuación, se proporcionan los cuerpos de petición que pueden copiar y pegar en Swagger (o Postman) para probar el método `POST` de cada maestro.
+A continuación, se proporcionan los cuerpos de petición listos para copiar y pegar directamente en **Swagger UI** ([http://localhost:8081/swagger-ui.html](http://localhost:8081/swagger-ui.html)). Para la guía detallada con todos los módulos y respuestas esperadas, consulte [docs/GUIA_SWAGGER.md](file:///c:/Users/anacr/OneDrive/Imágenes/Desktop/sprint8/tcc/docs/GUIA_SWAGGER.md).
+
+### 🔑 Autenticación (POST `/api/auth/login`)
+```json
+{
+  "correo": "hugo@agro.com",
+  "password": "Password123!"
+}
+```
+*(Copie el `token` devuelto y péguelo en el botón verde **Authorize** arriba a la derecha en Swagger).*
 
 ### 👤 A. Crear Usuario (POST `/api/usuarios`)
 ```json
@@ -66,14 +75,14 @@ A continuación, se proporcionan los cuerpos de petición que pueden copiar y pe
 ### 🧪 B. Crear Insumo (POST `/api/insumos`)
 ```json
 {
-  "nombre": "Fertilizante NPK 20-20-20",
+  "nombre": "Biofertilizante Foliar Sprint8",
   "descripcion": "Fertilizante balanceado para crecimiento acelerado",
-  "precio": 45.50,
-  "stock": 100,
-  "unidadMedida": "KG",
+  "precio": 65.50,
+  "stock": 40,
+  "unidadMedida": "L",
   "tipoInsumo": "FERTILIZANTE",
   "proveedor": "AgroK",
-  "presentacion": "Saco de 50KG",
+  "presentacion": "Galón 4L",
   "estado": true
 }
 ```
@@ -81,17 +90,22 @@ A continuación, se proporcionan los cuerpos de petición que pueden copiar y pe
 ### 🌱 C. Crear Parcela (POST `/api/parcelas`)
 ```json
 {
+  "codigo": "PARC-DEMO01",
   "nombre": "Sector Norte A1",
-  "ubicacion": "Coordenadas -12.043, -77.028",
-  "areaHectareas": 5.5,
-  "tipoSuelo": "ARCILLOSO",
-  "responsable": "Carlos Mendoza",
-  "estadoRiego": "ACTIVO",
-  "fechaUltimaSiembra": "2023-10-01",
-  "produccionEstimada": 15000.0,
-  "cultivoActual": "Palta Hass",
-  "observaciones": "Terreno preparado para la próxima temporada de lluvias",
-  "enUso": true,
+  "hectareas": 12.5,
+  "ubicacion": "Valle Grande Sector Norte",
+  "condicionesEdaficas": {
+    "tipoSuelo": "Franco Arenoso",
+    "ph": 6.8,
+    "materiaOrganicaPct": 2.4,
+    "drenaje": "Bueno"
+  },
+  "sistemaRiego": {
+    "tipo": "Goteo",
+    "caudalLitrosSegundo": 4.5,
+    "frecuenciaHoras": 6,
+    "eficienciaPct": 92.0
+  },
   "estado": true
 }
 ```

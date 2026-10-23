@@ -16,6 +16,7 @@ export class SidebarComponent {
 
   private allMenuItems = [
     { label: 'Inicio',            route: '/inicio',             icon: 'home', roles: ['ADMIN', 'SUPERVISOR', 'SUPERVISOR_ALMACEN', 'OPERADOR'] },
+    { label: 'Dashboard KPIs',    route: '/dashboard',          icon: 'analytics', roles: ['ADMIN', 'SUPERVISOR', 'SUPERVISOR_ALMACEN', 'OPERADOR'] },
     { label: 'Parcelas',          route: '/parcelas',           icon: 'landscape', roles: ['ADMIN', 'SUPERVISOR'] },
     { label: 'Cultivos',          route: '/cultivos',           icon: 'grass', roles: ['ADMIN', 'SUPERVISOR'] },
     { label: 'Fichas Campo',      route: '/fichas-campo',       icon: 'assignment', roles: ['ADMIN', 'SUPERVISOR'] },

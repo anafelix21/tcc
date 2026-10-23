@@ -17,6 +17,10 @@ export const routes: Routes = [
         loadComponent: () => import('./core/layouts/inicio/inicio.component').then(m => m.InicioComponent) 
       },
       { 
+        path: 'dashboard',          
+        loadComponent: () => import('./features/dashboard/pages/dashboard.component').then(m => m.DashboardComponent) 
+      },
+      { 
         path: 'usuarios',           
         loadComponent: () => import('./features/usuarios/pages/usuarios.component').then(m => m.UsuariosComponent),
         canActivate: [roleGuard],

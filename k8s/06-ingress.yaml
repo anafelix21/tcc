@@ -1,0 +1,72 @@
+# ==============================================================================
+# Ingress Controller: Enrutamiento unificado hacia Frontend, BE1 y BE2
+# Expone la solución al exterior con rutas públicas y documentación Swagger
+# ==============================================================================
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: agropacayales-ingress
+  namespace: agropacayales
+  annotations:
+    kubernetes.io/ingress.class: "alb" # o "nginx" según el ingress controller de AWS
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  rules:
+    - http:
+        paths:
+          # 1. Backend 1 Transaccional y su Swagger UI
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-transaccional-svc
+                port:
+                  number: 8081
+          - path: /swagger-ui
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-transaccional-svc
+                port:
+                  number: 8081
+          - path: /api-docs
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-transaccional-svc
+                port:
+                  number: 8081
+
+          # 2. Backend 2 Analítico y su Swagger UI (Flasgger)
+          - path: /api/v1/analytics
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-analitico-svc
+                port:
+                  number: 5000
+          - path: /apidocs
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-analitico-svc
+                port:
+                  number: 5000
+          - path: /flasgger_static
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-analitico-svc
+                port:
+                  number: 5000
+
+          # 3. Frontend Web (Ruta base)
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-svc
+                port:
+                  number: 80

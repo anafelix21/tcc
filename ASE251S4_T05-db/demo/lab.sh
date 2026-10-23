@@ -19,10 +19,10 @@ Uso:
   ./demo/lab.sh inspect
   ./demo/lab.sh create <nombre> [autor]
   ./demo/lab.sh build
-  ./demo/lab.sh validate [postgresql|mongodb|all]
-  ./demo/lab.sh status   [postgresql|mongodb|all]
-  ./demo/lab.sh apply    [postgresql|mongodb|all]
-  ./demo/lab.sh history  [postgresql|mongodb|all]
+  ./demo/lab.sh validate [sqlserver|mongodb|all]
+  ./demo/lab.sh status   [sqlserver|mongodb|all]
+  ./demo/lab.sh apply    [sqlserver|mongodb|all]
+  ./demo/lab.sh history  [sqlserver|mongodb|all]
   ./demo/lab.sh full
   ./demo/lab.sh presentation [nombre-del-nuevo-cambio]
 
@@ -58,9 +58,9 @@ run_selected() {
   local command="$1"
   shift
   case "$ENGINE" in
-    postgresql|mongodb) run_one "$ENGINE" "$command" "$@" ;;
-    all) run_one postgresql "$command" "$@"; run_one mongodb "$command" "$@" ;;
-    *) fail "Motor inválido: usa postgresql, mongodb o all." ;;
+    sqlserver|mongodb) run_one "$ENGINE" "$command" "$@" ;;
+    all) run_one sqlserver "$command" "$@"; run_one mongodb "$command" "$@" ;;
+    *) fail "Motor inválido: usa sqlserver, mongodb o all." ;;
   esac
 }
 
@@ -69,7 +69,7 @@ apply_changes() {
   CURRENT_STAGE="validación previa"
   run_selected validate
   run_selected status --verbose
-  warn "No existe una transacción conjunta entre PostgreSQL y MongoDB. Se aplican en secuencia."
+  warn "No existe una transacción conjunta entre SQL Server y MongoDB. Se aplican en secuencia."
   printf '\nEscribe APLICAR para continuar en cloud: '
   read -r confirmation
   [[ "$confirmation" == APLICAR ]] || fail "Operación cancelada; no se modificó ninguna base."
@@ -98,8 +98,8 @@ case "$ACTION" in
     check_runtime
     step BUILD "Construimos el runner con Liquibase, drivers y extensión MongoDB."
     why "La misma imagen se usa localmente y puede ejecutarse desde CI sin instalar Liquibase en el host."
-    command_log "docker compose build postgresql mongodb"
-    compose build postgresql mongodb
+    command_log "docker compose build sqlserver mongodb"
+    compose build sqlserver mongodb
     ok "Runner construido." ;;
   validate) check_runtime; run_selected validate ;;
   status) check_runtime; run_selected status --verbose ;;
@@ -123,8 +123,8 @@ case "$ACTION" in
     fi
     check_runtime
     step RUNNER "Verificamos imagen runner reutilizable."
-    command_log "docker compose build postgresql mongodb"
-    compose build postgresql mongodb; pause_demo
+    command_log "docker compose build sqlserver mongodb"
+    compose build sqlserver mongodb; pause_demo
     step PENDIENTES "Consultamos el estado previo en cloud."
     run_selected validate
     run_selected status --verbose; pause_demo

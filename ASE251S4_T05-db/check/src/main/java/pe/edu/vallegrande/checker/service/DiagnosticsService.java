@@ -19,24 +19,24 @@ import java.util.Set;
 
 @Service
 public class DiagnosticsService {
-    private final DatabaseClient postgres;
+    private final DatabaseClient sqlserver;
     private final MongoClient mongo;
     private final CheckerProperties properties;
     private final ManifestService manifest;
 
-    public DiagnosticsService(DatabaseClient postgres, MongoClient mongo,
+    public DiagnosticsService(DatabaseClient sqlserver, MongoClient mongo,
                               CheckerProperties properties, ManifestService manifest) {
-        this.postgres = postgres;
+        this.sqlserver = sqlserver;
         this.mongo = mongo;
         this.properties = properties;
         this.manifest = manifest;
     }
 
     public Mono<Map<String, Object>> diagnostics() {
-        return Mono.zip(engineReport("postgresql"), engineReport("mongodb"))
+        return Mono.zip(engineReport("sqlserver"), engineReport("mongodb"))
                 .map(tuple -> {
                     var engines = new LinkedHashMap<String, Object>();
-                    engines.put("postgresql", tuple.getT1());
+                    engines.put("sqlserver", tuple.getT1());
                     engines.put("mongodb", tuple.getT2());
                     boolean aligned = "ALIGNED".equals(tuple.getT1().get("status"))
                             && "ALIGNED".equals(tuple.getT2().get("status"));
@@ -50,26 +50,26 @@ public class DiagnosticsService {
     }
 
     public Mono<Map<String, Object>> changes() {
-        return Mono.zip(engineReport("postgresql"), engineReport("mongodb"))
-                .map(tuple -> Map.of("postgresql", tuple.getT1(), "mongodb", tuple.getT2()));
+        return Mono.zip(engineReport("sqlserver"), engineReport("mongodb"))
+                .map(tuple -> Map.of("sqlserver", tuple.getT1(), "mongodb", tuple.getT2()));
     }
 
     public Mono<Map<String, Object>> contract() {
-        Mono<Set<String>> pg = postgres.sql("""
+        Mono<Set<String>> sql = sqlserver.sql("""
                 SELECT table_name FROM information_schema.tables
-                WHERE table_schema = 'public' AND table_name IN ('cultivos', 'insumos_kardex', 'cosechas_lote', 'fichas_campo', 'auditoria_labores')
+                WHERE table_schema = 'dbo' AND table_name IN ('cultivos', 'insumos_kardex', 'cosechas_lote', 'fichas_campo', 'auditoria_labores')
                 """).map((row, metadata) -> row.get("table_name", String.class)).all()
                 .collect(() -> new LinkedHashSet<String>(), Set::add);
         Mono<Set<String>> mg = Flux.from(mongo.getDatabase(properties.mongodb().database()).listCollectionNames())
                 .filter(name -> name.equals("parcelas") || name.equals("insumos") || name.equals("cosechas") || name.equals("fichas_campo") || name.equals("auditoria_labores"))
                 .collect(() -> new LinkedHashSet<String>(), Set::add);
-        return Mono.zip(safeSet(pg), safeSet(mg)).map(tuple -> {
-            var expectedPg = Set.of("cultivos", "insumos_kardex");
+        return Mono.zip(safeSet(sql), safeSet(mg)).map(tuple -> {
+            var expectedSql = Set.of("cultivos", "insumos_kardex");
             var expectedMg = Set.of("parcelas", "insumos");
             var response = new LinkedHashMap<String, Object>();
-            response.put("expectedPostgres", expectedPg);
+            response.put("expectedSqlServer", expectedSql);
             response.put("expectedMongo", expectedMg);
-            response.put("postgresql", Map.of("present", tuple.getT1(), "valid", tuple.getT1().containsAll(expectedPg)));
+            response.put("sqlserver", Map.of("present", tuple.getT1(), "valid", tuple.getT1().containsAll(expectedSql)));
             response.put("mongodb", Map.of("present", tuple.getT2(), "valid", tuple.getT2().containsAll(expectedMg)));
             return response;
         });
@@ -80,7 +80,7 @@ public class DiagnosticsService {
     }
 
     private Mono<Map<String, Object>> engineReport(String engine) {
-        Mono<List<Map<String, Object>>> history = engine.equals("postgresql") ? postgresHistory() : mongoHistory();
+        Mono<List<Map<String, Object>>> history = engine.equals("sqlserver") ? sqlserverHistory() : mongoHistory();
         return history.map(applied -> compare(engine, applied))
                 .onErrorResume(error -> Mono.just(Map.of(
                         "status", "UNREACHABLE",
@@ -89,8 +89,8 @@ public class DiagnosticsService {
                         "applied", List.of())));
     }
 
-    private Mono<List<Map<String, Object>>> postgresHistory() {
-        return postgres.sql("""
+    private Mono<List<Map<String, Object>>> sqlserverHistory() {
+        return sqlserver.sql("""
                 SELECT id, author, filename, dateexecuted, md5sum, orderexecuted
                 FROM databasechangelog ORDER BY orderexecuted
                 """).map((row, metadata) -> change(

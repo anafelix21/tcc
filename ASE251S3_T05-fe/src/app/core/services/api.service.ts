@@ -13,11 +13,11 @@ export class ApiService {
 
   readonly loading = signal(false);
 
-  getAll<T>(endpoint: string): Observable<T[]> {
+  getAll<T>(endpoint: string, silent = false): Observable<T[]> {
     this.loading.set(true);
     return this.http.get<T[]>(`${this.baseUrl}${endpoint}`).pipe(
       finalize(() => this.loading.set(false)),
-      catchError(error => this.handleError(error))
+      catchError(error => this.handleError(error, silent))
     );
   }
 

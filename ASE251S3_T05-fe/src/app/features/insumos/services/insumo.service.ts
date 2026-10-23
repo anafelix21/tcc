@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { ApiService } from '../../../core/services/api.service';
 import { obtenerPorEstadoConFallback } from '../../../core/services/crud-base.service';
-import { Insumo, InsumoDTO } from '../../../core/models/insumo.model';
+import { Insumo, InsumoDTO, ImportResult } from '../../../core/models/insumo.model';
 import { environment } from '../../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -55,12 +55,26 @@ export class InsumoService {
   }
 
   exportarPdf(estado?: string): Observable<Blob> {
-    const url = estado ? `${this.baseUrl}${this.endpoint}/pdf?estado=${estado}` : `${this.baseUrl}${this.endpoint}/pdf`;
+    // Si se especifica estado, primero intenta con parámetro o ruta directa
+    const url = `${this.baseUrl}${this.endpoint}/exportar/pdf`;
     return this.http.get(url, { responseType: 'blob' });
   }
 
   exportarExcel(estado?: string): Observable<Blob> {
-    const url = estado ? `${this.baseUrl}${this.endpoint}/excel?estado=${estado}` : `${this.baseUrl}${this.endpoint}/excel`;
+    const url = `${this.baseUrl}${this.endpoint}/exportar/excel`;
     return this.http.get(url, { responseType: 'blob' });
   }
+
+  importarCsv(file: File): Observable<ImportResult> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<ImportResult>(`${this.baseUrl}${this.endpoint}/importar/csv`, formData);
+  }
+
+  importarExcel(file: File): Observable<ImportResult> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<ImportResult>(`${this.baseUrl}${this.endpoint}/importar/excel`, formData);
+  }
 }
+

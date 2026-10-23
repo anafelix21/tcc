@@ -20,7 +20,7 @@ if [[ "$mode" == ci ]]; then
   [[ "${CI_APPROVED:-}" == YES ]] || fail "Falta la aprobación CI_APPROVED=YES."
 fi
 : "${RUNNER_IMAGE:?Falta RUNNER_IMAGE}"
-: "${POSTGRES_URL:?Falta POSTGRES_URL}" "${POSTGRES_USERNAME:?Falta POSTGRES_USERNAME}" "${POSTGRES_PASSWORD:?Falta POSTGRES_PASSWORD}"
+: "${SQLSERVER_URL:?Falta SQLSERVER_URL}" "${SQLSERVER_USERNAME:?Falta SQLSERVER_USERNAME}" "${SQLSERVER_PASSWORD:?Falta SQLSERVER_PASSWORD}"
 : "${MONGODB_URL:?Falta MONGODB_URL}" "${MONGODB_USERNAME:?Falta MONGODB_USERNAME}" "${MONGODB_PASSWORD:?Falta MONGODB_PASSWORD}"
 
 group_start() { printf '::group::%s\n' "$1"; }
@@ -28,8 +28,8 @@ group_end() { printf '::endgroup::\n'; }
 
 run_liquibase() {
   local engine="$1" command="$2" url username password
-  if [[ "$engine" == postgresql ]]; then
-    url="$POSTGRES_URL"; username="$POSTGRES_USERNAME"; password="$POSTGRES_PASSWORD"
+  if [[ "$engine" == sqlserver ]]; then
+    url="$SQLSERVER_URL"; username="$SQLSERVER_USERNAME"; password="$SQLSERVER_PASSWORD"
   else
     url="$MONGODB_URL"; username="$MONGODB_USERNAME"; password="$MONGODB_PASSWORD"
   fi
@@ -63,12 +63,12 @@ command_log "./tests/test-lab.sh"
 group_end
 
 group_start "2 · Validate: conexión, changelog y checksums"
-run_liquibase postgresql validate
+run_liquibase sqlserver validate
 run_liquibase mongodb validate
 group_end
 
 group_start "3 · Plan: cambios pendientes antes de escribir"
-run_liquibase postgresql "status --verbose"
+run_liquibase sqlserver "status --verbose"
 run_liquibase mongodb "status --verbose"
 group_end
 
@@ -78,15 +78,15 @@ if [[ "$mode" == plan ]]; then
 fi
 
 group_start "4 · Apply: ejecución secuencial aprobada"
-warn "No hay transacción distribuida: PostgreSQL se aplica antes que MongoDB."
-run_liquibase postgresql update
+warn "No hay transacción distribuida: SQL Server se aplica antes que MongoDB."
+run_liquibase sqlserver update
 run_liquibase mongodb update
 group_end
 
 group_start "5 · Evidencia: pendientes e historial final"
-run_liquibase postgresql "status --verbose"
+run_liquibase sqlserver "status --verbose"
 run_liquibase mongodb "status --verbose"
-run_liquibase postgresql history
+run_liquibase sqlserver history
 run_liquibase mongodb history
 group_end
 

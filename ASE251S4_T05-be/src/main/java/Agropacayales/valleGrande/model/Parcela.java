@@ -2,6 +2,7 @@ package Agropacayales.valleGrande.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -66,6 +67,16 @@ public class Parcela {
     @Field("observaciones")
     private String observaciones;
 
+    // ===== Modelo embebido exigido por el validador $jsonSchema de MongoDB (V002 - Hugo Fernández) =====
+    @Field("hectareas")
+    private Double hectareas;
+
+    @Field("condiciones_edaficas")
+    private CondicionesEdaficas condicionesEdaficas;
+
+    @Field("sistema_riego")
+    private SistemaRiego sistemaRiego;
+
     @Builder.Default
     @Field("en_uso")
     private Boolean enUso = false;
@@ -90,4 +101,37 @@ public class Parcela {
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss", timezone = "America/Lima")
     @Field("restored_at")
     private LocalDateTime restoredAt;
+
+    /** Embedding 1:1 — análisis físico-químico del suelo. */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class CondicionesEdaficas {
+        @Field("textura")
+        private String textura;
+        @Field("ph_promedio")
+        private Double phPromedio;
+        @Field("materia_organica_pct")
+        private Double materiaOrganicaPct;
+    }
+
+    /** Embedding 1:1 — red de riego tecnificado. */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SistemaRiego {
+        @Field("tipo")
+        private String tipo;
+        @Field("caudal_lph")
+        private Double caudalLph;
+        @Field("sector_valvula")
+        private String sectorValvula;
+    }
+
+    @JsonProperty("idParcela")
+    public String getIdParcela() {
+        return this.id;
+    }
 }

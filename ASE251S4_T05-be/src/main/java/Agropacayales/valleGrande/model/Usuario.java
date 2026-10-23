@@ -2,6 +2,7 @@ package Agropacayales.valleGrande.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -45,6 +46,8 @@ public class Usuario {
     @Field("correo")
     private String correo;
 
+    // Solo escritura: la contraseña nunca se devuelve en las respuestas JSON
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Field("password")
     private String password;
 
@@ -80,4 +83,9 @@ public class Usuario {
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss", timezone = "America/Lima")
     @Field("restored_at")
     private LocalDateTime restoredAt;
+
+    @JsonProperty("idUsuario")
+    public String getIdUsuario() {
+        return this.id;
+    }
 }

@@ -158,6 +158,18 @@ public class HarvestServiceImpl implements HarvestService {
                 .then();
     }
 
+    @Override
+    public Mono<HarvestResponseDTO> restaurar(Integer id) {
+        return harvestRepo.findById(id)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("La cosecha que intenta restaurar con ID " + id + " no existe.")))
+                .flatMap(harvest -> {
+                    harvest.setEstado(true);
+                    harvest.setUpdatedAt(LocalDateTime.now());
+                    return harvestRepo.save(harvest);
+                })
+                .flatMap(this::populateResponseDTO);
+    }
+
     private Mono<HarvestResponseDTO> populateResponseDTO(Harvest harvest) {
         return detalleRepo.findByIdHarvest(harvest.getIdHarvest())
                 .map(d -> DetalleResponseDTO.builder()

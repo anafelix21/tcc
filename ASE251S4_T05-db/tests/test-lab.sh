@@ -25,7 +25,7 @@ trap 'rm -rf "$temporary"' EXIT
 cp -R db demo "$temporary/"
 (
   cd "$temporary"
-  last="$(find db/postgresql/changes -maxdepth 1 -name 'V[0-9][0-9][0-9]__*.sql' -exec basename {} \; | sort | tail -1)"
+  last="$(find db/sqlserver/changes -maxdepth 1 -name 'V[0-9][0-9][0-9]__*.sql' -exec basename {} \; | sort | tail -1)"
   baseline="${last#V}"; baseline="${baseline%%__*}"
   ./demo/new-change.sh telemetria tester >/dev/null
   ./demo/new-change.sh empaque tester >/dev/null
@@ -34,7 +34,7 @@ cp -R db demo "$temporary/"
   slugs=(telemetria empaque exportacion senasa)
   for index in "${!slugs[@]}"; do
     version="V$(printf '%03d' "$((10#$baseline + index + 1))")"
-    [[ -f "db/postgresql/changes/${version}__create_${slugs[$index]}.sql" ]]
+    [[ -f "db/sqlserver/changes/${version}__create_${slugs[$index]}.sql" ]]
     [[ -f "db/mongodb/changes/${version}__create_${slugs[$index]}.xml" ]]
   done
   ./demo/inspect-changes.sh >/dev/null
@@ -43,10 +43,10 @@ pass "Generación incremental desde la versión vigente"
 
 if (
   cd "$temporary"
-  last="$(find db/postgresql/changes -maxdepth 1 -name 'V[0-9][0-9][0-9]__*.sql' -exec basename {} \; | sort | tail -1)"
+  last="$(find db/sqlserver/changes -maxdepth 1 -name 'V[0-9][0-9][0-9]__*.sql' -exec basename {} \; | sort | tail -1)"
   last_number="${last#V}"; last_number="${last_number%%__*}"
   orphan="V$(printf '%03d' "$((10#$last_number + 1))")__orphan.sql"
-  cp "db/postgresql/changes/$last" "db/postgresql/changes/$orphan"
+  cp "db/sqlserver/changes/$last" "db/sqlserver/changes/$orphan"
   ./demo/inspect-changes.sh >/dev/null 2>&1
 ); then
   fail "La inspección aceptó un archivo huérfano."

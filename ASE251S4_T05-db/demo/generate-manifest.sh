@@ -25,8 +25,8 @@ emit_engine() {
 }
 
 {
-  printf '{\n  "engines": {\n    "postgresql": [\n'
-  emit_engine postgresql sql
+  printf '{\n  "engines": {\n    "sqlserver": [\n'
+  emit_engine sqlserver sql
   printf '\n    ],\n    "mongodb": [\n'
   emit_engine mongodb xml
   printf '\n    ]\n  }\n}\n'

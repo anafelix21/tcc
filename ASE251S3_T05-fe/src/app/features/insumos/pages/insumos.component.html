@@ -28,6 +28,9 @@
           <a (click)="exportarExcelTotal()"><span class="material-icons">table_view</span> Excel Total</a>
         </div>
       </div>
+      <button class="btn-import" (click)="abrirModalImportar()" title="Importar insumos desde archivo CSV o Excel">
+        <span class="material-icons">upload_file</span> Importar
+      </button>
       <button class="btn-new" (click)="nuevoInsumo()">
         <span>+</span> Nuevo Insumo
       </button>
@@ -148,6 +151,7 @@
               </span>
             </td>
             <td class="td-actions">
+              <button class="action-btn action-btn--info" (click)="abrirDetalleAuditoria(p)" title="Ver auditoría y detalles (14 campos)"><span class="material-icons" style="font-size: 20px;">info</span></button>
               <button *ngIf="p.estado" class="action-btn action-btn--edit" (click)="editarInsumo(p)" title="Editar"><span class="material-icons" style="font-size: 20px;">edit</span></button>
               <button *ngIf="p.estado" class="action-btn action-btn--delete" (click)="confirmarEliminar(p.idInsumo!)" title="Eliminar"><span class="material-icons" style="font-size: 20px;">delete</span></button>
               <button *ngIf="!p.estado" class="action-btn action-btn--restore" (click)="restaurarInsumo(p.idInsumo!)" title="Restaurar"><span class="material-icons" style="font-size: 20px;">restore</span></button>
@@ -181,4 +185,109 @@
     (onCancelClick)="cancelarConfirmacion()">
   </app-confirm-dialog>
 
+  <!-- Modal Importación Masiva (Requisito Sprint 8: Mínimo 10 registros) -->
+  <div class="modal-overlay" *ngIf="mostrarModalImportar" (click)="cerrarModalImportar()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-header-icon"><span class="material-icons">upload_file</span></div>
+        <div>
+          <h3>Importar Insumos</h3>
+          <p>Carga masiva de insumos a MongoDB (.csv o .xlsx)</p>
+        </div>
+        <button class="btn-close" (click)="cerrarModalImportar()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="import-dropzone">
+          <input type="file" id="fileImport" accept=".csv, .xlsx" (change)="onArchivoSeleccionado($event)" style="display: none;">
+          <label for="fileImport" class="dropzone-label">
+            <span class="material-icons dropzone-icon">cloud_upload</span>
+            <span *ngIf="!archivoImportar">Haz clic para seleccionar o arrastra aquí tu archivo <strong>CSV o Excel</strong></span>
+            <span *ngIf="archivoImportar" class="file-selected-name">📄 Archivo: <strong>{{ archivoImportar.name }}</strong> ({{ (archivoImportar.size / 1024).toFixed(1) }} KB)</span>
+          </label>
+        </div>
+
+        <div class="import-format-hint">
+          <small><strong>Columnas requeridas:</strong> nombre, descripcion, precio, stock, unidadMedida, tipoInsumo, proveedor, presentacion</small>
+        </div>
+
+        <div *ngIf="errorImportacion" class="alert alert-danger">
+          <span class="material-icons">error_outline</span> {{ errorImportacion }}
+        </div>
+
+        <div *ngIf="resultadoImportacion" class="alert alert-success">
+          <div class="alert-title"><span class="material-icons">check_circle</span> ¡Importación exitosa!</div>
+          <p>Total de filas leídas: <strong>{{ resultadoImportacion.totalFilas }}</strong> | Registros importados: <strong>{{ resultadoImportacion.importados }}</strong> | Fallidos: <strong>{{ resultadoImportacion.fallidos }}</strong></p>
+          <ul *ngIf="resultadoImportacion.errores && resultadoImportacion.errores.length > 0" class="import-errors-list">
+            <li *ngFor="let err of resultadoImportacion.errores">{{ err }}</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="cerrarModalImportar()" [disabled]="importando">Cancelar</button>
+        <button class="btn-primary" (click)="ejecutarImportacion()" [disabled]="!archivoImportar || importando">
+          <span *ngIf="!importando">Iniciar Importación</span>
+          <span *ngIf="importando">Importando...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Detalle y Auditoría (14 Campos funcionales y de auditoría) -->
+  <div class="modal-overlay" *ngIf="mostrarDetalleAuditoria" (click)="cerrarDetalleAuditoria()">
+    <div class="modal-card audit-modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-header-icon" style="background: #e0f2fe; color: #0284c7;"><span class="material-icons">verified_user</span></div>
+        <div>
+          <h3>Detalle Maestro de Insumo (MongoDB)</h3>
+          <p>Validación de los 14 campos (10 funcionales + 4 de auditoría)</p>
+        </div>
+        <button class="btn-close" (click)="cerrarDetalleAuditoria()">&times;</button>
+      </div>
+
+      <div class="modal-body audit-body" *ngIf="insumoDetalleAuditoria">
+        <div class="audit-grid">
+          <div class="audit-item"><span class="lbl">ID:</span> <span class="val">#{{ insumoDetalleAuditoria.idInsumo }}</span></div>
+          <div class="audit-item"><span class="lbl">Nombre:</span> <span class="val"><strong>{{ insumoDetalleAuditoria.nombre }}</strong></span></div>
+          <div class="audit-item"><span class="lbl">Tipo de Insumo:</span> <span class="val">{{ insumoDetalleAuditoria.tipoInsumo }}</span></div>
+          <div class="audit-item"><span class="lbl">Precio Unitario:</span> <span class="val">S/ {{ insumoDetalleAuditoria.precio | number:'1.2-2' }}</span></div>
+          <div class="audit-item"><span class="lbl">Stock Actual:</span> <span class="val">{{ insumoDetalleAuditoria.stock }} {{ insumoDetalleAuditoria.unidadMedida }}</span></div>
+          <div class="audit-item"><span class="lbl">Unidad de Medida:</span> <span class="val">{{ insumoDetalleAuditoria.unidadMedida }}</span></div>
+          <div class="audit-item"><span class="lbl">Proveedor:</span> <span class="val">{{ insumoDetalleAuditoria.proveedor }}</span></div>
+          <div class="audit-item"><span class="lbl">Presentación:</span> <span class="val">{{ insumoDetalleAuditoria.presentacion }}</span></div>
+          <div class="audit-item full-width"><span class="lbl">Descripción:</span> <span class="val">{{ insumoDetalleAuditoria.descripcion }}</span></div>
+          <div class="audit-item"><span class="lbl">Estado:</span> <span class="val">{{ insumoDetalleAuditoria.estado ? 'ACTIVO (true)' : 'INACTIVO (false)' }}</span></div>
+        </div>
+
+        <div class="audit-divider"></div>
+        <h4 class="audit-section-title">⏱️ Campos de Auditoría del Registro</h4>
+        
+        <div class="audit-grid audit-grid--dates">
+          <div class="audit-date-card">
+            <span class="date-lbl">Fecha Creación (createdAt):</span>
+            <span class="date-val">{{ insumoDetalleAuditoria.createdAt ? (insumoDetalleAuditoria.createdAt | date:'dd/MM/yyyy HH:mm:ss') : 'N/A' }}</span>
+          </div>
+          <div class="audit-date-card">
+            <span class="date-lbl">Última Modificación (updatedAt):</span>
+            <span class="date-val">{{ insumoDetalleAuditoria.updatedAt ? (insumoDetalleAuditoria.updatedAt | date:'dd/MM/yyyy HH:mm:ss') : 'Sin modificaciones' }}</span>
+          </div>
+          <div class="audit-date-card">
+            <span class="date-lbl">Fecha Eliminación (deletedAt):</span>
+            <span class="date-val">{{ insumoDetalleAuditoria.deletedAt ? (insumoDetalleAuditoria.deletedAt | date:'dd/MM/yyyy HH:mm:ss') : 'No eliminado' }}</span>
+          </div>
+          <div class="audit-date-card">
+            <span class="date-lbl">Fecha Restauración (restoredAt):</span>
+            <span class="date-val">{{ insumoDetalleAuditoria.restoredAt ? (insumoDetalleAuditoria.restoredAt | date:'dd/MM/yyyy HH:mm:ss') : 'No restaurado' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-primary" (click)="cerrarDetalleAuditoria()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
 </div>
+

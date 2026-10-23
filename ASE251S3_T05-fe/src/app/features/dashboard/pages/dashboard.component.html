@@ -1,0 +1,634 @@
+<div class="dashboard-container">
+
+  <!-- Header del Dashboard -->
+  <header class="dash-header">
+    <div class="dash-header__main">
+      <div class="dash-icon"><span class="material-icons">analytics</span></div>
+      <div>
+        <h1>Dashboard Analítico</h1>
+        <p>Proyectos de Innovación Tecnológica (PIT) — Visualización de Indicadores y KPIs</p>
+      </div>
+    </div>
+
+    <div class="dash-header__actions">
+      <div class="api-status-badge" [class.api-status-badge--online]="statusOnline" [class.api-status-badge--offline]="!statusOnline">
+        <span class="status-indicator"></span>
+        <span>Backend 2 (Flask :5000): {{ statusOnline ? 'ONLINE' : 'SIN CONEXIÓN' }}</span>
+      </div>
+      <button class="btn-refresh" (click)="cargarDatos(activeTab)" [disabled]="cargando" title="Actualizar datos">
+        <span class="material-icons" [class.spinning]="cargando">refresh</span> Actualizar
+      </button>
+    </div>
+  </header>
+
+  <!-- Navegación por pestañas (General y por Estudiante) -->
+  <nav class="dash-tabs">
+    <button class="tab-btn" [class.tab-btn--active]="activeTab === 'general'" (click)="cambiarTab('general')">
+      <span class="material-icons">public</span>
+      <span>Dashboard General</span>
+    </button>
+    <button class="tab-btn" [class.tab-btn--active]="activeTab === 'cosechas'" (click)="cambiarTab('cosechas')">
+      <span class="material-icons">local_shipping</span>
+      <div>
+        <span>Cosechas y Rendimiento</span>
+        <small class="tab-author">Ana Félix (A1 - A6)</small>
+      </div>
+    </button>
+    <button class="tab-btn" [class.tab-btn--active]="activeTab === 'campo'" (click)="cambiarTab('campo')">
+      <span class="material-icons">inventory_2</span>
+      <div>
+        <span>Actividades e Insumos</span>
+        <small class="tab-author">Hugo Fernández (H1 - H6)</small>
+      </div>
+    </button>
+    <button class="tab-btn" [class.tab-btn--active]="activeTab === 'personal'" (click)="cambiarTab('personal')">
+      <span class="material-icons">engineering</span>
+      <div>
+        <span>Personal y Mano de Obra</span>
+        <small class="tab-author">Axel Huapaya (X1 - X6)</small>
+      </div>
+    </button>
+    <button class="tab-btn" [class.tab-btn--active]="activeTab === 'catalogo'" (click)="cambiarTab('catalogo')">
+      <span class="material-icons">fact_check</span>
+      <span>Catálogo de 18 Indicadores</span>
+    </button>
+  </nav>
+
+  <!-- Alerta de Error si el Backend Flask no está corriendo -->
+  <div *ngIf="errorMensaje" class="alert-offline">
+    <span class="material-icons">wifi_off</span>
+    <div>
+      <strong>Servicio Analítico en puerto 5000:</strong>
+      <p>{{ errorMensaje }} Para iniciarlo localmente: <code>python wsgi.py</code> en la carpeta <code>ASE251S4_T05-be-analitico</code>.</p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="cargando" class="loading-state">
+    <div class="spinner"></div>
+    <p>Procesando métricas y análisis con Pandas...</p>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- TAB 1: DASHBOARD GENERAL                   -->
+  <!-- ========================================== -->
+  <div *ngIf="activeTab === 'general' && datosGeneral && !cargando" class="dash-content">
+    
+    <!-- 6 KPI Cards -->
+    <section class="cards-grid">
+      <div class="kpi-card kpi-card--green">
+        <div class="kpi-icon"><span class="material-icons">scale</span></div>
+        <div class="kpi-data">
+          <span class="kpi-lbl">Kilos Cosechados</span>
+          <span class="kpi-val">{{ formatearNumero(datosGeneral.cards.kilos_cosechados) }} kg</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-card--emerald">
+        <div class="kpi-icon"><span class="material-icons">check_circle</span></div>
+        <div class="kpi-data">
+          <span class="kpi-lbl">Eficiencia Cosecha</span>
+          <span class="kpi-val">{{ datosGeneral.cards.eficiencia_cosecha_pct }} %</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-card--amber">
+        <div class="kpi-icon"><span class="material-icons">inventory_2</span></div>
+        <div class="kpi-data">
+          <span class="kpi-lbl">Valor de Inventario</span>
+          <span class="kpi-val">{{ formatearSoles(datosGeneral.cards.valor_inventario) }}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-card--blue">
+        <div class="kpi-icon"><span class="material-icons">task_alt</span></div>
+        <div class="kpi-data">
+          <span class="kpi-lbl">Cumplimiento Labores</span>
+          <span class="kpi-val">{{ datosGeneral.cards.tasa_cumplimiento_actividades_pct }} %</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-card--brown">
+        <div class="kpi-icon"><span class="material-icons">payments</span></div>
+        <div class="kpi-data">
+          <span class="kpi-lbl">Costo Mano de Obra</span>
+          <span class="kpi-val">{{ formatearSoles(datosGeneral.cards.costo_total_mano_obra) }}</span>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-card--indigo">
+        <div class="kpi-icon"><span class="material-icons">groups</span></div>
+        <div class="kpi-data">
+          <span class="kpi-lbl">Personal Activo</span>
+          <span class="kpi-val">{{ datosGeneral.cards.usuarios_activos }} usuarios</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gráficos: Barras + Circular -->
+    <section class="charts-grid">
+      <!-- Gráfico de Barras -->
+      <div class="panel">
+        <div class="panel-header">
+          <h3>📊 Producción por Cultivo (Kilos Totales)</h3>
+          <span class="badge-source">SQL Server (Cosechas)</span>
+        </div>
+        <div class="bar-chart-container">
+          <div *ngFor="let b of barItems" class="bar-col">
+            <span class="bar-val-text">{{ b.formattedValue }}</span>
+            <div class="bar-fill-track">
+              <div class="bar-fill" [style.height.%]="b.heightPercent"></div>
+            </div>
+            <span class="bar-lbl">{{ b.label }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráfico Circular / Donut -->
+      <div class="panel">
+        <div class="panel-header">
+          <h3>🍩 Distribución de Costos Operativos</h3>
+          <span class="badge-source">Pandas Aggregations</span>
+        </div>
+        <div class="donut-chart-container">
+          <div class="donut-svg-wrapper">
+            <svg viewBox="0 0 100 100" class="donut-svg">
+              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f1f5f9" stroke-width="12"></circle>
+              <circle *ngFor="let s of donutSlices"
+                      cx="50" cy="50" r="40"
+                      fill="transparent"
+                      [attr.stroke]="s.color"
+                      stroke-width="12"
+                      [attr.stroke-dasharray]="s.strokeDasharray"
+                      [attr.stroke-dashoffset]="s.strokeDashoffset"
+                      transform="rotate(-90 50 50)"
+                      class="donut-segment">
+              </circle>
+            </svg>
+            <div class="donut-center-label">
+              <span>Total</span>
+              <strong>100%</strong>
+            </div>
+          </div>
+
+          <div class="donut-legend">
+            <div *ngFor="let s of donutSlices" class="legend-item">
+              <span class="legend-color" [style.background]="s.color"></span>
+              <span class="legend-text">{{ s.label }}: <strong>{{ formatearSoles(s.value) }}</strong> ({{ s.percentage }}%)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tabla: Top Insumos -->
+    <section class="panel">
+      <div class="panel-header">
+        <h3>📋 Top 5 Insumos con Mayor Rotación y Consumo</h3>
+        <span class="badge-source">Persistencia Políglota (SQL + Mongo)</span>
+      </div>
+      <div class="table-responsive">
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th>Insumo</th>
+              <th>Tipo</th>
+              <th>Cantidad Consumida</th>
+              <th>Gasto Total</th>
+              <th>Índice Rotación</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let fila of datosGeneral.tabla">
+              <td><strong>{{ fila.nombre }}</strong></td>
+              <td><span class="pill-tag">{{ fila.tipo_insumo }}</span></td>
+              <td>{{ formatearNumero(fila.cantidad_consumida) }}</td>
+              <td class="font-numeric"><strong>{{ formatearSoles(fila.gasto_total) }}</strong></td>
+              <td><span class="rate-badge">{{ fila.indice_rotacion_pct }}%</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- TAB 2: SECCIÓN ANA FÉLIX — COSECHAS        -->
+  <!-- ========================================== -->
+  <div *ngIf="activeTab === 'cosechas' && datosCosechas && !cargando" class="dash-content">
+    <div class="section-badge-banner">
+      <span class="material-icons">military_tech</span>
+      <span><strong>Módulo Ana Félix</strong> — Cosechas y Rendimiento | Indicadores A1, A2, A3, A4, A5, A6</span>
+    </div>
+
+    <section class="cards-grid">
+      <div class="kpi-card kpi-card--green">
+        <div class="kpi-icon"><span class="material-icons">local_shipping</span></div>
+        <div class="kpi-data">
+          <span class="kpi-lbl">Total Cosechas (A1)</span>
+          <span class="kpi-val">{{ datosCosechas.cards.total_cosechas }}</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-card--emerald">
+        <div class="kpi-icon"><span class="material-icons">grade</span></div>
+        <div class="kpi-data">
+          <span class="kpi-lbl">Kilos Óptimos (A1)</span>
+          <span class="kpi-val">{{ formatearNumero(datosCosechas.cards.kilos_optimos) }} kg</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-card--amber">
+        <div class="kpi-icon"><span class="material-icons">warning_amber</span></div>
+        <div class="kpi-data">
+          <span class="kpi-lbl">Kilos Merma (A1)</span>
+          <span class="kpi-val">{{ formatearNumero(datosCosechas.cards.kilos_merma) }} kg</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-card--blue">
+        <div class="kpi-icon"><span class="material-icons">speed</span></div>
+        <div class="kpi-data">
+          <span class="kpi-lbl">Eficiencia Cosecha (A1)</span>
+          <span class="kpi-val">{{ datosCosechas.cards.eficiencia_cosecha_pct }} %</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="charts-grid">
+      <div class="panel">
+        <div class="panel-header">
+          <h3>📊 Kilos por Cultivo (Indicador A3)</h3>
+          <span class="badge-source">SQL Server</span>
+        </div>
+        <div class="bar-chart-container">
+          <div *ngFor="let b of barItems" class="bar-col">
+            <span class="bar-val-text">{{ b.formattedValue }}</span>
+            <div class="bar-fill-track">
+              <div class="bar-fill" [style.height.%]="b.heightPercent"></div>
+            </div>
+            <span class="bar-lbl">{{ b.label }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h3>🍩 Calidad: Óptimo vs Merma (Indicador A2)</h3>
+          <span class="badge-source">Agregación Analítica</span>
+        </div>
+        <div class="donut-chart-container">
+          <div class="donut-svg-wrapper">
+            <svg viewBox="0 0 100 100" class="donut-svg">
+              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f1f5f9" stroke-width="12"></circle>
+              <circle *ngFor="let s of donutSlices"
+                      cx="50" cy="50" r="40"
+                      fill="transparent"
+                      [attr.stroke]="s.color"
+                      stroke-width="12"
+                      [attr.stroke-dasharray]="s.strokeDasharray"
+                      [attr.stroke-dashoffset]="s.strokeDashoffset"
+                      transform="rotate(-90 50 50)"
+                      class="donut-segment">
+              </circle>
+            </svg>
+            <div class="donut-center-label">
+              <span>Calidad</span>
+              <strong>100%</strong>
+            </div>
+          </div>
+          <div class="donut-legend">
+            <div *ngFor="let s of donutSlices" class="legend-item">
+              <span class="legend-color" [style.background]="s.color"></span>
+              <span class="legend-text">{{ s.label }}: <strong>{{ formatearNumero(s.value) }} kg</strong> ({{ s.percentage }}%)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h3>📋 Desempeño por Responsable de Cosecha (Indicador A5)</h3>
+        <span class="badge-source">Tasa de Merma</span>
+      </div>
+      <div class="table-responsive">
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th>Responsable</th>
+              <th>Total Cosechas</th>
+              <th>Kilos Totales</th>
+              <th>Tasa de Merma (%)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let fila of datosCosechas.tabla">
+              <td><strong>{{ fila.responsable }}</strong></td>
+              <td>{{ fila.total_cosechas }}</td>
+              <td>{{ formatearNumero(fila.kilos_totales) }} kg</td>
+              <td><span class="rate-badge" [class.rate-badge--warn]="fila.tasa_merma_pct > 5">{{ fila.tasa_merma_pct }}%</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- TAB 3: SECCIÓN HUGO — ACTIVIDADES/INSUMOS  -->
+  <!-- ========================================== -->
+  <div *ngIf="activeTab === 'campo' && datosCampo && !cargando" class="dash-content">
+    <div class="section-badge-banner">
+      <span class="material-icons">military_tech</span>
+      <span><strong>Módulo Hugo Fernández</strong> — Actividades e Insumos | Indicadores H1, H2, H3, H4, H5, H6</span>
+    </div>
+
+    <section class="cards-grid">
+      <div class="kpi-card kpi-card--green">
+        <div class="kpi-icon"><span class="material-icons">agriculture</span></div>
+        <div class="kpi-data">
+          <span class="kpi-lbl">Actividades (H1)</span>
+          <span class="kpi-val">{{ datosCampo.cards.total_actividades }}</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-card--emerald">
+        <div class="kpi-icon"><span class="material-icons">done_all</span></div>
+        <div class="kpi-data">
+          <span class="kpi-lbl">Cumplimiento (H1)</span>
+          <span class="kpi-val">{{ datosCampo.cards.tasa_cumplimiento_pct }} %</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-card--brown">
+        <div class="kpi-icon"><span class="material-icons">paid</span></div>
+        <div class="kpi-data">
+          <span class="kpi-lbl">Costo Actividades (H1)</span>
+          <span class="kpi-val">{{ formatearSoles(datosCampo.cards.costo_total_acumulado) }}</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-card--amber">
+        <div class="kpi-icon"><span class="material-icons">category</span></div>
+        <div class="kpi-data">
+          <span class="kpi-lbl">Insumos Activos (H3)</span>
+          <span class="kpi-val">{{ datosCampo.cards.total_insumos }}</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-card--blue">
+        <div class="kpi-icon"><span class="material-icons">account_balance_wallet</span></div>
+        <div class="kpi-data">
+          <span class="kpi-lbl">Valor Inventario (H3)</span>
+          <span class="kpi-val">{{ formatearSoles(datosCampo.cards.valor_total_inventario) }}</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-card--rose">
+        <div class="kpi-icon"><span class="material-icons">report_problem</span></div>
+        <div class="kpi-data">
+          <span class="kpi-lbl">Stock Crítico (H5)</span>
+          <span class="kpi-val">{{ datosCampo.cards.insumos_stock_critico }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="charts-grid">
+      <div class="panel">
+        <div class="panel-header">
+          <h3>📊 Costo por Tipo de Actividad (Indicador H2)</h3>
+          <span class="badge-source">SQL Server</span>
+        </div>
+        <div class="bar-chart-container">
+          <div *ngFor="let b of barItems" class="bar-col">
+            <span class="bar-val-text">{{ b.formattedValue }}</span>
+            <div class="bar-fill-track">
+              <div class="bar-fill" [style.height.%]="b.heightPercent"></div>
+            </div>
+            <span class="bar-lbl">{{ b.label }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h3>🍩 Valor de Inventario por Tipo (Indicador H4)</h3>
+          <span class="badge-source">MongoDB Insumos</span>
+        </div>
+        <div class="donut-chart-container">
+          <div class="donut-svg-wrapper">
+            <svg viewBox="0 0 100 100" class="donut-svg">
+              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f1f5f9" stroke-width="12"></circle>
+              <circle *ngFor="let s of donutSlices"
+                      cx="50" cy="50" r="40"
+                      fill="transparent"
+                      [attr.stroke]="s.color"
+                      stroke-width="12"
+                      [attr.stroke-dasharray]="s.strokeDasharray"
+                      [attr.stroke-dashoffset]="s.strokeDashoffset"
+                      transform="rotate(-90 50 50)"
+                      class="donut-segment">
+              </circle>
+            </svg>
+            <div class="donut-center-label">
+              <span>Categorías</span>
+              <strong>100%</strong>
+            </div>
+          </div>
+          <div class="donut-legend">
+            <div *ngFor="let s of donutSlices" class="legend-item">
+              <span class="legend-color" [style.background]="s.color"></span>
+              <span class="legend-text">{{ s.label }}: <strong>{{ formatearSoles(s.value) }}</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h3>📋 Insumos con Stock Crítico (≤ 20) (Indicador H5)</h3>
+        <span class="badge-source">Alertas de Reabastecimiento</span>
+      </div>
+      <div class="table-responsive">
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th>Insumo</th>
+              <th>Tipo</th>
+              <th>Stock Actual</th>
+              <th>Unidad</th>
+              <th>Proveedor</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let fila of datosCampo.tabla">
+              <td><strong>{{ fila.nombre }}</strong></td>
+              <td><span class="pill-tag">{{ fila.tipo_insumo }}</span></td>
+              <td><span class="stock-alert-pill">{{ fila.stock }}</span></td>
+              <td>{{ fila.unidad_medida }}</td>
+              <td>{{ fila.proveedor }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- TAB 4: SECCIÓN AXEL — PERSONAL             -->
+  <!-- ========================================== -->
+  <div *ngIf="activeTab === 'personal' && datosPersonal && !cargando" class="dash-content">
+    <div class="section-badge-banner">
+      <span class="material-icons">military_tech</span>
+      <span><strong>Módulo Axel Huapaya</strong> — Personal y Mano de Obra | Indicadores X1, X2, X3, X4, X5, X6</span>
+    </div>
+
+    <section class="cards-grid">
+      <div class="kpi-card kpi-card--green">
+        <div class="kpi-icon"><span class="material-icons">people</span></div>
+        <div class="kpi-data">
+          <span class="kpi-lbl">Usuarios Activos (X1)</span>
+          <span class="kpi-val">{{ datosPersonal.cards.usuarios_activos }}</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-card--blue">
+        <div class="kpi-icon"><span class="material-icons">assignment_ind</span></div>
+        <div class="kpi-data">
+          <span class="kpi-lbl">Asignaciones (X1)</span>
+          <span class="kpi-val">{{ datosPersonal.cards.total_asignaciones }}</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-card--amber">
+        <div class="kpi-icon"><span class="material-icons">schedule</span></div>
+        <div class="kpi-data">
+          <span class="kpi-lbl">Horas Trabajadas (X1)</span>
+          <span class="kpi-val">{{ datosPersonal.cards.horas_trabajadas_totales }} hrs</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-card--brown">
+        <div class="kpi-icon"><span class="material-icons">monetization_on</span></div>
+        <div class="kpi-data">
+          <span class="kpi-lbl">Costo Mano Obra (X1)</span>
+          <span class="kpi-val">{{ formatearSoles(datosPersonal.cards.costo_total_mano_obra) }}</span>
+        </div>
+      </div>
+      <div class="kpi-card kpi-card--emerald">
+        <div class="kpi-icon"><span class="material-icons">price_change</span></div>
+        <div class="kpi-data">
+          <span class="kpi-lbl">Costo Promedio / Hr</span>
+          <span class="kpi-val">{{ formatearSoles(datosPersonal.cards.costo_promedio_hora) }}</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="charts-grid">
+      <div class="panel">
+        <div class="panel-header">
+          <h3>📊 Costo de Mano de Obra por Actividad (Indicador X3)</h3>
+          <span class="badge-source">SQL Server Asignaciones</span>
+        </div>
+        <div class="bar-chart-container">
+          <div *ngFor="let b of barItems" class="bar-col">
+            <span class="bar-val-text">{{ b.formattedValue }}</span>
+            <div class="bar-fill-track">
+              <div class="bar-fill" [style.height.%]="b.heightPercent"></div>
+            </div>
+            <span class="bar-lbl">{{ b.label }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-header">
+          <h3>🍩 Personal Activo por Rol (Indicador X2)</h3>
+          <span class="badge-source">MongoDB Usuarios</span>
+        </div>
+        <div class="donut-chart-container">
+          <div class="donut-svg-wrapper">
+            <svg viewBox="0 0 100 100" class="donut-svg">
+              <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f1f5f9" stroke-width="12"></circle>
+              <circle *ngFor="let s of donutSlices"
+                      cx="50" cy="50" r="40"
+                      fill="transparent"
+                      [attr.stroke]="s.color"
+                      stroke-width="12"
+                      [attr.stroke-dasharray]="s.strokeDasharray"
+                      [attr.stroke-dashoffset]="s.strokeDashoffset"
+                      transform="rotate(-90 50 50)"
+                      class="donut-segment">
+              </circle>
+            </svg>
+            <div class="donut-center-label">
+              <span>Roles</span>
+              <strong>100%</strong>
+            </div>
+          </div>
+          <div class="donut-legend">
+            <div *ngFor="let s of donutSlices" class="legend-item">
+              <span class="legend-color" [style.background]="s.color"></span>
+              <span class="legend-text">{{ s.label }}: <strong>{{ s.value }} usuarios</strong> ({{ s.percentage }}%)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <h3>📋 Ranking de Trabajadores (Indicador X4)</h3>
+        <span class="badge-source">Persistencia Políglota (SQL Asignaciones + Mongo Usuarios)</span>
+      </div>
+      <div class="table-responsive">
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th>Trabajador</th>
+              <th>Rol</th>
+              <th>Asignaciones</th>
+              <th>Costo Total Generado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let fila of datosPersonal.tabla">
+              <td><strong>{{ fila.trabajador }}</strong></td>
+              <td><span class="pill-tag">{{ fila.rol }}</span></td>
+              <td>{{ fila.asignaciones }}</td>
+              <td class="font-numeric"><strong>{{ formatearSoles(fila.costo_mano_obra) }}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- TAB 5: CATÁLOGO DE 18 INDICADORES          -->
+  <!-- ========================================== -->
+  <div *ngIf="activeTab === 'catalogo' && catalogoIndicadores && !cargando" class="dash-content">
+    <div class="section-badge-banner">
+      <span class="material-icons">menu_book</span>
+      <span><strong>Catálogo Formal de los 18 Indicadores Funcionales</strong> (6 por estudiante) — Rúbrica PIT 1.0 pto</span>
+    </div>
+
+    <div *ngFor="let autor of getCatalogoKeys()" class="panel" style="margin-bottom: 20px;">
+      <div class="panel-header">
+        <h3>👤 {{ autor }}</h3>
+        <span class="badge-source">6 Indicadores documentados en Swagger (OpenAPI)</span>
+      </div>
+
+      <div class="table-responsive">
+        <table class="dash-table">
+          <thead>
+            <tr>
+              <th style="width: 80px;">Código</th>
+              <th>Endpoint REST</th>
+              <th>Representación Visual</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ind of catalogoIndicadores[autor]">
+              <td><span class="pill-tag pill-tag--code">{{ ind.codigo }}</span></td>
+              <td><code>{{ ind.endpoint }}</code></td>
+              <td><span class="pill-tag">{{ ind.visual }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>

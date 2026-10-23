@@ -33,9 +33,16 @@ export interface InsumoDTO {
   presentacion: string;
 }
 
-/**
- * Insumo para formularios
- */
 export interface InsumoForm extends InsumoDTO {
   idInsumo?: number;
+}
+
+/**
+ * Resultado de importación masiva de insumos
+ */
+export interface ImportResult {
+  totalFilas: number;
+  importados: number;
+  fallidos: number;
+  errores: string[];
 }

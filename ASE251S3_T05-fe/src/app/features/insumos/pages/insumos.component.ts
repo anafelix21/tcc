@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Insumo, InsumoForm } from '../../../core/models/insumo.model';
+import { Insumo, InsumoForm, ImportResult } from '../../../core/models/insumo.model';
 import { InsumoService } from '../services/insumo.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { InsumoFormComponent } from '../components/insumo-form/insumo-form.component';
@@ -37,6 +37,17 @@ export class InsumosComponent implements OnInit {
 
   mostrarConfirmacion = false;
   insumoAEliminar: number | null = null;
+
+  // Importación masiva (Mínimo 10 registros - Requisito Sprint 8)
+  mostrarModalImportar = false;
+  archivoImportar: File | null = null;
+  importando = false;
+  resultadoImportacion: ImportResult | null = null;
+  errorImportacion: string | null = null;
+
+  // Auditoría (4 campos: fecha y hora - Requisito Sprint 8)
+  insumoDetalleAuditoria: Insumo | null = null;
+  mostrarDetalleAuditoria = false;
 
   ngOnInit(): void {
     this.cargarInsumos();
@@ -304,4 +315,78 @@ export class InsumosComponent implements OnInit {
       }
     });
   }
+
+  // --- MÉTODOS DE IMPORTACIÓN Y AUDITORÍA (SPRINT 8) ---
+  abrirModalImportar(): void {
+    this.archivoImportar = null;
+    this.resultadoImportacion = null;
+    this.errorImportacion = null;
+    this.mostrarModalImportar = true;
+  }
+
+  cerrarModalImportar(): void {
+    this.mostrarModalImportar = false;
+    this.archivoImportar = null;
+    this.resultadoImportacion = null;
+    this.errorImportacion = null;
+  }
+
+  onArchivoSeleccionado(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.archivoImportar = input.files[0];
+      this.resultadoImportacion = null;
+      this.errorImportacion = null;
+    }
+  }
+
+  ejecutarImportacion(): void {
+    if (!this.archivoImportar) {
+      this.errorImportacion = 'Por favor selecciona un archivo (.csv o .xlsx).';
+      return;
+    }
+
+    const nombre = this.archivoImportar.name.toLowerCase();
+    if (!nombre.endsWith('.csv') && !nombre.endsWith('.xlsx')) {
+      this.errorImportacion = 'Formato inválido. Solo se admiten archivos .csv o .xlsx.';
+      return;
+    }
+
+    this.importando = true;
+    this.errorImportacion = null;
+    this.resultadoImportacion = null;
+
+    const req$ = nombre.endsWith('.csv')
+      ? this.insumoService.importarCsv(this.archivoImportar)
+      : this.insumoService.importarExcel(this.archivoImportar);
+
+    req$.subscribe({
+      next: (res) => {
+        this.importando = false;
+        this.resultadoImportacion = res;
+        this.notificationService.show({
+          type: 'success',
+          message: `¡Importación completada! ${res.importados} insumos registrados correctamente.`
+        });
+        this.cargarInsumos();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.importando = false;
+        this.errorImportacion = err.error?.message || err.message || 'Error al procesar el archivo.';
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  abrirDetalleAuditoria(insumo: Insumo): void {
+    this.insumoDetalleAuditoria = insumo;
+    this.mostrarDetalleAuditoria = true;
+  }
+
+  cerrarDetalleAuditoria(): void {
+    this.insumoDetalleAuditoria = null;
+    this.mostrarDetalleAuditoria = false;
+  }
 }
+

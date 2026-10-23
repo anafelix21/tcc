@@ -15,7 +15,7 @@ La interfaz principal para desarrolladores y operadores:
 # Construir la imagen runner de Liquibase con extensiones oficiales
 ./demo/lab.sh build
 
-# Validar conexiones y sintaxis de changelogs en PostgreSQL y MongoDB
+# Validar conexiones y sintaxis de changelogs en SQL Server y MongoDB
 ./demo/lab.sh validate all
 
 # Consultar cambios pendientes de aplicar (status detallado)

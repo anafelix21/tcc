@@ -22,7 +22,7 @@ copy_lab() {
 
 next_version() {
   local root="$1" file number
-  file="$(find "$root/db/postgresql/changes" -maxdepth 1 -name 'V[0-9][0-9][0-9]__*.sql' -exec basename {} \; | sort | tail -1)"
+  file="$(find "$root/db/sqlserver/changes" -maxdepth 1 -name 'V[0-9][0-9][0-9]__*.sql' -exec basename {} \; | sort | tail -1)"
   number="${file#V}"; number="${number%%__*}"
   printf 'V%03d' "$((10#$number + 1))"
 }

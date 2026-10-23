@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard AgroPacayales</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --navy: #1B5E20; --navy-2: #2E7D32; --bg: #FAF7F2; --card: #ffffff; --text: #2A2A26;
+    --muted: #7A7468; --line: #ECE4D8; --brown: #B08D6A; --brown-soft: #F3EADF;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; }
+  aside { width: 220px; background: var(--navy); color: #fff; padding: 20px 12px; flex-shrink: 0; }
+  aside h1 { font-size: 18px; margin: 0 8px 24px; }
+  aside button { display: block; width: 100%; text-align: left; background: none; border: 0; color: #E7F2E5; padding: 10px 12px; border-radius: 8px; font-size: 14px; cursor: pointer; }
+  aside button.active, aside button:hover { background: var(--navy-2); color: #fff; box-shadow: inset 3px 0 0 #D9C2A5; }
+  aside small { display: block; color: #D9C2A5; font-size: 11px; }
+  main { flex: 1; padding: 24px; min-width: 0; }
+  header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px; gap: 12px; flex-wrap: wrap; }
+  header h2 { margin: 0; color: var(--navy); }
+  header p { margin: 2px 0 0; color: var(--muted); font-size: 13px; }
+  .badge { background: var(--brown-soft); border: 1px solid #D9C2A5; color: #6D4C2F; padding: 6px 12px; border-radius: 8px; font-size: 12px; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 16px; box-shadow: 0 4px 14px rgba(91,70,50,.07); border-top: 4px solid var(--navy-2); }
+  .card:nth-child(even) { border-top-color: var(--brown); }
+  .card .lbl { font-size: 12px; color: var(--muted); }
+  .card .val { font-size: 24px; font-weight: 700; color: var(--navy); margin-top: 6px; font-variant-numeric: tabular-nums; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 4px 14px rgba(91,70,50,.07); padding: 16px; min-width: 0; }
+  .panel h3 { margin: 0 0 12px; font-size: 15px; color: var(--navy); }
+  .chart { position: relative; height: 260px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { text-align: left; background: #E7F2E5; color: var(--navy); padding: 8px; }
+  td { padding: 8px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  .scroll { overflow-x: auto; }
+  .err { color: #b42318; font-size: 13px; }
+  @media (max-width: 860px) {
+    body { flex-direction: column; }
+    aside { width: 100%; display: flex; flex-wrap: wrap; gap: 4px; padding: 12px 16px; }
+    aside h1 { width: 100%; margin: 0 0 8px; }
+    aside button { width: auto; }
+    main { padding: 16px; }
+    .grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<aside>
+  <h1>🌱 AgroPacayales</h1>
+  <button data-view="general" class="active">Dashboard General</button>
+  <button data-view="cosechas">Cosechas<small>Ana Félix</small></button>
+  <button data-view="campo">Actividades e Insumos<small>Hugo Fernández</small></button>
+  <button data-view="personal">Personal y Mano de Obra<small>Axel Huapaya</small></button>
+</aside>
+<main>
+  <header>
+    <div><h2 id="titulo">Dashboard General</h2><p id="subtitulo">Indicadores más relevantes de todas las secciones</p></div>
+    <span class="badge">● Consumo desde API REST (Flask + Pandas)</span>
+  </header>
+  <section class="cards" id="cards"></section>
+  <section class="grid">
+    <div class="panel"><h3 id="t-barras"></h3><div class="chart"><canvas id="barras"></canvas></div></div>
+    <div class="panel"><h3 id="t-circular"></h3><div class="chart"><canvas id="circular"></canvas></div></div>
+  </section>
+  <section class="panel"><h3 id="t-tabla"></h3><div class="scroll"><table id="tabla"></table></div></section>
+</main>
+<script>
+const API = '/api/v1/analytics';
+const COLORS = ['#2E7D32', '#B08D6A', '#66BB6A', '#D9C2A5', '#1B5E20', '#8D6E63', '#A5D6A7'];
+const soles = v => 'S/ ' + Number(v || 0).toLocaleString('es-PE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const num = v => Number(v || 0).toLocaleString('es-PE', { maximumFractionDigits: 2 });
+const pct = v => num(v) + ' %';
+
+const VISTAS = {
+  general: {
+    titulo: 'Dashboard General', sub: 'Indicadores más relevantes de todas las secciones', url: '/dashboard/general',
+    cards: d => [['Kilos cosechados', num(d.cards.kilos_cosechados)], ['Eficiencia de cosecha', pct(d.cards.eficiencia_cosecha_pct)],
+                 ['Valor de inventario', soles(d.cards.valor_inventario)], ['Cumplimiento de actividades', pct(d.cards.tasa_cumplimiento_actividades_pct)],
+                 ['Costo mano de obra', soles(d.cards.costo_total_mano_obra)], ['Usuarios activos', num(d.cards.usuarios_activos)]],
+    barras: d => ['Producción por cultivo (kg)', d.grafico_barras.map(x => x.cultivo), d.grafico_barras.map(x => x.kilos_totales)],
+    circular: d => ['Distribución de costos operativos', d.grafico_circular.map(x => x.categoria), d.grafico_circular.map(x => x.monto)],
+    tabla: d => ['Top 5 insumos más consumidos', ['Insumo', 'Tipo', 'Cantidad', 'Gasto', 'Rotación'],
+                 d.tabla.map(x => [x.nombre, x.tipo_insumo, num(x.cantidad_consumida), soles(x.gasto_total), pct(x.indice_rotacion_pct)])],
+  },
+  cosechas: {
+    titulo: 'Cosechas y Rendimiento', sub: 'Sección de Ana Félix — SQL Server (harvest) + MongoDB (parcelas)', url: '/cosechas/seccion',
+    cards: d => [['Total cosechas', num(d.cards.total_cosechas)], ['Kilos óptimos', num(d.cards.kilos_optimos)],
+                 ['Kilos merma', num(d.cards.kilos_merma)], ['Eficiencia', pct(d.cards.eficiencia_cosecha_pct)]],
+    barras: d => ['Kilos por cultivo', d.grafico_barras.map(x => x.cultivo), d.grafico_barras.map(x => x.kilos_totales)],
+    circular: d => ['Calidad: óptimo vs merma', d.grafico_circular.map(x => x.categoria), d.grafico_circular.map(x => x.kilos)],
+    tabla: d => ['Desempeño por responsable', ['Responsable', 'Cosechas', 'Kilos totales', 'Merma %'],
+                 d.tabla.map(x => [x.responsable, num(x.total_cosechas), num(x.kilos_totales), pct(x.tasa_merma_pct)])],
+  },
+  campo: {
+    titulo: 'Actividades de Campo e Insumos', sub: 'Sección de Hugo Fernández — SQL Server (actividades) + MongoDB (insumos)', url: '/campo/seccion',
+    cards: d => [['Actividades', num(d.cards.total_actividades)], ['Cumplimiento', pct(d.cards.tasa_cumplimiento_pct)],
+                 ['Costo de actividades', soles(d.cards.costo_total_acumulado)], ['Insumos activos', num(d.cards.total_insumos)],
+                 ['Valor de inventario', soles(d.cards.valor_total_inventario)], ['Stock crítico', num(d.cards.insumos_stock_critico)]],
+    barras: d => ['Costo por tipo de actividad', d.grafico_barras.map(x => x.tipo_actividad), d.grafico_barras.map(x => x.costo_acumulado)],
+    circular: d => ['Valor de inventario por tipo', d.grafico_circular.map(x => x.tipo_insumo), d.grafico_circular.map(x => x.valor_acumulado)],
+    tabla: d => ['Insumos con stock crítico (≤ 20)', ['Insumo', 'Tipo', 'Stock', 'Unidad', 'Proveedor'],
+                 d.tabla.map(x => [x.nombre, x.tipo_insumo, num(x.stock), x.unidad_medida, x.proveedor])],
+  },
+  personal: {
+    titulo: 'Personal y Mano de Obra', sub: 'Sección de Axel Huapaya — SQL Server (asignaciones) + MongoDB (usuarios)', url: '/personal/seccion',
+    cards: d => [['Usuarios activos', num(d.cards.usuarios_activos)], ['Asignaciones', num(d.cards.total_asignaciones)],
+                 ['Horas trabajadas', num(d.cards.horas_trabajadas_totales)], ['Costo mano de obra', soles(d.cards.costo_total_mano_obra)],
+                 ['Costo promedio / hora', soles(d.cards.costo_promedio_hora)]],
+    barras: d => ['Costo de mano de obra por actividad', d.grafico_barras.map(x => x.tipo_actividad), d.grafico_barras.map(x => x.costo)],
+    circular: d => ['Personal activo por rol', d.grafico_circular.map(x => x.rol), d.grafico_circular.map(x => x.total)],
+    tabla: d => ['Ranking de trabajadores', ['Trabajador', 'Rol', 'Asignaciones', 'Costo'],
+                 d.tabla.map(x => [x.trabajador, x.rol, num(x.asignaciones), soles(x.costo_mano_obra)])],
+  },
+};
+
+let charts = [];
+function grafico(id, tipo, labels, values) {
+  return new Chart(document.getElementById(id), {
+    type: tipo,
+    data: { labels, datasets: [{ data: values, backgroundColor: tipo === 'bar' ? COLORS[0] : COLORS, borderRadius: tipo === 'bar' ? 6 : 0, borderWidth: tipo === 'bar' ? 0 : 2, borderColor: '#fff' }] },
+    options: { maintainAspectRatio: false, plugins: { legend: { display: tipo !== 'bar', position: 'bottom' } },
+               cutout: tipo === 'doughnut' ? '55%' : undefined, scales: tipo === 'bar' ? { y: { beginAtZero: true } } : undefined },
+  });
+}
+
+async function cargar(vista) {
+  const v = VISTAS[vista];
+  document.getElementById('titulo').textContent = v.titulo;
+  document.getElementById('subtitulo').textContent = v.sub;
+  charts.forEach(c => c.destroy()); charts = [];
+  try {
+    const r = await fetch(API + v.url);
+    const d = (await r.json()).data;
+    document.getElementById('cards').innerHTML = v.cards(d)
+      .map(([l, val]) => `<div class="card"><div class="lbl">${l}</div><div class="val">${val}</div></div>`).join('');
+    const [tb, lb, vb] = v.barras(d); document.getElementById('t-barras').textContent = tb;
+    const [tc, lc, vc] = v.circular(d); document.getElementById('t-circular').textContent = tc;
+    charts.push(grafico('barras', 'bar', lb, vb), grafico('circular', 'doughnut', lc, vc));
+    const [tt, cols, filas] = v.tabla(d); document.getElementById('t-tabla').textContent = tt;
+    document.getElementById('tabla').innerHTML = `<tr>${cols.map(c => `<th>${c}</th>`).join('')}</tr>` +
+      (filas.length ? filas.map(f => `<tr>${f.map(c => `<td>${c ?? ''}</td>`).join('')}</tr>`).join('')
+                    : `<tr><td colspan="${cols.length}">Sin datos registrados</td></tr>`);
+  } catch (e) {
+    document.getElementById('cards').innerHTML = `<p class="err">No se pudo consultar la API: ${e.message}</p>`;
+  }
+}
+
+document.querySelectorAll('aside button').forEach(b => b.addEventListener('click', () => {
+  document.querySelectorAll('aside button').forEach(x => x.classList.remove('active'));
+  b.classList.add('active'); cargar(b.dataset.view);
+}));
+cargar('general');
+</script>
+</body>
+</html>

@@ -2,6 +2,7 @@ package Agropacayales.valleGrande.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -82,4 +83,9 @@ public class Insumo {
     @JsonFormat(pattern = "dd/MM/yyyy HH:mm:ss", timezone = "America/Lima")
     @Field("restored_at")
     private LocalDateTime restoredAt;
+
+    @JsonProperty("idInsumo")
+    public String getIdInsumo() {
+        return this.id;
+    }
 }

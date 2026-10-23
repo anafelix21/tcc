@@ -15,10 +15,10 @@ springdoc:
   swagger-ui:
     path: /swagger-ui.html
 checker:
-  postgres:
-    url: ${CHECK_POSTGRES_URL}
-    username: ${POSTGRES_USERNAME}
-    password: ${POSTGRES_PASSWORD}
+  sqlserver:
+    url: ${CHECK_SQLSERVER_URL:-r2dbc:sqlserver://localhost:1433/agropacayales_db}
+    username: ${SQL_USERNAME:-sa}
+    password: ${SQL_PASSWORD:-AgroPacayales2026!}
   mongodb:
     url: ${MONGODB_URL}
     username: ${MONGODB_USERNAME}

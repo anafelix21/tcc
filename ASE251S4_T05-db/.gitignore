@@ -11,3 +11,5 @@ target/
 docs/INFORME_TECNICO*
 docs/GUIA_VIDEO*
 docs/build_docx_documents.py
+.git_origin
+.git_origin/

@@ -1,0 +1,73 @@
+# ==============================================================================
+# Backend 2: Python Flask + Pandas — Backend Analítico e Ingesta de Eventos
+# Aislamiento en Nodo Dedicado: role: analytics-node (EC2)
+# ==============================================================================
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-analitico
+  namespace: agropacayales
+  labels:
+    app: backend-analitico
+    tier: analytics
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend-analitico
+  template:
+    metadata:
+      labels:
+        app: backend-analitico
+        tier: analytics
+    spec:
+      # Aislamiento de nodos dedicados en EC2 (Rúbrica Orquestadores 1.0 pto)
+      nodeSelector:
+        role: analytics-node
+      containers:
+        - name: backend-analitico
+          image: anafelixmendoza21/agropacayales-backend-analitico:1.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000
+              name: http
+          envFrom:
+            - configMapRef:
+                name: agropacayales-config
+            - secretRef:
+                name: agropacayales-secrets
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 15
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 5000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-analitico-svc
+  namespace: agropacayales
+  labels:
+    app: backend-analitico
+spec:
+  type: ClusterIP
+  selector:
+    app: backend-analitico
+  ports:
+    - name: http
+      port: 5000
+      targetPort: 5000

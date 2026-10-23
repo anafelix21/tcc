@@ -17,7 +17,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 import java.util.List;
 
 @Service
@@ -49,6 +51,10 @@ public class ParcelaServiceImpl implements ParcelaService {
             return Mono.error(new BusinessValidationException("El nombre de la parcela es obligatorio."));
         }
 
+        if (parcela.getAreaHectareas() == null || parcela.getAreaHectareas().compareTo(new BigDecimal("0.1")) < 0) {
+            return Mono.error(new BusinessValidationException("El área de la parcela debe ser al menos 0.1 hectáreas."));
+        }
+
         String nombreTrimmed = parcela.getNombre().trim();
         parcela.setNombre(nombreTrimmed);
 
@@ -60,6 +66,8 @@ public class ParcelaServiceImpl implements ParcelaService {
                         ));
                     }
 
+                    parcela.setId("PARC-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+                    completarModeloEmbebido(parcela);
                     parcela.setEstado(true);
                     parcela.setEnUso(Boolean.TRUE.equals(parcela.getEnUso()));
                     parcela.setCreatedAt(LocalDateTime.now());
@@ -101,6 +109,13 @@ public class ParcelaServiceImpl implements ParcelaService {
                             if (datos.getEnUso() != null) {
                                 existente.setEnUso(datos.getEnUso());
                             }
+                            if (datos.getCondicionesEdaficas() != null) {
+                                existente.setCondicionesEdaficas(datos.getCondicionesEdaficas());
+                            }
+                            if (datos.getSistemaRiego() != null) {
+                                existente.setSistemaRiego(datos.getSistemaRiego());
+                            }
+                            completarModeloEmbebido(existente);
                             existente.setUpdatedAt(LocalDateTime.now());
 
                             return parcelaRepository.save(existente);
@@ -127,6 +142,30 @@ public class ParcelaServiceImpl implements ParcelaService {
                     existente.setRestoredAt(LocalDateTime.now());
                     return parcelaRepository.save(existente);
                 });
+    }
+
+    /**
+     * Completa los campos que exige el validador $jsonSchema de la colección parcelas (versión V002):
+     * hectareas numérico y los subdocumentos embebidos condiciones_edaficas y sistema_riego.
+     */
+    private void completarModeloEmbebido(Parcela p) {
+        double area = p.getAreaHectareas() != null ? p.getAreaHectareas().doubleValue() : 0.1;
+        p.setHectareas(Math.max(area, 0.1));
+
+        Parcela.CondicionesEdaficas suelo = p.getCondicionesEdaficas() != null
+                ? p.getCondicionesEdaficas() : new Parcela.CondicionesEdaficas();
+        if (suelo.getTextura() == null || suelo.getTextura().isBlank()) {
+            suelo.setTextura(p.getTipoSuelo() != null ? p.getTipoSuelo() : "Franco");
+        }
+        if (suelo.getPhPromedio() == null) suelo.setPhPromedio(7.0);
+        if (suelo.getMateriaOrganicaPct() == null) suelo.setMateriaOrganicaPct(2.5);
+        p.setCondicionesEdaficas(suelo);
+
+        Parcela.SistemaRiego riego = p.getSistemaRiego() != null ? p.getSistemaRiego() : new Parcela.SistemaRiego();
+        if (riego.getTipo() == null || riego.getTipo().isBlank()) riego.setTipo("Goteo");
+        if (riego.getCaudalLph() == null) riego.setCaudalLph(1.6);
+        if (riego.getSectorValvula() == null || riego.getSectorValvula().isBlank()) riego.setSectorValvula("V-01");
+        p.setSistemaRiego(riego);
     }
 
     // ===================== IMPORTACIÓN =====================

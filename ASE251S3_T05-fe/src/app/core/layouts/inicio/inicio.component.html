@@ -10,6 +10,22 @@
 
   </div>
 
+  <!-- Acceso Directo al Dashboard Analítico (Sprint 8 - PIT) -->
+  <div class="analytics-callout-banner">
+    <div class="analytics-callout-icon">
+      <span class="material-icons">analytics</span>
+    </div>
+    <div class="analytics-callout-content">
+      <span class="callout-pill">Sprint 8 — Backend Analítico (Python + Flask + Pandas)</span>
+      <h3>Dashboard Analítico & Indicadores de Gestión</h3>
+      <p>Visualiza el Dashboard General y los 18 indicadores por sección: Cosechas (Ana Félix), Actividades e Insumos (Hugo Fernández) y Mano de Obra (Axel Huapaya).</p>
+    </div>
+    <a routerLink="/dashboard" class="btn-goto-analytics">
+      <span>Ver Dashboard</span>
+      <span class="material-icons">arrow_forward</span>
+    </a>
+  </div>
+
   <!-- A: ADMIN & SUPERVISOR VIEWS -->
   <ng-container *ngIf="isAdmin || isSupervisor">
     

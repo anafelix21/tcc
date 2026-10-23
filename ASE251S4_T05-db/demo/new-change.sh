@@ -12,13 +12,13 @@ author="${2:-hugo-fernandez}"
 [[ "$author" =~ ^[a-zA-Z0-9._-]{3,50}$ ]] || fail "Autor inválido."
 
 "$SCRIPT_DIR/inspect-changes.sh" >/dev/null
-last="$(find db/postgresql/changes -maxdepth 1 -name 'V[0-9][0-9][0-9]__*.sql' -exec basename {} \; | sort | tail -1)"
+last="$(find db/sqlserver/changes -maxdepth 1 -name 'V[0-9][0-9][0-9]__*.sql' -exec basename {} \; | sort | tail -1)"
 number="${last#V}"; number="${number%%__*}"; next=$((10#$number + 1))
 (( next <= 999 )) || fail "Se agotó la convención VNNN."
 version="V$(printf '%03d' "$next")"
 name="create_${slug}"
 table="demo_${slug}_v$(printf '%03d' "$next")"
-sql_file="db/postgresql/changes/${version}__${name}.sql"
+sql_file="db/sqlserver/changes/${version}__${name}.sql"
 mongo_file="db/mongodb/changes/${version}__${name}.xml"
 
 [[ ! -e "$sql_file" && ! -e "$mongo_file" ]] || fail "$version ya existe."
@@ -28,12 +28,12 @@ cat > "$sql_file" <<SQL
 
 --changeset ${author}:${version}
 --comment: Crear ${table}; cambio generado para la demostración de Agro Pacayales S.A.C.
-CREATE TABLE ${table} (
-    id SERIAL PRIMARY KEY,
+CREATE TABLE dbo.${table} (
+    id INT IDENTITY(1,1) CONSTRAINT PK_${table} PRIMARY KEY,
     note VARCHAR(160) NOT NULL,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at DATETIME2 NOT NULL DEFAULT SYSUTCDATETIME()
 );
---rollback DROP TABLE ${table};
+--rollback DROP TABLE dbo.${table};
 SQL
 
 cat > "$mongo_file" <<XML
@@ -73,7 +73,7 @@ append_include() {
   mv "$temporary" "$master"
 }
 
-append_include db/postgresql/changelog.xml "$(basename "$sql_file")"
+append_include db/sqlserver/changelog.xml "$(basename "$sql_file")"
 append_include db/mongodb/changelog.xml "$(basename "$mongo_file")"
 
 "$SCRIPT_DIR/inspect-changes.sh" >/dev/null || fail "El cambio generado no pasó la inspección."

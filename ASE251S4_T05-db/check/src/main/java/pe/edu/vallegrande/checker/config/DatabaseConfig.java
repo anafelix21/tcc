@@ -18,9 +18,9 @@ import static io.r2dbc.spi.ConnectionFactoryOptions.USER;
 public class DatabaseConfig {
     @Bean
     ConnectionFactory connectionFactory(CheckerProperties properties) {
-        var pg = properties.postgres();
-        var options = ConnectionFactoryOptions.parse(pg.url()).mutate()
-                .option(USER, pg.username()).option(PASSWORD, pg.password()).build();
+        var sql = properties.sqlserver();
+        var options = ConnectionFactoryOptions.parse(sql.url()).mutate()
+                .option(USER, sql.username()).option(PASSWORD, sql.password()).build();
         return ConnectionFactories.get(options);
     }
 

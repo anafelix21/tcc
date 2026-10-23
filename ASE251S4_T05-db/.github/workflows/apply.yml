@@ -67,9 +67,9 @@ jobs:
     timeout-minutes: 15
     env:
       RUNNER_IMAGE: hugo454/ase251s4-t05-db-liquibase:runner-4.33.0
-      POSTGRES_URL: ${{ vars.POSTGRES_URL }}
-      POSTGRES_USERNAME: ${{ vars.POSTGRES_PLAN_USERNAME }}
-      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PLAN_PASSWORD }}
+      SQLSERVER_URL: ${{ vars.SQLSERVER_URL }}
+      SQLSERVER_USERNAME: ${{ vars.SQLSERVER_PLAN_USERNAME || vars.SQL_USERNAME }}
+      SQLSERVER_PASSWORD: ${{ secrets.SQLSERVER_PLAN_PASSWORD || secrets.SQL_PASSWORD }}
       MONGODB_URL: ${{ vars.MONGODB_URL }}
       MONGODB_USERNAME: ${{ vars.MONGODB_PLAN_USERNAME }}
       MONGODB_PASSWORD: ${{ secrets.MONGODB_PLAN_PASSWORD }}
@@ -92,9 +92,9 @@ jobs:
     environment: database-production
     env:
       RUNNER_IMAGE: hugo454/ase251s4-t05-db-liquibase:runner-4.33.0
-      POSTGRES_URL: ${{ vars.POSTGRES_URL }}
-      POSTGRES_USERNAME: ${{ vars.POSTGRES_APPLY_USERNAME }}
-      POSTGRES_PASSWORD: ${{ secrets.POSTGRES_APPLY_PASSWORD }}
+      SQLSERVER_URL: ${{ vars.SQLSERVER_URL }}
+      SQLSERVER_USERNAME: ${{ vars.SQLSERVER_APPLY_USERNAME || vars.SQL_USERNAME }}
+      SQLSERVER_PASSWORD: ${{ secrets.SQLSERVER_APPLY_PASSWORD || secrets.SQL_PASSWORD }}
       MONGODB_URL: ${{ vars.MONGODB_URL }}
       MONGODB_USERNAME: ${{ vars.MONGODB_APPLY_USERNAME }}
       MONGODB_PASSWORD: ${{ secrets.MONGODB_APPLY_PASSWORD }}

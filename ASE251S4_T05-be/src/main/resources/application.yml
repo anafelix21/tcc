@@ -23,8 +23,26 @@ spring:
     password: ${SQL_PASSWORD:AgroPacayales2026!}
     pool:
       enabled: true
-      initial-size: 2
-      max-size: 10
+      # r2dbc-mssql 1.0.x comparte su caché de sentencias preparadas entre conexiones del pool:
+      # con más de una conexión ejecuta el handle de una consulta con los parámetros de otra
+      # ("The parameterized query ... expects the parameter ..."). Con 1 conexión es estable.
+      initial-size: ${R2DBC_POOL_SIZE:1}
+      max-size: ${R2DBC_POOL_SIZE:1}
+      max-acquire-time: 15s
+
+# Autenticación / autorización JWT
+security:
+  # true = escritura en /api/** exige token y eliminar/restaurar/importar exige rol ADMIN
+  enforce: ${SECURITY_ENFORCE:false}
+  jwt:
+    secret: ${JWT_SECRET:agropacayales-sprint8-clave-secreta-cambiar-en-produccion}
+    expiration-seconds: ${JWT_EXPIRATION_SECONDS:28800}
+
+# Conectividad con el Backend 2 Analítico (dentro del clúster: http://backend-analitico-svc:5000)
+analytics:
+  url: ${ANALYTICS_URL:http://localhost:5000}
+  events:
+    enabled: ${ANALYTICS_EVENTS_ENABLED:true}
 
 springdoc:
   api-docs:
@@ -51,7 +69,7 @@ spring:
   data:
     mongodb:
       # Si tu Mongo local no tiene contraseña, cámbiala a: mongodb://localhost:27017/database_local
-      uri: ${MONGO_URI_LOCAL:mongodb://admin:admin12345@localhost:27017/database_local?authSource=admin}
+      uri: ${MONGO_URI_LOCAL:mongodb://localhost:27017/database_local}
       auto-index-creation: true
 
 ---

@@ -11,4 +11,6 @@ public interface HarvestService {
     Mono<HarvestResponseDTO> crear(HarvestRequestDTO request);
     Mono<HarvestResponseDTO> editar(Integer id, HarvestRequestDTO request);
     Mono<Void> eliminarLogico(Integer id);
+
+    Mono<HarvestResponseDTO> restaurar(Integer id);
 }

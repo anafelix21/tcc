@@ -63,6 +63,13 @@ public class HarvestController {
                 .map(ResponseEntity::ok);
     }
 
+    // PUT - Restaurar cosecha dada de baja
+    @PutMapping("/restaurar/{id}")
+    @Operation(summary = "Restaurar cosecha", description = "Vuelve a activar una cosecha dada de baja.")
+    public Mono<ResponseEntity<HarvestResponseDTO>> restaurarCosecha(@PathVariable Integer id) {
+        return harvestService.restaurar(id).map(ResponseEntity::ok);
+    }
+
     // PUT / DELETE - Eliminar lógico
     @PutMapping("/eliminar/{id}")
     @Operation(summary = "Dar de baja cosecha (Lógico)", description = "Cambia el estado de la cosecha a inactivo.")

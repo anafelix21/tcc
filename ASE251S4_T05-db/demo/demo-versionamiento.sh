@@ -15,7 +15,7 @@ argument="${2:-}"
 
 latest_contract() {
   local file number
-  file="$(find db/postgresql/changes -maxdepth 1 -name 'V[0-9][0-9][0-9]__*.sql' -exec basename {} \; | sort | tail -1)"
+  file="$(find db/sqlserver/changes -maxdepth 1 -name 'V[0-9][0-9][0-9]__*.sql' -exec basename {} \; | sort | tail -1)"
   number="${file#V}"; number="${number%%__*}"
   printf 'V%03d' "$((10#$number))"
 }
@@ -57,7 +57,7 @@ create_phase() {
   "$SCRIPT_DIR/lab.sh" create "$argument"
   contract="$(latest_contract)"
   printf '\n    Archivos de %s:\n' "$contract"
-  find db/postgresql/changes db/mongodb/changes -maxdepth 1 -type f -name "${contract}__*" -print | sed 's/^/      - /'
+  find db/sqlserver/changes db/mongodb/changes -maxdepth 1 -type f -name "${contract}__*" -print | sed 's/^/      - /'
   pause
   command_log "git diff -- db"
   git diff -- db
@@ -85,7 +85,7 @@ validate_phase() {
 apply_phase() {
   CURRENT_STAGE="aplicación cloud"
   step FASE-4 "Aplicamos los cambios pendientes con confirmación explícita."
-  why "PostgreSQL y MongoDB avanzan en secuencia y conservan historiales independientes."
+  why "SQL Server y MongoDB avanzan en secuencia y conservan historiales independientes."
   "$SCRIPT_DIR/lab.sh" apply all
 }
 

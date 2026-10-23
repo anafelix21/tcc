@@ -1,24 +1,19 @@
 from flask import Blueprint
-from app.services.dashboard_service import dashboard_service
-from app.utils.response import success_response, error_response
 from app.config.cache import cache
+from app.services.dashboard_service import dashboard_service
+from app.utils.response import success_response
 
 dashboard_bp = Blueprint('dashboard', __name__)
 
-@dashboard_bp.route('/kpis', methods=['GET'])
+
+@dashboard_bp.get('/general')
 @cache.cached(timeout=60)
-def get_dashboard_kpis():
+def general():
     """
-    Resumen ejecutivo consolidado para el Dashboard General de AgroPacayales
+    Dashboard General: indicadores más relevantes de las 3 secciones
     ---
-    tags:
-      - Dashboard General
+    tags: [Dashboard General]
     responses:
-      200:
-        description: KPIs consolidados de producción agrícola, calidad de cosecha, costos y stock
+      200: {description: "cards, grafico_circular (costos), grafico_barras (cosecha por cultivo), tabla (consumo de insumos)"}
     """
-    try:
-        data = dashboard_service.get_kpis_consolidados()
-        return success_response(data, message="Dashboard analítico generado exitosamente")
-    except Exception as e:
-        return error_response(f"Error generando dashboard: {str(e)}", 500)
+    return success_response(dashboard_service.general(), message="Dashboard general generado")

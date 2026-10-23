@@ -39,6 +39,10 @@ services:
       SQL_PASSWORD: AgroPacayales2026!
       MONGO_URI: mongodb+srv://axelhuapaya_db_user:lider2021@cluster0.oyk6ogs.mongodb.net/?appName=Cluster0
       MONGO_DATABASE: agropacayales_db
+      # Conectividad interna Backend 1 -> Backend 2 (eventos de negocio)
+      ANALYTICS_URL: http://backend-analitico:5000
+      SECURITY_ENFORCE: "false"
+      JWT_SECRET: cambiar-por-una-clave-larga-y-secreta
     depends_on:
       - sqlserver
     networks:

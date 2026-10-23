@@ -10,7 +10,7 @@ action="${1:-plan}"
 target="${2:-V004}"
 [[ "$target" =~ ^V[0-9]{3}$ ]] || fail "Objetivo inválido; usa V004."
 
-latest_file="$(find db/postgresql/changes -maxdepth 1 -name 'V[0-9][0-9][0-9]__*.sql' -exec basename {} \; | sort | tail -1)"
+latest_file="$(find db/sqlserver/changes -maxdepth 1 -name 'V[0-9][0-9][0-9]__*.sql' -exec basename {} \; | sort | tail -1)"
 latest="${latest_file%%__*}"
 target_number=$((10#${target#V}))
 latest_number=$((10#${latest#V}))
@@ -29,11 +29,11 @@ rollback_cloud() {
   step PREVIO "Verificamos pendientes e historial real antes de revertir."
   "$SCRIPT_DIR/lab.sh" status all
   "$SCRIPT_DIR/lab.sh" history all
-  warn "Rollback puede eliminar tablas, colecciones y datos. PostgreSQL y MongoDB se revierten en secuencia."
+  warn "Rollback puede eliminar tablas, colecciones y datos. SQL Server y MongoDB se revierten en secuencia."
   printf '\nEscribe ROLLBACK %s para continuar: ' "$target"
   read -r confirmation
   [[ "$confirmation" == "ROLLBACK $target" ]] || fail "Rollback cancelado."
-  for engine in postgresql mongodb; do
+  for engine in sqlserver mongodb; do
     step "$engine" "Liquibase ejecuta rollback-count --count=$count."
     command_log "docker compose --env-file .env run --rm --no-deps -T $engine rollback-count --count=$count"
     docker compose --env-file .env run --rm --no-deps -T "$engine" rollback-count "--count=$count" </dev/null
