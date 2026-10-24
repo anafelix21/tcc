@@ -1,7 +1,7 @@
 """Maestro Usuario (MongoDB, colección `usuarios`). Nunca se lee el campo password."""
 from app.models.base import asegurar_columnas, a_booleano, a_texto
 
-COLECCION = "usuarios"
+COLECCION = "users"
 PROYECCION = {"password": 0}
 
 CAMPOS = {

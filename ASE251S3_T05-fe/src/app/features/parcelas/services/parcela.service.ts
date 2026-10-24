@@ -26,8 +26,8 @@ export class ParcelaService {
    * @param id The unique identifier of the plot.
    * @returns Observable of Parcela.
    */
-  obtenerPorId(id: number): Observable<Parcela> {
-    return this.apiService.getById<Parcela>(this.endpoint, id);
+  obtenerPorId(id: string | number): Observable<Parcela> {
+    return this.apiService.getById<Parcela>(this.endpoint, id as any);
   }
 
   /** Usa /estado/{estado} con fallback automático a listarTodos + filtro local */
@@ -39,25 +39,25 @@ export class ParcelaService {
     return this.apiService.create<Parcela>(this.endpoint, parcela, silent);
   }
 
-  editar(id: number, parcela: ParcelaDTO, silent = false): Observable<Parcela> {
-    return this.apiService.update<Parcela>(this.endpoint, id, parcela, silent);
+  editar(id: string | number, parcela: ParcelaDTO, silent = false): Observable<Parcela> {
+    return this.apiService.update<Parcela>(this.endpoint, id as any, parcela, silent);
   }
 
-  eliminar(id: number): Observable<Parcela> {
+  eliminar(id: string | number): Observable<Parcela> {
     return this.apiService.patch<Parcela>(`${this.endpoint}/${id}/eliminar`);
   }
 
-  restaurar(id: number): Observable<Parcela> {
+  restaurar(id: string | number): Observable<Parcela> {
     return this.apiService.patch<Parcela>(`${this.endpoint}/${id}/restaurar`);
   }
 
   exportarPdf(estado?: string): Observable<Blob> {
-    const url = estado ? `${environment.apiUrl}${this.endpoint}/pdf?estado=${estado}` : `${environment.apiUrl}${this.endpoint}/pdf`;
+    const url = `${environment.apiUrl}${this.endpoint}/exportar/pdf`;
     return this.http.get(url, { responseType: 'blob' });
   }
 
   exportarExcel(estado?: string): Observable<Blob> {
-    const url = estado ? `${environment.apiUrl}${this.endpoint}/excel?estado=${estado}` : `${environment.apiUrl}${this.endpoint}/excel`;
+    const url = `${environment.apiUrl}${this.endpoint}/exportar/excel`;
     return this.http.get(url, { responseType: 'blob' });
   }
 }

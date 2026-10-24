@@ -12,6 +12,9 @@ from app.routes.cosechas_routes import cosechas_bp
 from app.routes.actividades_insumos_routes import actividades_insumos_bp
 from app.routes.personal_routes import personal_bp
 from app.routes.eventos_routes import eventos_bp
+from app.routes.status import status_bp
+from app.routes.analytics_routes import analytics_bp
+from app.config.swagger import swagger_bp
 from app.utils.response import success_response
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -59,6 +62,7 @@ def create_app(conectar_bd=True):
         'version': '2.0.0',
         'uiversion': 3,
     }
+    app.json.ensure_ascii = False
     Swagger(app)
     cache.init_app(app)
 
@@ -66,6 +70,12 @@ def create_app(conectar_bd=True):
         mongo_db.connect()
         SQLDatabase.init_pool()
 
+    # Blueprints Estándar PIT Valle Grande (1 servicio analítico por integrante)
+    app.register_blueprint(status_bp)
+    app.register_blueprint(analytics_bp)
+    app.register_blueprint(swagger_bp)
+
+    # Blueprints Analíticos de Secciones / Métricas (Frontend Web Dashboard)
     app.register_blueprint(dashboard_bp, url_prefix=f'{API}/dashboard')
     app.register_blueprint(cosechas_bp, url_prefix=f'{API}/cosechas')
     app.register_blueprint(actividades_insumos_bp, url_prefix=f'{API}/campo')
@@ -90,17 +100,6 @@ def create_app(conectar_bd=True):
         detalle = str(error) if settings.FLASK_DEBUG else "Ocurrió un error inesperado en el backend analítico."
         return jsonify({"success": False, "message": "Error Interno del Servidor Analítico",
                         "error_detail": detalle}), 500
-
-    @app.get("/")
-    def index():
-        return jsonify({
-            "proyecto": "AgroPacayales - Backend Analítico",
-            "version": "2.0.0",
-            "status": "online",
-            "swagger_docs": "/apidocs",
-            "dashboard_prototipo": "/dashboard",
-            "indicadores": f"{API}/indicadores",
-        })
 
     @app.get("/dashboard")
     def dashboard_estatico():
@@ -135,6 +134,7 @@ def create_app(conectar_bd=True):
     return app
 
 
+app = create_app()
+
 if __name__ == "__main__":
-    app = create_app()
     app.run(host="0.0.0.0", port=settings.FLASK_PORT, debug=settings.FLASK_DEBUG)

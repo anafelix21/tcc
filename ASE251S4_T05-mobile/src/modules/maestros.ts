@@ -11,7 +11,7 @@ const insumos: ModuloMaestro = {
   clave: 'insumos',
   titulo: 'Insumos',
   singular: 'insumo',
-  icono: '🧪',
+  icono: { name: 'flask-outline', family: 'ionicons' },
   endpoint: '/insumos',
   notaEliminar: 'Solo se puede eliminar un insumo con stock 0. Edítelo y deje el stock en 0 antes de eliminarlo.',
   campos: [
@@ -41,7 +41,7 @@ const parcelas: ModuloMaestro = {
   clave: 'parcelas',
   titulo: 'Parcelas',
   singular: 'parcela',
-  icono: '🌾',
+  icono: { name: 'map-outline', family: 'ionicons' },
   endpoint: '/parcelas',
   campos: [
     { key: 'nombre', label: 'Nombre', tipo: 'texto', requerido: true, maxLength: 100, placeholder: 'Ej. Parcela Norte 1' },
@@ -83,7 +83,7 @@ const usuarios: ModuloMaestro = {
   clave: 'usuarios',
   titulo: 'Usuarios',
   singular: 'usuario',
-  icono: '👩‍🌾',
+  icono: { name: 'people-outline', family: 'ionicons' },
   endpoint: '/usuarios',
   campos: [
     { key: 'nombre', label: 'Nombre', tipo: 'texto', requerido: true, maxLength: 100 },

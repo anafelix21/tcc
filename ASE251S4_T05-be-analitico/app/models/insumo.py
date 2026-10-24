@@ -1,7 +1,7 @@
 """Maestro Insumo (MongoDB, colección `insumos`)."""
 from app.models.base import asegurar_columnas, a_numero, a_booleano, a_texto
 
-COLECCION = "insumos"
+COLECCION = "supplies"
 
 # Nombre del campo en Mongo (@Field de Spring) -> nombre usado en la analítica
 CAMPOS = {

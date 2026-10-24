@@ -1,137 +1,220 @@
 <div class="dashboard-container">
 
-  <!-- Header del Dashboard -->
+  <!-- Encabezado Principal del Dashboard -->
   <header class="dash-header">
     <div class="dash-header__main">
-      <div class="dash-icon"><span class="material-icons">analytics</span></div>
+      <div class="dash-icon">
+        <span class="material-icons">insights</span>
+      </div>
       <div>
-        <h1>Dashboard Analítico</h1>
-        <p>Proyectos de Innovación Tecnológica (PIT) — Visualización de Indicadores y KPIs</p>
+        <h1>Centro de Control y Analítica Agrícola</h1>
+        <p>Proyectos de Innovación Tecnológica (PIT) — Indicadores Clave y Toma de Decisiones AgroPacayales</p>
       </div>
     </div>
 
     <div class="dash-header__actions">
       <div class="api-status-badge" [class.api-status-badge--online]="statusOnline" [class.api-status-badge--offline]="!statusOnline">
         <span class="status-indicator"></span>
-        <span>Backend 2 (Flask :5000): {{ statusOnline ? 'ONLINE' : 'SIN CONEXIÓN' }}</span>
+        <span class="material-icons status-icon">{{ statusOnline ? 'check_circle' : 'cloud_off' }}</span>
+        <span>Servidor Analítico (Flask :5000): {{ statusOnline ? 'Operativo' : 'Sin Conexión' }}</span>
       </div>
-      <button class="btn-refresh" (click)="cargarDatos(activeTab)" [disabled]="cargando" title="Actualizar datos">
-        <span class="material-icons" [class.spinning]="cargando">refresh</span> Actualizar
+      <button class="btn-refresh" (click)="cargarDatos(activeTab)" [disabled]="cargando" title="Actualizar métricas">
+        <span class="material-icons" [class.spinning]="cargando">sync</span>
+        <span>Actualizar Datos</span>
       </button>
     </div>
   </header>
 
-  <!-- Navegación por pestañas (General y por Estudiante) -->
+  <!-- Barra de Navegación por Módulos y Decisiones -->
   <nav class="dash-tabs">
     <button class="tab-btn" [class.tab-btn--active]="activeTab === 'general'" (click)="cambiarTab('general')">
-      <span class="material-icons">public</span>
-      <span>Dashboard General</span>
+      <span class="material-icons">dashboard</span>
+      <span>Visión General</span>
     </button>
+
+    <button class="tab-btn" [class.tab-btn--active]="activeTab === 'decisiones'" (click)="cambiarTab('decisiones')">
+      <span class="material-icons">lightbulb</span>
+      <div>
+        <span>Decisiones Estratégicas</span>
+        <small class="tab-author">1 Servicio por Integrante (PIT)</small>
+      </div>
+    </button>
+
     <button class="tab-btn" [class.tab-btn--active]="activeTab === 'cosechas'" (click)="cambiarTab('cosechas')">
       <span class="material-icons">local_shipping</span>
       <div>
-        <span>Cosechas y Rendimiento</span>
-        <small class="tab-author">Ana Félix (A1 - A6)</small>
+        <span>Cosechas y Calidad</span>
+        <small class="tab-author">Ana Félix</small>
       </div>
     </button>
+
     <button class="tab-btn" [class.tab-btn--active]="activeTab === 'campo'" (click)="cambiarTab('campo')">
       <span class="material-icons">inventory_2</span>
       <div>
-        <span>Actividades e Insumos</span>
-        <small class="tab-author">Hugo Fernández (H1 - H6)</small>
+        <span>Labores e Insumos</span>
+        <small class="tab-author">Hugo Fernández</small>
       </div>
     </button>
+
     <button class="tab-btn" [class.tab-btn--active]="activeTab === 'personal'" (click)="cambiarTab('personal')">
-      <span class="material-icons">engineering</span>
+      <span class="material-icons">groups</span>
       <div>
-        <span>Personal y Mano de Obra</span>
-        <small class="tab-author">Axel Huapaya (X1 - X6)</small>
+        <span>Personal y Terrenos</span>
+        <small class="tab-author">Axel Huapaya</small>
       </div>
     </button>
+
     <button class="tab-btn" [class.tab-btn--active]="activeTab === 'catalogo'" (click)="cambiarTab('catalogo')">
-      <span class="material-icons">fact_check</span>
-      <span>Catálogo de 18 Indicadores</span>
+      <span class="material-icons">menu_book</span>
+      <span>Catálogo de Indicadores</span>
     </button>
   </nav>
 
-  <!-- Alerta de Error si el Backend Flask no está corriendo -->
+  <!-- Alerta de Conexión si el Backend Flask no responde -->
   <div *ngIf="errorMensaje" class="alert-offline">
-    <span class="material-icons">wifi_off</span>
+    <span class="material-icons alert-icon">wifi_off</span>
     <div>
-      <strong>Servicio Analítico en puerto 5000:</strong>
-      <p>{{ errorMensaje }} Para iniciarlo localmente: <code>python wsgi.py</code> en la carpeta <code>ASE251S4_T05-be-analitico</code>.</p>
+      <strong>Servicio Analítico en puerto 5000 no disponible</strong>
+      <p>{{ errorMensaje }} Inicie el servicio ejecutando <code>python wsgi.py</code> en la carpeta <code>ASE251S4_T05-be-analitico</code>.</p>
     </div>
   </div>
 
-  <!-- Loading State -->
+  <!-- Estado de Carga -->
   <div *ngIf="cargando" class="loading-state">
     <div class="spinner"></div>
-    <p>Procesando métricas y análisis con Pandas...</p>
+    <p>Calculando indicadores consolidados y modelos de decisión agronómica...</p>
   </div>
 
   <!-- ========================================== -->
-  <!-- TAB 1: DASHBOARD GENERAL                   -->
+  <!-- TAB 1: VISIÓN GENERAL                      -->
   <!-- ========================================== -->
   <div *ngIf="activeTab === 'general' && datosGeneral && !cargando" class="dash-content">
     
-    <!-- 6 KPI Cards -->
+    <!-- 6 Tarjetas de Indicadores Principales -->
     <section class="cards-grid">
       <div class="kpi-card kpi-card--green">
         <div class="kpi-icon"><span class="material-icons">scale</span></div>
         <div class="kpi-data">
-          <span class="kpi-lbl">Kilos Cosechados</span>
+          <span class="kpi-lbl">Total Cosechado</span>
           <span class="kpi-val">{{ formatearNumero(datosGeneral.cards.kilos_cosechados) }} kg</span>
+          <span class="kpi-sub">Volumen total de campo</span>
         </div>
       </div>
 
       <div class="kpi-card kpi-card--emerald">
-        <div class="kpi-icon"><span class="material-icons">check_circle</span></div>
+        <div class="kpi-icon"><span class="material-icons">verified</span></div>
         <div class="kpi-data">
-          <span class="kpi-lbl">Eficiencia Cosecha</span>
+          <span class="kpi-lbl">Calidad Comercial</span>
           <span class="kpi-val">{{ datosGeneral.cards.eficiencia_cosecha_pct }} %</span>
+          <span class="kpi-sub">Fruta apta para venta</span>
         </div>
       </div>
 
       <div class="kpi-card kpi-card--amber">
-        <div class="kpi-icon"><span class="material-icons">inventory_2</span></div>
+        <div class="kpi-icon"><span class="material-icons">store</span></div>
         <div class="kpi-data">
-          <span class="kpi-lbl">Valor de Inventario</span>
+          <span class="kpi-lbl">Valor de Insumos en Almacén</span>
           <span class="kpi-val">{{ formatearSoles(datosGeneral.cards.valor_inventario) }}</span>
+          <span class="kpi-sub">Capital en stock disponible</span>
         </div>
       </div>
 
       <div class="kpi-card kpi-card--blue">
         <div class="kpi-icon"><span class="material-icons">task_alt</span></div>
         <div class="kpi-data">
-          <span class="kpi-lbl">Cumplimiento Labores</span>
+          <span class="kpi-lbl">Labores Culminadas</span>
           <span class="kpi-val">{{ datosGeneral.cards.tasa_cumplimiento_actividades_pct }} %</span>
+          <span class="kpi-sub">Avance del plan agrícola</span>
         </div>
       </div>
 
       <div class="kpi-card kpi-card--brown">
         <div class="kpi-icon"><span class="material-icons">payments</span></div>
         <div class="kpi-data">
-          <span class="kpi-lbl">Costo Mano de Obra</span>
+          <span class="kpi-lbl">Inversión en Mano de Obra</span>
           <span class="kpi-val">{{ formatearSoles(datosGeneral.cards.costo_total_mano_obra) }}</span>
+          <span class="kpi-sub">Jornales y cuadrillas</span>
         </div>
       </div>
 
       <div class="kpi-card kpi-card--indigo">
-        <div class="kpi-icon"><span class="material-icons">groups</span></div>
+        <div class="kpi-icon"><span class="material-icons">badge</span></div>
         <div class="kpi-data">
-          <span class="kpi-lbl">Personal Activo</span>
-          <span class="kpi-val">{{ datosGeneral.cards.usuarios_activos }} usuarios</span>
+          <span class="kpi-lbl">Colaboradores en Fundo</span>
+          <span class="kpi-val">{{ datosGeneral.cards.usuarios_activos }} personas</span>
+          <span class="kpi-sub">Personal operativo activo</span>
         </div>
       </div>
     </section>
 
-    <!-- Gráficos: Barras + Circular -->
+    <!-- Resumen Ejecutivo de Decisiones Estratégicas (PIT) -->
+    <section *ngIf="decisionInsumos || decisionParcelas || decisionStock" class="executive-summary-section">
+      <div class="executive-summary-header">
+        <div class="panel-title-wrap">
+          <span class="material-icons">tips_and_updates</span>
+          <h3>Recomendaciones Estratégicas para la Toma de Decisiones</h3>
+        </div>
+        <button class="btn-subtle" (click)="cambiarTab('decisiones')">
+          <span>Ver Análisis Detallado por Integrante</span>
+          <span class="material-icons">arrow_forward</span>
+        </button>
+      </div>
+
+      <div class="executive-cards-grid">
+        <!-- Hugo -->
+        <div class="exec-card" *ngIf="decisionInsumos">
+          <div class="exec-card__top">
+            <span class="exec-author-pill">Hugo Fernández · Almacén</span>
+            <span class="exec-badge exec-badge--warn">Control de Costos</span>
+          </div>
+          <h4 class="exec-title">Optimización del Gasto en Fertilizantes</h4>
+          <p class="exec-desc">{{ decisionInsumos.toma_de_decision }}</p>
+          <div class="exec-metric">
+            <span>Inversión en Fertilizantes:</span>
+            <strong>{{ formatearSoles(decisionInsumos.categoria_con_mas_gasto.gasto_total_pen) }} ({{ decisionInsumos.categoria_con_mas_gasto.porcentaje_del_total }})</strong>
+          </div>
+        </div>
+
+        <!-- Axel -->
+        <div class="exec-card" *ngIf="decisionParcelas">
+          <div class="exec-card__top">
+            <span class="exec-author-pill">Axel Huapaya · Terrenos</span>
+            <span class="exec-badge exec-badge--info">Distribución de Riego</span>
+          </div>
+          <h4 class="exec-title">Priorización de Riego y Cuadrillas</h4>
+          <p class="exec-desc">{{ decisionParcelas.toma_de_decision }}</p>
+          <div class="exec-metric">
+            <span>Cultivo con Mayor Extensión:</span>
+            <strong>{{ decisionParcelas.cultivo_con_mas_hectareas.cultivo }} ({{ decisionParcelas.cultivo_con_mas_hectareas.hectareas }} ha)</strong>
+          </div>
+        </div>
+
+        <!-- Ana -->
+        <div class="exec-card" *ngIf="decisionStock">
+          <div class="exec-card__top">
+            <span class="exec-author-pill">Ana Félix · Compras</span>
+            <span class="exec-badge exec-badge--danger">Reposición Urgente</span>
+          </div>
+          <h4 class="exec-title">Reabastecimiento de Insumos Críticos</h4>
+          <p class="exec-desc">{{ decisionStock.toma_de_decision }}</p>
+          <div class="exec-metric">
+            <span>Presupuesto Inmediato:</span>
+            <strong>{{ formatearSoles(decisionStock.presupuesto_total_necesario_pen) }} ({{ decisionStock.insumos_con_stock_bajo }} productos)</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Gráficos: Barras + Donut -->
     <section class="charts-grid">
       <!-- Gráfico de Barras -->
       <div class="panel">
         <div class="panel-header">
-          <h3>📊 Producción por Cultivo (Kilos Totales)</h3>
-          <span class="badge-source">SQL Server (Cosechas)</span>
+          <div class="panel-title-wrap">
+            <span class="material-icons">bar_chart</span>
+            <h3>Producción Total por Cultivo (Kilos Cosechados)</h3>
+          </div>
+          <span class="badge-source">Registro de Cosechas</span>
         </div>
         <div class="bar-chart-container">
           <div *ngFor="let b of barItems" class="bar-col">
@@ -147,8 +230,11 @@
       <!-- Gráfico Circular / Donut -->
       <div class="panel">
         <div class="panel-header">
-          <h3>🍩 Distribución de Costos Operativos</h3>
-          <span class="badge-source">Pandas Aggregations</span>
+          <div class="panel-title-wrap">
+            <span class="material-icons">pie_chart</span>
+            <h3>Distribución de Costos de Operación</h3>
+          </div>
+          <span class="badge-source">Almacén y Labores</span>
         </div>
         <div class="donut-chart-container">
           <div class="donut-svg-wrapper">
@@ -181,21 +267,24 @@
       </div>
     </section>
 
-    <!-- Tabla: Top Insumos -->
+    <!-- Tabla: Insumos de Mayor Demanda -->
     <section class="panel">
       <div class="panel-header">
-        <h3>📋 Top 5 Insumos con Mayor Rotación y Consumo</h3>
-        <span class="badge-source">Persistencia Políglota (SQL + Mongo)</span>
+        <div class="panel-title-wrap">
+          <span class="material-icons">table_chart</span>
+          <h3>Principales Insumos Agrícolas Utilizados en Campo</h3>
+        </div>
+        <span class="badge-source">Control de Salidas de Almacén</span>
       </div>
       <div class="table-responsive">
         <table class="dash-table">
           <thead>
             <tr>
-              <th>Insumo</th>
-              <th>Tipo</th>
-              <th>Cantidad Consumida</th>
-              <th>Gasto Total</th>
-              <th>Índice Rotación</th>
+              <th>Nombre del Insumo</th>
+              <th>Categoría</th>
+              <th>Cantidad Utilizada</th>
+              <th>Inversión Acumulada</th>
+              <th>Nivel de Rotación</th>
             </tr>
           </thead>
           <tbody>
@@ -204,7 +293,7 @@
               <td><span class="pill-tag">{{ fila.tipo_insumo }}</span></td>
               <td>{{ formatearNumero(fila.cantidad_consumida) }}</td>
               <td class="font-numeric"><strong>{{ formatearSoles(fila.gasto_total) }}</strong></td>
-              <td><span class="rate-badge">{{ fila.indice_rotacion_pct }}%</span></td>
+              <td><span class="rate-badge">{{ fila.indice_rotacion_pct }}% rotación</span></td>
             </tr>
           </tbody>
         </table>
@@ -213,50 +302,414 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- TAB 2: SECCIÓN ANA FÉLIX — COSECHAS        -->
+  <!-- TAB 2: DECISIONES ESTRATÉGICAS PIT         -->
   <!-- ========================================== -->
-  <div *ngIf="activeTab === 'cosechas' && datosCosechas && !cargando" class="dash-content">
+  <div *ngIf="activeTab === 'decisiones' && !cargando" class="dash-content">
+    
     <div class="section-badge-banner">
       <span class="material-icons">military_tech</span>
-      <span><strong>Módulo Ana Félix</strong> — Cosechas y Rendimiento | Indicadores A1, A2, A3, A4, A5, A6</span>
+      <span><strong>Proyectos de Innovación Tecnológica (PIT)</strong> — Visualización de Servicios Analíticos y Toma de Decisiones Gerenciales por Integrante</span>
     </div>
 
+    <!-- SERVICIO 1: HUGO FERNÁNDEZ -->
+    <section class="decision-service-block" *ngIf="decisionInsumos">
+      <div class="service-block-header">
+        <div class="service-title-area">
+          <div class="service-avatar"><span class="material-icons">account_circle</span></div>
+          <div>
+            <h2>Servicio 1: Presupuesto y Valorización de Insumos por Categoría</h2>
+            <p>Responsable: <strong>Hugo Adrián Fernández Audante</strong> · Indicador de Almacén y Control Presupuestario</p>
+          </div>
+        </div>
+        <span class="service-tag service-tag--primary">Servicio PIT Hugo</span>
+      </div>
+
+      <!-- Banner de Toma de Decisión de Hugo -->
+      <div class="decision-callout-card">
+        <div class="decision-callout-card__icon"><span class="material-icons">lightbulb</span></div>
+        <div class="decision-callout-card__content">
+          <h4>Recomendación para la Toma de Decisiones (Gerencia / Almacén)</h4>
+          <p>{{ decisionInsumos.toma_de_decision }}</p>
+        </div>
+      </div>
+
+      <!-- KPIs del Servicio 1 -->
+      <div class="cards-grid">
+        <div class="kpi-card kpi-card--green">
+          <div class="kpi-icon"><span class="material-icons">account_balance_wallet</span></div>
+          <div class="kpi-data">
+            <span class="kpi-lbl">Presupuesto Total Almacén</span>
+            <span class="kpi-val">{{ formatearSoles(decisionInsumos.presupuesto_total_insumos_pen) }}</span>
+            <span class="kpi-sub">Valor de todo el stock actual</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-card--emerald">
+          <div class="kpi-icon"><span class="material-icons">inventory</span></div>
+          <div class="kpi-data">
+            <span class="kpi-lbl">Unidades en Existencia</span>
+            <span class="kpi-val">{{ formatearNumero(decisionInsumos.total_unidades_almacen) }} und.</span>
+            <span class="kpi-sub">Total de productos físicos</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-card--amber">
+          <div class="kpi-icon"><span class="material-icons">pie_chart</span></div>
+          <div class="kpi-data">
+            <span class="kpi-lbl">Categoría Mayor Inversión</span>
+            <span class="kpi-val">{{ decisionInsumos.categoria_con_mas_gasto.categoria }}</span>
+            <span class="kpi-sub">{{ decisionInsumos.categoria_con_mas_gasto.porcentaje_del_total }} del presupuesto total</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-card--blue">
+          <div class="kpi-icon"><span class="material-icons">trending_up</span></div>
+          <div class="kpi-data">
+            <span class="kpi-lbl">Gasto en {{ decisionInsumos.categoria_con_mas_gasto.categoria }}</span>
+            <span class="kpi-val">{{ formatearSoles(decisionInsumos.categoria_con_mas_gasto.gasto_total_pen) }}</span>
+            <span class="kpi-sub">Capital concentrado</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla y Gráfico de Categorías -->
+      <div class="charts-grid">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title-wrap">
+              <span class="material-icons">pie_chart</span>
+              <h3>Distribución Presupuestaria por Tipo de Insumo</h3>
+            </div>
+            <span class="badge-source">Agrupación en Almacén</span>
+          </div>
+          <div class="donut-chart-container">
+            <div class="donut-svg-wrapper">
+              <svg viewBox="0 0 100 100" class="donut-svg">
+                <circle cx="50" cy="50" r="40" fill="transparent" stroke="#f1f5f9" stroke-width="12"></circle>
+                <circle *ngFor="let s of donutCategoriasInsumos"
+                        cx="50" cy="50" r="40"
+                        fill="transparent"
+                        [attr.stroke]="s.color"
+                        stroke-width="12"
+                        [attr.stroke-dasharray]="s.strokeDasharray"
+                        [attr.stroke-dashoffset]="s.strokeDashoffset"
+                        transform="rotate(-90 50 50)"
+                        class="donut-segment">
+                </circle>
+              </svg>
+              <div class="donut-center-label">
+                <span>Insumos</span>
+                <strong>100%</strong>
+              </div>
+            </div>
+            <div class="donut-legend">
+              <div *ngFor="let s of donutCategoriasInsumos" class="legend-item">
+                <span class="legend-color" [style.background]="s.color"></span>
+                <span class="legend-text">{{ s.label }}: <strong>{{ formatearSoles(s.value) }}</strong> ({{ s.percentage }}%)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title-wrap">
+              <span class="material-icons">table_chart</span>
+              <h3>Desglose por Categoría de Insumo</h3>
+            </div>
+            <span class="badge-source">Precios Promedio y Stock</span>
+          </div>
+          <div class="table-responsive">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>Categoría</th>
+                  <th>Ítems</th>
+                  <th>Stock</th>
+                  <th>Precio Promedio</th>
+                  <th>Gasto Total</th>
+                  <th>% Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let cat of decisionInsumos.detalle_por_categoria">
+                  <td><strong>{{ cat.categoria }}</strong></td>
+                  <td>{{ cat.productos_diferentes }}</td>
+                  <td>{{ formatearNumero(cat.unidades_en_stock) }}</td>
+                  <td>{{ formatearSoles(cat.precio_promedio) }}</td>
+                  <td class="font-numeric"><strong>{{ formatearSoles(cat.gasto_total_pen) }}</strong></td>
+                  <td><span class="rate-badge">{{ cat.porcentaje }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICIO 2: AXEL HUAPAYA -->
+    <section class="decision-service-block" *ngIf="decisionParcelas">
+      <div class="service-block-header">
+        <div class="service-title-area">
+          <div class="service-avatar"><span class="material-icons">account_circle</span></div>
+          <div>
+            <h2>Servicio 2: Hectáreas y Presupuesto por Cultivo</h2>
+            <p>Responsable: <strong>Axel Huapaya</strong> · Planificación Territorial y Asignación de Recursos de Campo</p>
+          </div>
+        </div>
+        <span class="service-tag service-tag--primary">Servicio PIT Axel</span>
+      </div>
+
+      <!-- Banner de Toma de Decisión de Axel -->
+      <div class="decision-callout-card">
+        <div class="decision-callout-card__icon"><span class="material-icons">terrain</span></div>
+        <div class="decision-callout-card__content">
+          <h4>Recomendación para la Toma de Decisiones (Agronomía / Planificación)</h4>
+          <p>{{ decisionParcelas.toma_de_decision }}</p>
+        </div>
+      </div>
+
+      <!-- KPIs del Servicio 2 -->
+      <div class="cards-grid">
+        <div class="kpi-card kpi-card--green">
+          <div class="kpi-icon"><span class="material-icons">landscape</span></div>
+          <div class="kpi-data">
+            <span class="kpi-lbl">Superficie Total Monitoreada</span>
+            <span class="kpi-val">{{ decisionParcelas.total_hectareas }} ha</span>
+            <span class="kpi-sub">Área agrícola productiva</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-card--blue">
+          <div class="kpi-icon"><span class="material-icons">grid_view</span></div>
+          <div class="kpi-data">
+            <span class="kpi-lbl">Parcelas y Lotes Registrados</span>
+            <span class="kpi-val">{{ decisionParcelas.total_parcelas_registradas }} parcelas</span>
+            <span class="kpi-sub">Divisiones de terreno</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-card--amber">
+          <div class="kpi-icon"><span class="material-icons">agriculture</span></div>
+          <div class="kpi-data">
+            <span class="kpi-lbl">Cultivo Predominante</span>
+            <span class="kpi-val">{{ decisionParcelas.cultivo_con_mas_hectareas.cultivo }}</span>
+            <span class="kpi-sub">{{ decisionParcelas.cultivo_con_mas_hectareas.hectareas }} ha ({{ decisionParcelas.cultivo_con_mas_hectareas.porcentaje_del_terreno }})</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Gráfico de Hectáreas y Tabla de Parcelas -->
+      <div class="charts-grid">
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title-wrap">
+              <span class="material-icons">bar_chart</span>
+              <h3>Superficie por Cultivo (Hectáreas)</h3>
+            </div>
+            <span class="badge-source">Distribución Espacial</span>
+          </div>
+          <div class="bar-chart-container">
+            <div *ngFor="let b of barCultivosHectareas" class="bar-col">
+              <span class="bar-val-text">{{ b.formattedValue }}</span>
+              <div class="bar-fill-track">
+                <div class="bar-fill" [style.height.%]="b.heightPercent"></div>
+              </div>
+              <span class="bar-lbl">{{ b.label }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title-wrap">
+              <span class="material-icons">table_chart</span>
+              <h3>Distribución de Terrenos por Cultivo</h3>
+            </div>
+            <span class="badge-source">Lotes y Ubicación</span>
+          </div>
+          <div class="table-responsive">
+            <table class="dash-table">
+              <thead>
+                <tr>
+                  <th>Cultivo</th>
+                  <th>Lotes</th>
+                  <th>Hectáreas</th>
+                  <th>% Terreno</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let c of decisionParcelas.detalle_cultivos">
+                  <td><strong>{{ c.cultivo }}</strong></td>
+                  <td>{{ c.cantidad_parcelas }}</td>
+                  <td class="font-numeric"><strong>{{ c.hectareas }} ha</strong></td>
+                  <td><span class="rate-badge">{{ c.porcentaje }}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SERVICIO 3: ANA FÉLIX -->
+    <section class="decision-service-block" *ngIf="decisionStock">
+      <div class="service-block-header">
+        <div class="service-title-area">
+          <div class="service-avatar"><span class="material-icons">account_circle</span></div>
+          <div>
+            <h2>Servicio 3: Presupuesto de Reposición de Insumos Críticos</h2>
+            <p>Responsable: <strong>Ana Félix</strong> · Monitoreo de Almacén y Proyección Financiera de Compras Urgentes</p>
+          </div>
+        </div>
+        <span class="service-tag service-tag--primary">Servicio PIT Ana</span>
+      </div>
+
+      <!-- Banner de Toma de Decisión de Ana -->
+      <div class="decision-callout-card decision-callout-card--warn">
+        <div class="decision-callout-card__icon"><span class="material-icons">warning_amber</span></div>
+        <div class="decision-callout-card__content">
+          <h4>Recomendación para la Toma de Decisiones (Gerencia / Compras)</h4>
+          <p>{{ decisionStock.toma_de_decision }}</p>
+        </div>
+      </div>
+
+      <!-- KPIs del Servicio 3 -->
+      <div class="cards-grid">
+        <div class="kpi-card kpi-card--rose">
+          <div class="kpi-icon"><span class="material-icons">shopping_cart</span></div>
+          <div class="kpi-data">
+            <span class="kpi-lbl">Presupuesto Urgente Requerido</span>
+            <span class="kpi-val">{{ formatearSoles(decisionStock.presupuesto_total_necesario_pen) }}</span>
+            <span class="kpi-sub">Costo de reposición estimado</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-card--amber">
+          <div class="kpi-icon"><span class="material-icons">priority_high</span></div>
+          <div class="kpi-data">
+            <span class="kpi-lbl">Insumos con Stock Crítico</span>
+            <span class="kpi-val">{{ decisionStock.insumos_con_stock_bajo }} productos</span>
+            <span class="kpi-sub">Por debajo de {{ decisionStock.umbral_minimo_stock }} unidades</span>
+          </div>
+        </div>
+
+        <div class="kpi-card kpi-card--blue">
+          <div class="kpi-icon"><span class="material-icons">security</span></div>
+          <div class="kpi-data">
+            <span class="kpi-lbl">Nivel de Seguridad</span>
+            <span class="kpi-val">{{ decisionStock.umbral_minimo_stock }} und. mín.</span>
+            <span class="kpi-sub">Punto de reorden</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de Compras Prioritarias -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <span class="material-icons">table_chart</span>
+            <h3>Planilla de Compra Urgente para Reposición de Almacén</h3>
+          </div>
+          <span class="badge-source">Insumos Próximos a Agotarse</span>
+        </div>
+        <div class="table-responsive">
+          <table class="dash-table">
+            <thead>
+              <tr>
+                <th>Código</th>
+                <th>Nombre del Insumo</th>
+                <th>Categoría</th>
+                <th>Stock Actual</th>
+                <th>Unidades a Comprar</th>
+                <th>Precio Unitario</th>
+                <th>Costo Total de Compra</th>
+                <th>Proveedor Sugerido</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of decisionStock.insumos_a_comprar">
+                <td><span class="pill-tag pill-tag--code">{{ item.codigo }}</span></td>
+                <td><strong>{{ item.nombre_insumo }}</strong></td>
+                <td><span class="pill-tag">{{ item.categoria }}</span></td>
+                <td><span class="stock-alert-pill">{{ item.stock_actual }} und.</span></td>
+                <td><strong>+ {{ item.unidades_a_comprar }} und.</strong></td>
+                <td>{{ formatearSoles(item.precio_unitario) }}</td>
+                <td class="font-numeric"><strong>{{ formatearSoles(item.costo_total_compra_pen) }}</strong></td>
+                <td>{{ item.proveedor }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ========================================== -->
+  <!-- TAB 3: SECCIÓN ANA FÉLIX — COSECHAS        -->
+  <!-- ========================================== -->
+  <div *ngIf="activeTab === 'cosechas' && datosCosechas && !cargando" class="dash-content">
+    
+    <div class="section-badge-banner">
+      <span class="material-icons">military_tech</span>
+      <span><strong>Módulo Ana Félix</strong> — Control de Cosechas, Rendimiento de Calidad y Reposición de Insumos</span>
+    </div>
+
+    <!-- Decisión de Ana si está disponible -->
+    <div *ngIf="decisionStock" class="decision-callout-card decision-callout-card--warn">
+      <div class="decision-callout-card__icon"><span class="material-icons">warning_amber</span></div>
+      <div class="decision-callout-card__content">
+        <h4>Alerta y Decisión de Compras (Ana Félix)</h4>
+        <p>{{ decisionStock.toma_de_decision }}</p>
+      </div>
+    </div>
+
+    <!-- Cards de Cosechas -->
     <section class="cards-grid">
       <div class="kpi-card kpi-card--green">
         <div class="kpi-icon"><span class="material-icons">local_shipping</span></div>
         <div class="kpi-data">
-          <span class="kpi-lbl">Total Cosechas (A1)</span>
-          <span class="kpi-val">{{ datosCosechas.cards.total_cosechas }}</span>
+          <span class="kpi-lbl">Total de Cosechas Realizadas</span>
+          <span class="kpi-val">{{ datosCosechas.cards.total_cosechas }} labores</span>
+          <span class="kpi-sub">Registro de campañas</span>
         </div>
       </div>
       <div class="kpi-card kpi-card--emerald">
-        <div class="kpi-icon"><span class="material-icons">grade</span></div>
+        <div class="kpi-icon"><span class="material-icons">verified</span></div>
         <div class="kpi-data">
-          <span class="kpi-lbl">Kilos Óptimos (A1)</span>
+          <span class="kpi-lbl">Kilos de Calidad Óptima</span>
           <span class="kpi-val">{{ formatearNumero(datosCosechas.cards.kilos_optimos) }} kg</span>
+          <span class="kpi-sub">Apto para comercialización</span>
         </div>
       </div>
       <div class="kpi-card kpi-card--amber">
-        <div class="kpi-icon"><span class="material-icons">warning_amber</span></div>
+        <div class="kpi-icon"><span class="material-icons">report_problem</span></div>
         <div class="kpi-data">
-          <span class="kpi-lbl">Kilos Merma (A1)</span>
+          <span class="kpi-lbl">Kilos en Merma (Descarte)</span>
           <span class="kpi-val">{{ formatearNumero(datosCosechas.cards.kilos_merma) }} kg</span>
+          <span class="kpi-sub">Fruta no aprovechable</span>
         </div>
       </div>
       <div class="kpi-card kpi-card--blue">
         <div class="kpi-icon"><span class="material-icons">speed</span></div>
         <div class="kpi-data">
-          <span class="kpi-lbl">Eficiencia Cosecha (A1)</span>
+          <span class="kpi-lbl">Rendimiento de Exportación</span>
           <span class="kpi-val">{{ datosCosechas.cards.eficiencia_cosecha_pct }} %</span>
+          <span class="kpi-sub">Porcentaje de aprovechamiento</span>
         </div>
       </div>
     </section>
 
+    <!-- Gráficos de Cosechas -->
     <section class="charts-grid">
       <div class="panel">
         <div class="panel-header">
-          <h3>📊 Kilos por Cultivo (Indicador A3)</h3>
-          <span class="badge-source">SQL Server</span>
+          <div class="panel-title-wrap">
+            <span class="material-icons">bar_chart</span>
+            <h3>Volumen Cosechado por Variedad de Fruta</h3>
+          </div>
+          <span class="badge-source">Producción en Fundo</span>
         </div>
         <div class="bar-chart-container">
           <div *ngFor="let b of barItems" class="bar-col">
@@ -271,8 +724,11 @@
 
       <div class="panel">
         <div class="panel-header">
-          <h3>🍩 Calidad: Óptimo vs Merma (Indicador A2)</h3>
-          <span class="badge-source">Agregación Analítica</span>
+          <div class="panel-title-wrap">
+            <span class="material-icons">pie_chart</span>
+            <h3>Control de Calidad: Fruta Apta vs Merma</h3>
+          </div>
+          <span class="badge-source">Clasificación en Campo</span>
         </div>
         <div class="donut-chart-container">
           <div class="donut-svg-wrapper">
@@ -304,27 +760,35 @@
       </div>
     </section>
 
+    <!-- Tabla de Responsables -->
     <section class="panel">
       <div class="panel-header">
-        <h3>📋 Desempeño por Responsable de Cosecha (Indicador A5)</h3>
-        <span class="badge-source">Tasa de Merma</span>
+        <div class="panel-title-wrap">
+          <span class="material-icons">table_chart</span>
+          <h3>Desempeño y Control de Calidad por Responsable de Cosecha</h3>
+        </div>
+        <span class="badge-source">Supervisión de Cuadrillas</span>
       </div>
       <div class="table-responsive">
         <table class="dash-table">
           <thead>
             <tr>
-              <th>Responsable</th>
-              <th>Total Cosechas</th>
-              <th>Kilos Totales</th>
-              <th>Tasa de Merma (%)</th>
+              <th>Responsable de Fundo</th>
+              <th>Cosechas Supervisadas</th>
+              <th>Volumen Total Cosechado</th>
+              <th>Porcentaje de Merma</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let fila of datosCosechas.tabla">
               <td><strong>{{ fila.responsable }}</strong></td>
-              <td>{{ fila.total_cosechas }}</td>
+              <td>{{ fila.total_cosechas }} registros</td>
               <td>{{ formatearNumero(fila.kilos_totales) }} kg</td>
-              <td><span class="rate-badge" [class.rate-badge--warn]="fila.tasa_merma_pct > 5">{{ fila.tasa_merma_pct }}%</span></td>
+              <td>
+                <span class="rate-badge" [class.rate-badge--warn]="fila.tasa_merma_pct > 5">
+                  {{ fila.tasa_merma_pct }}% merma
+                </span>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -333,55 +797,71 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- TAB 3: SECCIÓN HUGO — ACTIVIDADES/INSUMOS  -->
+  <!-- TAB 4: SECCIÓN HUGO — LABORES E INSUMOS    -->
   <!-- ========================================== -->
   <div *ngIf="activeTab === 'campo' && datosCampo && !cargando" class="dash-content">
+    
     <div class="section-badge-banner">
       <span class="material-icons">military_tech</span>
-      <span><strong>Módulo Hugo Fernández</strong> — Actividades e Insumos | Indicadores H1, H2, H3, H4, H5, H6</span>
+      <span><strong>Módulo Hugo Fernández</strong> — Gestión Operativa de Labores de Campo y Presupuesto de Almacén</span>
+    </div>
+
+    <!-- Decisión de Hugo si está disponible -->
+    <div *ngIf="decisionInsumos" class="decision-callout-card">
+      <div class="decision-callout-card__icon"><span class="material-icons">lightbulb</span></div>
+      <div class="decision-callout-card__content">
+        <h4>Estrategia de Presupuesto en Almacén (Hugo Fernández)</h4>
+        <p>{{ decisionInsumos.toma_de_decision }}</p>
+      </div>
     </div>
 
     <section class="cards-grid">
       <div class="kpi-card kpi-card--green">
         <div class="kpi-icon"><span class="material-icons">agriculture</span></div>
         <div class="kpi-data">
-          <span class="kpi-lbl">Actividades (H1)</span>
+          <span class="kpi-lbl">Labores Agrícolas Totales</span>
           <span class="kpi-val">{{ datosCampo.cards.total_actividades }}</span>
+          <span class="kpi-sub">Actividades programadas</span>
         </div>
       </div>
       <div class="kpi-card kpi-card--emerald">
         <div class="kpi-icon"><span class="material-icons">done_all</span></div>
         <div class="kpi-data">
-          <span class="kpi-lbl">Cumplimiento (H1)</span>
+          <span class="kpi-lbl">Cumplimiento en Campo</span>
           <span class="kpi-val">{{ datosCampo.cards.tasa_cumplimiento_pct }} %</span>
+          <span class="kpi-sub">Labores finalizadas</span>
         </div>
       </div>
       <div class="kpi-card kpi-card--brown">
         <div class="kpi-icon"><span class="material-icons">paid</span></div>
         <div class="kpi-data">
-          <span class="kpi-lbl">Costo Actividades (H1)</span>
+          <span class="kpi-lbl">Inversión en Labores</span>
           <span class="kpi-val">{{ formatearSoles(datosCampo.cards.costo_total_acumulado) }}</span>
+          <span class="kpi-sub">Costos directos de campo</span>
         </div>
       </div>
       <div class="kpi-card kpi-card--amber">
         <div class="kpi-icon"><span class="material-icons">category</span></div>
         <div class="kpi-data">
-          <span class="kpi-lbl">Insumos Activos (H3)</span>
+          <span class="kpi-lbl">Variedades de Insumos</span>
           <span class="kpi-val">{{ datosCampo.cards.total_insumos }}</span>
+          <span class="kpi-sub">Productos en catálogo</span>
         </div>
       </div>
       <div class="kpi-card kpi-card--blue">
         <div class="kpi-icon"><span class="material-icons">account_balance_wallet</span></div>
         <div class="kpi-data">
-          <span class="kpi-lbl">Valor Inventario (H3)</span>
+          <span class="kpi-lbl">Valorización de Almacén</span>
           <span class="kpi-val">{{ formatearSoles(datosCampo.cards.valor_total_inventario) }}</span>
+          <span class="kpi-sub">Stock valorizado</span>
         </div>
       </div>
       <div class="kpi-card kpi-card--rose">
-        <div class="kpi-icon"><span class="material-icons">report_problem</span></div>
+        <div class="kpi-icon"><span class="material-icons">warning_amber</span></div>
         <div class="kpi-data">
-          <span class="kpi-lbl">Stock Crítico (H5)</span>
+          <span class="kpi-lbl">Insumos en Nivel Bajo</span>
           <span class="kpi-val">{{ datosCampo.cards.insumos_stock_critico }}</span>
+          <span class="kpi-sub">Stock de seguridad</span>
         </div>
       </div>
     </section>
@@ -389,8 +869,11 @@
     <section class="charts-grid">
       <div class="panel">
         <div class="panel-header">
-          <h3>📊 Costo por Tipo de Actividad (Indicador H2)</h3>
-          <span class="badge-source">SQL Server</span>
+          <div class="panel-title-wrap">
+            <span class="material-icons">bar_chart</span>
+            <h3>Costos de Ejecución por Tipo de Labor Agrícola</h3>
+          </div>
+          <span class="badge-source">Riego, Poda, Fumigación</span>
         </div>
         <div class="bar-chart-container">
           <div *ngFor="let b of barItems" class="bar-col">
@@ -405,8 +888,11 @@
 
       <div class="panel">
         <div class="panel-header">
-          <h3>🍩 Valor de Inventario por Tipo (Indicador H4)</h3>
-          <span class="badge-source">MongoDB Insumos</span>
+          <div class="panel-title-wrap">
+            <span class="material-icons">pie_chart</span>
+            <h3>Valorización de Insumos por Categoría</h3>
+          </div>
+          <span class="badge-source">Almacén Central</span>
         </div>
         <div class="donut-chart-container">
           <div class="donut-svg-wrapper">
@@ -424,7 +910,7 @@
               </circle>
             </svg>
             <div class="donut-center-label">
-              <span>Categorías</span>
+              <span>Almacén</span>
               <strong>100%</strong>
             </div>
           </div>
@@ -438,20 +924,24 @@
       </div>
     </section>
 
+    <!-- Tabla: Insumos con Stock Bajo -->
     <section class="panel">
       <div class="panel-header">
-        <h3>📋 Insumos con Stock Crítico (≤ 20) (Indicador H5)</h3>
-        <span class="badge-source">Alertas de Reabastecimiento</span>
+        <div class="panel-title-wrap">
+          <span class="material-icons">table_chart</span>
+          <h3>Insumos Próximos a Reabastecer</h3>
+        </div>
+        <span class="badge-source">Almacén y Proveedores</span>
       </div>
       <div class="table-responsive">
         <table class="dash-table">
           <thead>
             <tr>
-              <th>Insumo</th>
-              <th>Tipo</th>
-              <th>Stock Actual</th>
-              <th>Unidad</th>
-              <th>Proveedor</th>
+              <th>Nombre del Insumo</th>
+              <th>Categoría</th>
+              <th>Existencias Actuales</th>
+              <th>Unidad de Medida</th>
+              <th>Proveedor Registrado</th>
             </tr>
           </thead>
           <tbody>
@@ -469,48 +959,63 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- TAB 4: SECCIÓN AXEL — PERSONAL             -->
+  <!-- TAB 5: SECCIÓN AXEL — PERSONAL Y TERRENOS  -->
   <!-- ========================================== -->
   <div *ngIf="activeTab === 'personal' && datosPersonal && !cargando" class="dash-content">
+    
     <div class="section-badge-banner">
       <span class="material-icons">military_tech</span>
-      <span><strong>Módulo Axel Huapaya</strong> — Personal y Mano de Obra | Indicadores X1, X2, X3, X4, X5, X6</span>
+      <span><strong>Módulo Axel Huapaya</strong> — Gestión de Cuadrillas, Mano de Obra y Asignación de Terrenos Agrícolas</span>
+    </div>
+
+    <!-- Decisión de Axel si está disponible -->
+    <div *ngIf="decisionParcelas" class="decision-callout-card">
+      <div class="decision-callout-card__icon"><span class="material-icons">terrain</span></div>
+      <div class="decision-callout-card__content">
+        <h4>Estrategia de Terrenos y Cuadrillas (Axel Huapaya)</h4>
+        <p>{{ decisionParcelas.toma_de_decision }}</p>
+      </div>
     </div>
 
     <section class="cards-grid">
       <div class="kpi-card kpi-card--green">
         <div class="kpi-icon"><span class="material-icons">people</span></div>
         <div class="kpi-data">
-          <span class="kpi-lbl">Usuarios Activos (X1)</span>
+          <span class="kpi-lbl">Colaboradores Registrados</span>
           <span class="kpi-val">{{ datosPersonal.cards.usuarios_activos }}</span>
+          <span class="kpi-sub">Personal operativo</span>
         </div>
       </div>
       <div class="kpi-card kpi-card--blue">
         <div class="kpi-icon"><span class="material-icons">assignment_ind</span></div>
         <div class="kpi-data">
-          <span class="kpi-lbl">Asignaciones (X1)</span>
+          <span class="kpi-lbl">Asignaciones de Cuadrilla</span>
           <span class="kpi-val">{{ datosPersonal.cards.total_asignaciones }}</span>
+          <span class="kpi-sub">Tareas distribuidas</span>
         </div>
       </div>
       <div class="kpi-card kpi-card--amber">
         <div class="kpi-icon"><span class="material-icons">schedule</span></div>
         <div class="kpi-data">
-          <span class="kpi-lbl">Horas Trabajadas (X1)</span>
+          <span class="kpi-lbl">Horas de Campo Trabajadas</span>
           <span class="kpi-val">{{ datosPersonal.cards.horas_trabajadas_totales }} hrs</span>
+          <span class="kpi-sub">Jornadas acumuladas</span>
         </div>
       </div>
       <div class="kpi-card kpi-card--brown">
         <div class="kpi-icon"><span class="material-icons">monetization_on</span></div>
         <div class="kpi-data">
-          <span class="kpi-lbl">Costo Mano Obra (X1)</span>
+          <span class="kpi-lbl">Inversión Total en Jornales</span>
           <span class="kpi-val">{{ formatearSoles(datosPersonal.cards.costo_total_mano_obra) }}</span>
+          <span class="kpi-sub">Remuneración por labor</span>
         </div>
       </div>
       <div class="kpi-card kpi-card--emerald">
         <div class="kpi-icon"><span class="material-icons">price_change</span></div>
         <div class="kpi-data">
-          <span class="kpi-lbl">Costo Promedio / Hr</span>
+          <span class="kpi-lbl">Costo Promedio por Hora</span>
           <span class="kpi-val">{{ formatearSoles(datosPersonal.cards.costo_promedio_hora) }}</span>
+          <span class="kpi-sub">Tarifa horaria media</span>
         </div>
       </div>
     </section>
@@ -518,8 +1023,11 @@
     <section class="charts-grid">
       <div class="panel">
         <div class="panel-header">
-          <h3>📊 Costo de Mano de Obra por Actividad (Indicador X3)</h3>
-          <span class="badge-source">SQL Server Asignaciones</span>
+          <div class="panel-title-wrap">
+            <span class="material-icons">bar_chart</span>
+            <h3>Costo de Mano de Obra por Tipo de Labor</h3>
+          </div>
+          <span class="badge-source">Jornales Asignados</span>
         </div>
         <div class="bar-chart-container">
           <div *ngFor="let b of barItems" class="bar-col">
@@ -534,8 +1042,11 @@
 
       <div class="panel">
         <div class="panel-header">
-          <h3>🍩 Personal Activo por Rol (Indicador X2)</h3>
-          <span class="badge-source">MongoDB Usuarios</span>
+          <div class="panel-title-wrap">
+            <span class="material-icons">pie_chart</span>
+            <h3>Distribución del Equipo por Rol</h3>
+          </div>
+          <span class="badge-source">Personal en Fundo</span>
         </div>
         <div class="donut-chart-container">
           <div class="donut-svg-wrapper">
@@ -560,33 +1071,37 @@
           <div class="donut-legend">
             <div *ngFor="let s of donutSlices" class="legend-item">
               <span class="legend-color" [style.background]="s.color"></span>
-              <span class="legend-text">{{ s.label }}: <strong>{{ s.value }} usuarios</strong> ({{ s.percentage }}%)</span>
+              <span class="legend-text">{{ s.label }}: <strong>{{ s.value }} personas</strong> ({{ s.percentage }}%)</span>
             </div>
           </div>
         </div>
       </div>
     </section>
 
+    <!-- Tabla: Rendimiento por Colaborador -->
     <section class="panel">
       <div class="panel-header">
-        <h3>📋 Ranking de Trabajadores (Indicador X4)</h3>
-        <span class="badge-source">Persistencia Políglota (SQL Asignaciones + Mongo Usuarios)</span>
+        <div class="panel-title-wrap">
+          <span class="material-icons">table_chart</span>
+          <h3>Registro de Participación y Costo por Colaborador</h3>
+        </div>
+        <span class="badge-source">Asignación de Cuadrillas</span>
       </div>
       <div class="table-responsive">
         <table class="dash-table">
           <thead>
             <tr>
-              <th>Trabajador</th>
-              <th>Rol</th>
-              <th>Asignaciones</th>
-              <th>Costo Total Generado</th>
+              <th>Nombre del Colaborador</th>
+              <th>Rol Agrícola</th>
+              <th>Labores Realizadas</th>
+              <th>Inversión en Jornales</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let fila of datosPersonal.tabla">
               <td><strong>{{ fila.trabajador }}</strong></td>
               <td><span class="pill-tag">{{ fila.rol }}</span></td>
-              <td>{{ fila.asignaciones }}</td>
+              <td>{{ fila.asignaciones }} labores</td>
               <td class="font-numeric"><strong>{{ formatearSoles(fila.costo_mano_obra) }}</strong></td>
             </tr>
           </tbody>
@@ -596,26 +1111,29 @@
   </div>
 
   <!-- ========================================== -->
-  <!-- TAB 5: CATÁLOGO DE 18 INDICADORES          -->
+  <!-- TAB 6: CATÁLOGO DE 18 INDICADORES          -->
   <!-- ========================================== -->
   <div *ngIf="activeTab === 'catalogo' && catalogoIndicadores && !cargando" class="dash-content">
     <div class="section-badge-banner">
       <span class="material-icons">menu_book</span>
-      <span><strong>Catálogo Formal de los 18 Indicadores Funcionales</strong> (6 por estudiante) — Rúbrica PIT 1.0 pto</span>
+      <span><strong>Catálogo Formal de los 18 Indicadores Funcionales</strong> (6 por estudiante) — Rúbrica PIT y Documentación OpenAPI</span>
     </div>
 
-    <div *ngFor="let autor of getCatalogoKeys()" class="panel" style="margin-bottom: 20px;">
+    <div *ngFor="let autor of getCatalogoKeys()" class="panel" style="margin-bottom: 24px;">
       <div class="panel-header">
-        <h3>👤 {{ autor }}</h3>
-        <span class="badge-source">6 Indicadores documentados en Swagger (OpenAPI)</span>
+        <div class="panel-title-wrap">
+          <span class="material-icons">account_circle</span>
+          <h3>{{ autor }}</h3>
+        </div>
+        <span class="badge-source">6 Indicadores Implementados</span>
       </div>
 
       <div class="table-responsive">
         <table class="dash-table">
           <thead>
             <tr>
-              <th style="width: 80px;">Código</th>
-              <th>Endpoint REST</th>
+              <th style="width: 100px;">Código</th>
+              <th>Ruta del Servicio REST</th>
               <th>Representación Visual</th>
             </tr>
           </thead>

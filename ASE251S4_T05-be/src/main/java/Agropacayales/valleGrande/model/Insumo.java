@@ -11,11 +11,12 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
+import org.springframework.data.mongodb.core.mapping.FieldType;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-@Document(collection = "insumos")
+@Document(collection = "supplies")
 @Data
 @Builder
 @NoArgsConstructor
@@ -37,7 +38,7 @@ public class Insumo {
 
     @NotNull(message = "El precio es obligatorio.")
     @Positive(message = "El precio del insumo debe ser un número positivo mayor que cero.")
-    @Field("precio")
+    @Field(value = "precio", targetType = FieldType.DECIMAL128)
     private BigDecimal precio;
 
     @NotNull(message = "El stock es obligatorio.")

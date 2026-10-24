@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Document(collection = "parcelas")
+@Document(collection = "plots")
 @Data
 @Builder
 @NoArgsConstructor
@@ -37,7 +37,7 @@ public class Parcela {
     @Field("ubicacion")
     private String ubicacion;
 
-    @Field("area_hectareas")
+    @Field(value = "area_hectareas", targetType = org.springframework.data.mongodb.core.mapping.FieldType.DECIMAL128)
     private BigDecimal areaHectareas;
 
     @Size(max = 80, message = "El tipo de suelo no puede superar los 80 caracteres.")

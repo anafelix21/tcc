@@ -80,7 +80,7 @@
       <div class="cultivo-card__body">
         <h3>{{ cultivo.nombre }}</h3>
         <div class="cultivo-card__parcela">
-          <span class="material-icons" style="font-size: 16px; vertical-align: middle;">home</span> {{ cultivo.parcela ? cultivo.parcela.nombre : 'Sin parcela' }}
+          <span class="material-icons" style="font-size: 16px; vertical-align: middle;">home</span> {{ getNombreParcela(cultivo) }}
         </div>
 
         <div class="cultivo-card__details">

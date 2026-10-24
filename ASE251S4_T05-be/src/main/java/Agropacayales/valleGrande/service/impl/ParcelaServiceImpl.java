@@ -66,7 +66,10 @@ public class ParcelaServiceImpl implements ParcelaService {
                         ));
                     }
 
-                    parcela.setId("PARC-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+                    if (parcela.getId() == null || parcela.getId().isBlank()) {
+                        long randomNum = (long) (Math.random() * 900) + 100;
+                        parcela.setId("PARC-GEN-" + randomNum);
+                    }
                     completarModeloEmbebido(parcela);
                     parcela.setEstado(true);
                     parcela.setEnUso(Boolean.TRUE.equals(parcela.getEnUso()));

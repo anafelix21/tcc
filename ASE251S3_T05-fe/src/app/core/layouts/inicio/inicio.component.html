@@ -3,22 +3,26 @@
   <!-- Hero Welcome Banner -->
   <div class="welcome-section">
     <div class="welcome-text">
-      <div class="welcome-date-badge">{{ currentDate }}</div>
+      <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 8px;">
+        <span class="welcome-date-badge">{{ currentDate }}</span>
+        <span class="welcome-date-badge" style="background: rgba(34, 197, 94, 0.15); color: #15803d; border-color: rgba(34, 197, 94, 0.3); font-weight: 700;">
+          {{ currentUserRol }}
+        </span>
+      </div>
       <h1>¡Hola de vuelta, {{ currentUserNombre }}!</h1>
       <p class="subtitle">Bienvenido al panel central de AgroPacayales. Monitorea y optimiza la producción agrícola.</p>
     </div>
-
   </div>
 
-  <!-- Acceso Directo al Dashboard Analítico (Sprint 8 - PIT) -->
-  <div class="analytics-callout-banner">
+  <!-- Acceso Directo al Dashboard Analítico (Solo para Admin y Supervisor) -->
+  <div class="analytics-callout-banner" *ngIf="isAdmin || isSupervisor">
     <div class="analytics-callout-icon">
       <span class="material-icons">analytics</span>
     </div>
     <div class="analytics-callout-content">
       <span class="callout-pill">Sprint 8 — Backend Analítico (Python + Flask + Pandas)</span>
-      <h3>Dashboard Analítico & Indicadores de Gestión</h3>
-      <p>Visualiza el Dashboard General y los 18 indicadores por sección: Cosechas (Ana Félix), Actividades e Insumos (Hugo Fernández) y Mano de Obra (Axel Huapaya).</p>
+      <h3>Dashboard Analítico & Indicadores de Rentabilidad</h3>
+      <p>Visualiza el Dashboard General y métricas comparativas de costos por cultivo, insumos consumidos y rendimiento de cosecha.</p>
     </div>
     <a routerLink="/dashboard" class="btn-goto-analytics">
       <span>Ver Dashboard</span>
@@ -26,7 +30,9 @@
     </a>
   </div>
 
-  <!-- A: ADMIN & SUPERVISOR VIEWS -->
+  <!-- ============================================================== -->
+  <!-- 1. VISTA: ADMIN & SUPERVISOR DE OPERACIONES                   -->
+  <!-- ============================================================== -->
   <ng-container *ngIf="isAdmin || isSupervisor">
     
     <!-- Stats Row -->
@@ -62,7 +68,19 @@
         <div class="stat-card__info">
           <strong>{{ totalCultivos }}</strong>
           <span>Cultivos</span>
-          <span class="stat-card__trend"><span class="bullet"></span> En Crecimiento</span>
+          <span class="stat-card__trend"><span class="bullet"></span> En Campaña</span>
+        </div>
+        <span class="stat-card__arrow">→</span>
+      </a>
+
+      <a routerLink="/fichas-campo" class="stat-card stat-card--blue">
+        <div class="stat-card__icon-wrapper">
+          <span class="material-icons">assignment</span>
+        </div>
+        <div class="stat-card__info">
+          <strong>{{ totalFichas }}</strong>
+          <span>Fichas de Campo</span>
+          <span class="stat-card__trend"><span class="bullet"></span> Monitoreo Técnico</span>
         </div>
         <span class="stat-card__arrow">→</span>
       </a>
@@ -81,183 +99,205 @@
     </div>
 
     <!-- Módulos de Acceso Rápido -->
-    <h2 class="section-title">Módulos del Sistema</h2>
+    <h2 class="section-title">Módulos de Gestión</h2>
     
     <div class="modules-grid">
-      <!-- 1. Cultivos -->
+      <!-- Cultivos -->
       <a routerLink="/cultivos" class="module-card">
         <div class="module-card__header module-card__header--green">
           <span class="module-icon"><span class="material-icons">grass</span></span>
         </div>
         <div class="module-card__body">
           <h3>Cultivos y Siembra</h3>
-          <p>Monitorea la siembra, estado fenológico y evolución de los cultivos de la campaña.</p>
+          <p>Monitorea la siembra, estado fenológico, frecuencia de riego y fechas de campaña.</p>
           <span class="module-link">Gestionar Cultivos <span class="arrow">→</span></span>
         </div>
       </a>
 
-      <!-- 2. Parcelas -->
+      <!-- Parcelas -->
       <a routerLink="/parcelas" class="module-card">
         <div class="module-card__header module-card__header--teal">
           <span class="module-icon"><span class="material-icons">landscape</span></span>
         </div>
         <div class="module-card__body">
           <h3>Zonas y Parcelas</h3>
-          <p>Administra las extensiones de tierra, ubicación satelital, tipos de suelo y responsables.</p>
+          <p>Administra extensiones de tierra, ubicación, tipos de suelo y sectores de riego.</p>
           <span class="module-link">Ver Parcelas <span class="arrow">→</span></span>
         </div>
       </a>
 
-      <!-- 3. Insumos -->
+      <!-- Insumos -->
       <a routerLink="/insumos" class="module-card">
         <div class="module-card__header module-card__header--amber">
           <span class="module-icon"><span class="material-icons">inventory_2</span></span>
         </div>
         <div class="module-card__body">
           <h3>Bodega de Insumos</h3>
-          <p>Controla el stock disponible, precios unitarios, proveedores y alertas de bajo stock.</p>
+          <p>Controla el stock disponible, precios unitarios, proveedores y exportaciones PDF/Excel.</p>
           <span class="module-link">Ver Inventario <span class="arrow">→</span></span>
         </div>
       </a>
 
-      <!-- 4. Kardex -->
-      <a routerLink="/movimiento-insumos" class="module-card">
-        <div class="module-card__header module-card__header--blue">
-          <span class="module-icon"><span class="material-icons">swap_horiz</span></span>
+      <!-- Fichas de Campo -->
+      <a routerLink="/fichas-campo" class="module-card">
+        <div class="module-card__header module-card__header--cyan">
+          <span class="module-icon"><span class="material-icons">assignment_turned_in</span></span>
         </div>
         <div class="module-card__body">
-          <h3>Kardex de Inventario</h3>
-          <p>Audita los movimientos de entrada por compras y salidas por aplicación a cultivos.</p>
-          <span class="module-link">Ver Movimientos <span class="arrow">→</span></span>
+          <h3>Fichas de Campo</h3>
+          <p>Supervisa evaluaciones de salud vegetal, condiciones climáticas y diagnósticos técnicos.</p>
+          <span class="module-link">Ver Fichas <span class="arrow">→</span></span>
         </div>
       </a>
 
-      <!-- 5. Actividades -->
+      <!-- Actividades -->
       <a routerLink="/actividades" class="module-card">
         <div class="module-card__header module-card__header--purple">
           <span class="module-icon"><span class="material-icons">agriculture</span></span>
         </div>
         <div class="module-card__body">
           <h3>Labores y Actividades</h3>
-          <p>Programa labores en el campo (riego, fertilización) y el consumo atómico de insumos.</p>
+          <p>Programa labores de campo (riego, fumigación) y el consumo atómico de insumos.</p>
           <span class="module-link">Ver Actividades <span class="arrow">→</span></span>
         </div>
       </a>
 
-      <!-- 6. Cosechas -->
+      <!-- Cosechas -->
       <a routerLink="/cosechas" class="module-card">
         <div class="module-card__header module-card__header--red">
           <span class="module-icon"><span class="material-icons">shopping_basket</span></span>
         </div>
         <div class="module-card__body">
           <h3>Cosechas y Rendimiento</h3>
-          <p>Registra las toneladas obtenidas, calidad de producción y cierra ciclos de cultivo.</p>
+          <p>Registra las toneladas obtenidas, calidad de producción y rendimiento por cultivo.</p>
           <span class="module-link">Ver Cosechas <span class="arrow">→</span></span>
         </div>
       </a>
-      
-      <!-- 7. Fichas de Campo -->
-      <a routerLink="/fichas-campo" class="module-card">
-        <div class="module-card__header module-card__header--cyan">
-          <span class="module-icon"><span class="material-icons">assignment_turned_in</span></span>
-        </div>
-        <div class="module-card__body">
-          <h3>Monitoreo de Fichas</h3>
-          <p>Consulta evaluaciones fitosanitarias de plagas, humedad y diagnóstico en campo.</p>
-          <span class="module-link">Ver Evaluaciones <span class="arrow">→</span></span>
-        </div>
-      </a>
 
-      <!-- 8. Asignaciones -->
+      <!-- Asignaciones -->
       <a routerLink="/asignaciones" class="module-card">
         <div class="module-card__header module-card__header--indigo">
           <span class="module-icon"><span class="material-icons">assignment_ind</span></span>
         </div>
         <div class="module-card__body">
-          <h3>Asignaciones de Personal</h3>
-          <p>Controla las tareas asignadas a operarios y realiza seguimiento de responsabilidades.</p>
+          <h3>Asignaciones de Obreros</h3>
+          <p>Organiza cuadrillas de trabajo y asigna operarios a labores agronómicas.</p>
           <span class="module-link">Ver Asignaciones <span class="arrow">→</span></span>
         </div>
       </a>
 
-      <!-- 9. Usuarios (Solo Admin) -->
+      <!-- Usuarios (Solo Admin) -->
       <a routerLink="/usuarios" *ngIf="isAdmin" class="module-card">
         <div class="module-card__header module-card__header--slate">
           <span class="module-icon"><span class="material-icons">people</span></span>
         </div>
         <div class="module-card__body">
-          <h3>Usuarios y Roles</h3>
-          <p>Administra las cuentas de trabajadores, accesos y roles del sistema agrícola.</p>
-          <span class="module-link">Ver Usuarios <span class="arrow">→</span></span>
+          <h3>Personal y Usuarios</h3>
+          <p>Administra las cuentas de trabajadores, accesos, roles y credenciales del sistema.</p>
+          <span class="module-link">Gestionar Usuarios <span class="arrow">→</span></span>
         </div>
       </a>
     </div>
   </ng-container>
 
-  <!-- B: SUPERVISOR_ALMACEN VIEW -->
-  <ng-container *ngIf="isSupervisorAlmacen">
-    <!-- Stats -->
-    <div class="stats-grid">
-      <a routerLink="/insumos" class="stat-card stat-card--amber" style="grid-column: span 4;">
+  <!-- ============================================================== -->
+  <!-- 2. VISTA: INGENIERO AGRÓNOMO / TÉCNICO DE CAMPO                -->
+  <!-- ============================================================== -->
+  <ng-container *ngIf="isAgronomo">
+    <!-- Stats Row -->
+    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+      <a routerLink="/fichas-campo" class="stat-card stat-card--blue">
         <div class="stat-card__icon-wrapper">
-          <span class="material-icons">inventory</span>
+          <span class="material-icons">assignment</span>
         </div>
         <div class="stat-card__info">
-          <strong>{{ totalInsumos }}</strong>
-          <span>Insumos activos en bodega</span>
-          <span class="stat-card__trend"><span class="bullet"></span> Almacén Central</span>
+          <strong>{{ totalFichas }}</strong>
+          <span>Fichas de Campo</span>
+          <span class="stat-card__trend"><span class="bullet"></span> Evaluaciones Técnicas y Sanidad</span>
         </div>
         <span class="stat-card__arrow">→</span>
       </a>
     </div>
 
-    <!-- Módulos -->
-    <h2 class="section-title">Gestión de Almacén</h2>
+    <h2 class="section-title">Inspección Técnica de Cultivos y Sanidad Vegetal</h2>
+    <div class="modules-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+      <a routerLink="/fichas-campo" class="module-card">
+        <div class="module-card__header module-card__header--cyan">
+          <span class="module-icon"><span class="material-icons">assignment_turned_in</span></span>
+        </div>
+        <div class="module-card__body">
+          <h3>Diario Técnico & Fichas de Campo</h3>
+          <p>Registra observaciones fitosanitarias, condiciones fenológicas de los cultivos, prescripción de tratamientos y fotografías de campo.</p>
+          <span class="module-link">Llenar / Consultar Fichas de Campo →</span>
+        </div>
+      </a>
+    </div>
+  </ng-container>
+
+  <!-- ============================================================== -->
+  <!-- 3. VISTA: SUPERVISOR DE ALMACÉN                                -->
+  <!-- ============================================================== -->
+  <ng-container *ngIf="isSupervisorAlmacen">
+    <!-- Stats -->
+    <div class="stats-grid">
+      <a routerLink="/insumos" class="stat-card stat-card--amber" style="grid-column: span 3;">
+        <div class="stat-card__icon-wrapper">
+          <span class="material-icons">inventory</span>
+        </div>
+        <div class="stat-card__info">
+          <strong>{{ totalInsumos }}</strong>
+          <span>Insumos Activos en Bodega</span>
+          <span class="stat-card__trend"><span class="bullet"></span> Almacén Central AgroPacayales</span>
+        </div>
+        <span class="stat-card__arrow">→</span>
+      </a>
+    </div>
+
+    <h2 class="section-title">Operaciones de Inventario</h2>
     <div class="modules-grid">
       <a routerLink="/insumos" class="module-card">
         <div class="module-card__header module-card__header--amber">
           <span class="module-icon"><span class="material-icons">inventory_2</span></span>
         </div>
         <div class="module-card__body">
-          <h3>Bodega Insumos</h3>
-          <p>Controla el inventario de insumos agrícolas, precios, stock y proveedores.</p>
-          <span class="module-link">Ir a Insumos →</span>
-        </div>
-      </a>
-
-      <a routerLink="/movimiento-insumos" class="module-card">
-        <div class="module-card__header module-card__header--blue">
-          <span class="module-icon"><span class="material-icons">swap_horiz</span></span>
-        </div>
-        <div class="module-card__body">
-          <h3>Kardex de Bodega</h3>
-          <p>Registra las entradas y salidas de materiales agrícolas del almacén.</p>
-          <span class="module-link">Ir a Kardex Stock →</span>
+          <h3>Control de Almacén de Insumos</h3>
+          <p>Administra existencias de fertilizantes, pesticidas y semillas. Descarga reportes en PDF y Excel.</p>
+          <span class="module-link">Gestionar Insumos →</span>
         </div>
       </a>
     </div>
   </ng-container>
 
-  <!-- C: OPERADOR VIEW -->
-  <ng-container *ngIf="isOperador">
-    <div class="operator-panel">
-      <div class="operator-panel__header">
-        <div class="operator-icon-bg">
+  <!-- ============================================================== -->
+  <!-- 4. VISTA: OPERARIO / TRABAJADOR DE CAMPO                       -->
+  <!-- ============================================================== -->
+  <ng-container *ngIf="isOperario">
+    <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));">
+      <a routerLink="/actividades" class="stat-card stat-card--purple">
+        <div class="stat-card__icon-wrapper">
           <span class="material-icons">agriculture</span>
         </div>
-        <div>
-          <h2>Tus Labores Asignadas</h2>
-          <p>Consulta las actividades del día programadas para ti en los campos.</p>
+        <div class="stat-card__info">
+          <strong>Labores</strong>
+          <span>Mis Tareas Asignadas</span>
+          <span class="stat-card__trend"><span class="bullet"></span> Programadas para Hoy</span>
         </div>
-      </div>
-      <div class="operator-panel__body">
-        <p>
-          Como Operador de Campo, tienes acceso para visualizar la lista de labores asignadas por el supervisor de campo. Podrás consultar detalles de descripción e insumos requeridos para tu trabajo diario.
-        </p>
-        <a routerLink="/actividades" class="btn-primary-action">
-          <span class="material-icons">assignment_turned_in</span> Ver Mis Tareas Asignadas
-        </a>
-      </div>
+        <span class="stat-card__arrow">→</span>
+      </a>
+    </div>
+
+    <h2 class="section-title">Panel de Trabajo del Operario</h2>
+    <div class="modules-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+      <a routerLink="/actividades" class="module-card">
+        <div class="module-card__header module-card__header--purple">
+          <span class="module-icon"><span class="material-icons">agriculture</span></span>
+        </div>
+        <div class="module-card__body">
+          <h3>Mis Labores de Campo</h3>
+          <p>Consulta las faenas que te corresponden: riego, aplicación fitosanitaria o poda. Al terminar, haz clic en "Culminar Labor" para registrar la finalización y descontar los insumos consumidos.</p>
+          <span class="module-link">Ver Mis Labores & Culminar →</span>
+        </div>
+      </a>
     </div>
   </ng-container>
 

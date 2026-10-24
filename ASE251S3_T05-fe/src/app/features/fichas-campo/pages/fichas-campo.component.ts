@@ -38,7 +38,7 @@ export class FichasCampoComponent implements OnInit {
   // Modelo de formulario plano para enlazar mediante ngModel
   formData = {
     idCultivo: 0,
-    idUsuario: 0,
+    idUsuario: '' as string | number,
     etapaFenologica: 'GERMINACION',
     temperaturaAmb: 20,
     humedadRelativa: 60,
@@ -52,7 +52,7 @@ export class FichasCampoComponent implements OnInit {
   };
 
   mostrarConfirmacion = false;
-  fichaAEliminar: number | null = null;
+  fichaAEliminar: number | string | null = null;
 
   etapas = ['GERMINACION', 'CRECIMIENTO', 'FLORACION', 'FRUCTIFICACION', 'COSECHA', 'POST-COSECHA'];
   climas = ['SOLEADO', 'NUBLADO', 'LLUVIOSO', 'VENTOSO'];
@@ -145,7 +145,7 @@ export class FichasCampoComponent implements OnInit {
   guardarFicha(): void {
     const dto: FichaCampoDTO = {
       idCultivo: Number(this.formData.idCultivo),
-      idUsuario: Number(this.formData.idUsuario),
+      idUsuario: this.formData.idUsuario,
       etapaFenologica: this.formData.etapaFenologica,
       temperaturaAmb: this.formData.temperaturaAmb,
       humedadRelativa: this.formData.humedadRelativa,
@@ -177,7 +177,7 @@ export class FichasCampoComponent implements OnInit {
     }
   }
 
-  confirmarEliminar(id: number): void {
+  confirmarEliminar(id: number | string): void {
     this.fichaAEliminar = id;
     this.mostrarConfirmacion = true;
   }
@@ -194,7 +194,7 @@ export class FichasCampoComponent implements OnInit {
     }
   }
 
-  restaurarFicha(id: number): void {
+  restaurarFicha(id: number | string): void {
     this.fichaService.restaurar(id).subscribe({
       next: () => {
         this.notificationService.show({ type: 'success', message: 'Ficha de campo restaurada correctamente' });

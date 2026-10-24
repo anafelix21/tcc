@@ -3,6 +3,8 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { TRANSACCIONES } from '../../../modules/transacciones';
 import { transaccionService } from '../../../services/crudService';
+import { useAuth } from '../../../context/AuthContext';
+import { puedeGestionarMaestroOTransaccion } from '../../../utils/permisos';
 import { FormValores } from '../../../modules/types';
 import { CampoFormulario } from '../../../components/CampoFormulario';
 import { Cargando, MensajeError, Tarjeta, Titulo } from '../../../components/ui';
@@ -15,9 +17,12 @@ import { avisar } from '../../../utils/dialogs';
 export default function TransaccionFormularioScreen() {
   const { modulo, id } = useLocalSearchParams<{ modulo: string; id?: string }>();
   const t = TRANSACCIONES[modulo];
+  const { usuario } = useAuth();
+  const puedeGestionar = puedeGestionarMaestroOTransaccion(usuario);
+
   const esEdicion = Boolean(id);
-  const [cabecera, setCabecera] = useState<FormValores>(() => valoresVacios(t.cabecera));
-  const [detalles, setDetalles] = useState<FormValores[]>(() => [valoresVacios(t.detalle.campos)]);
+  const [cabecera, setCabecera] = useState<FormValores>(() => valoresVacios(t?.cabecera ?? []));
+  const [detalles, setDetalles] = useState<FormValores[]>(() => [valoresVacios(t?.detalle?.campos ?? [])]);
   const [errCab, setErrCab] = useState<Record<string, string>>({});
   const [errDet, setErrDet] = useState<Record<string, string>[]>([]);
   const [cargando, setCargando] = useState(esEdicion);
@@ -25,7 +30,7 @@ export default function TransaccionFormularioScreen() {
   const [errorApi, setErrorApi] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || !t) return;
     transaccionService.obtener(t, id)
       .then((r) => {
         const f = t.aFormulario(r);
@@ -35,6 +40,18 @@ export default function TransaccionFormularioScreen() {
       .catch((e) => setErrorApi(e.message))
       .finally(() => setCargando(false));
   }, [t, id]);
+
+  if (!t) return <MensajeError mensaje={`Módulo "${modulo}" no existe`} />;
+
+  if (!puedeGestionar) {
+    return (
+      <View style={{ flex: 1, padding: 20, justifyContent: 'center', gap: 14 }}>
+        <Stack.Screen options={{ title: 'Acceso Restringido' }} />
+        <MensajeError mensaje={`Acceso restringido: Su rol (${usuario?.rol || 'Invitado'}) cuenta únicamente con permisos de consulta (modo lectura), no de registro o modificación de transacciones.`} />
+        <Boton titulo="Regresar" onPress={() => router.back()} />
+      </View>
+    );
+  }
 
   const cambiarDetalle = (i: number, key: string) => (v: string) => {
     setDetalles((prev) => prev.map((d, j) => (j === i ? { ...d, [key]: v } : d)));
@@ -101,13 +118,13 @@ export default function TransaccionFormularioScreen() {
               ))}
             </View>
           ))}
-          <Boton compacto variante="secundario" icono="＋" titulo="Agregar ítem"
+          <Boton compacto variante="secundario" icono="add-circle-outline" titulo="Agregar ítem"
             onPress={() => setDetalles((p) => [...p, valoresVacios(t.detalle.campos)])} />
         </Tarjeta>
 
         {errorApi ? <MensajeError mensaje={errorApi} /> : null}
         <View style={{ gap: 10 }}>
-          <Boton titulo={esEdicion ? 'Guardar cambios' : 'Registrar'} icono="✓" onPress={guardar} cargando={guardando} />
+          <Boton titulo={esEdicion ? 'Guardar cambios' : 'Registrar'} icono="checkmark-circle-outline" onPress={guardar} cargando={guardando} />
           <Boton titulo="Cancelar" variante="tierra" onPress={() => router.back()} />
         </View>
       </ScrollView>

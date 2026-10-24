@@ -106,7 +106,7 @@ public class UsuarioController {
     }
 
     // GET - Exportar Excel
-    @GetMapping("/exportar/excel")
+    @GetMapping({"/exportar/excel", "/excel"})
     @Operation(summary = "Exportar usuarios a Excel")
     public Mono<ResponseEntity<byte[]>> exportarExcel() {
         return usuarioService.exportarExcel()
@@ -118,7 +118,7 @@ public class UsuarioController {
     }
 
     // GET - Exportar PDF
-    @GetMapping("/exportar/pdf")
+    @GetMapping({"/exportar/pdf", "/pdf"})
     @Operation(summary = "Exportar usuarios a PDF")
     public Mono<ResponseEntity<byte[]>> exportarPdf() {
         return usuarioService.exportarPdf()

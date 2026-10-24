@@ -1,17 +1,21 @@
 import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { forkJoin } from 'rxjs';
 import { AnalyticsService } from '../services/analytics.service';
 import {
   DashboardGeneralResponse,
   CosechasSeccionResponse,
   CampoSeccionResponse,
   PersonalSeccionResponse,
-  IndicadoresCatalogoResponse
+  IndicadoresCatalogoResponse,
+  PresupuestoInsumosCategoriaResponse,
+  PresupuestoParcelasCultivoResponse,
+  PresupuestoStockCriticoResponse
 } from '../models/analytics.model';
 
-export type TabTipo = 'general' | 'cosechas' | 'campo' | 'personal' | 'catalogo';
+export type TabTipo = 'general' | 'decisiones' | 'cosechas' | 'campo' | 'personal' | 'catalogo';
 
-interface DonutSlice {
+export interface DonutSlice {
   label: string;
   value: number;
   percentage: number;
@@ -20,7 +24,7 @@ interface DonutSlice {
   strokeDasharray: string;
 }
 
-interface BarItem {
+export interface BarItem {
   label: string;
   value: number;
   heightPercent: number;
@@ -44,18 +48,27 @@ export class DashboardComponent implements OnInit {
   errorMensaje: string | null = null;
   statusOnline = false;
 
-  // Datos de secciones
+  // Datos de secciones analíticas generales
   datosGeneral: DashboardGeneralResponse['data'] | null = null;
   datosCosechas: CosechasSeccionResponse['data'] | null = null;
   datosCampo: CampoSeccionResponse['data'] | null = null;
   datosPersonal: PersonalSeccionResponse['data'] | null = null;
   catalogoIndicadores: IndicadoresCatalogoResponse['data'] | null = null;
 
-  // Gráficos procesados
+  // Datos de los 3 Servicios Analíticos PIT Valle Grande (1 por integrante)
+  decisionInsumos: PresupuestoInsumosCategoriaResponse | null = null; // Hugo Fernández
+  decisionParcelas: PresupuestoParcelasCultivoResponse | null = null; // Axel Huapaya
+  decisionStock: PresupuestoStockCriticoResponse | null = null;       // Ana Félix
+
+  // Gráficos procesados dinámicamente
   donutSlices: DonutSlice[] = [];
   barItems: BarItem[] = [];
 
-  readonly PALETTE = ['#2E7D32', '#B08D6A', '#15803D', '#D97706', '#0284C7', '#7C3AED', '#E11D48', '#059669'];
+  // Gráficos de decisiones estratégicas
+  donutCategoriasInsumos: DonutSlice[] = [];
+  barCultivosHectareas: BarItem[] = [];
+
+  readonly PALETTE = ['#2E7D32', '#15803D', '#059669', '#B08D6A', '#D97706', '#0284C7', '#7C3AED', '#E11D48'];
 
   ngOnInit(): void {
     this.cargarDatos(this.activeTab);
@@ -72,9 +85,17 @@ export class DashboardComponent implements OnInit {
     this.cdr.markForCheck();
 
     if (tab === 'general') {
-      this.analyticsService.getDashboardGeneral().subscribe({
-        next: (res) => {
-          this.datosGeneral = res.data;
+      forkJoin({
+        general: this.analyticsService.getDashboardGeneral(),
+        insumos: this.analyticsService.getPresupuestoInsumosCategoria(),
+        parcelas: this.analyticsService.getPresupuestoParcelasCultivo(),
+        stock: this.analyticsService.getPresupuestoStockCritico()
+      }).subscribe({
+        next: ({ general, insumos, parcelas, stock }) => {
+          this.datosGeneral = general.data;
+          this.decisionInsumos = insumos;
+          this.decisionParcelas = parcelas;
+          this.decisionStock = stock;
           this.statusOnline = true;
           this.prepararGraficosGeneral();
           this.cargando = false;
@@ -82,10 +103,31 @@ export class DashboardComponent implements OnInit {
         },
         error: (err) => this.manejarError(err)
       });
+    } else if (tab === 'decisiones') {
+      forkJoin({
+        insumos: this.analyticsService.getPresupuestoInsumosCategoria(),
+        parcelas: this.analyticsService.getPresupuestoParcelasCultivo(),
+        stock: this.analyticsService.getPresupuestoStockCritico()
+      }).subscribe({
+        next: ({ insumos, parcelas, stock }) => {
+          this.decisionInsumos = insumos;
+          this.decisionParcelas = parcelas;
+          this.decisionStock = stock;
+          this.statusOnline = true;
+          this.prepararGraficosDecisiones();
+          this.cargando = false;
+          this.cdr.markForCheck();
+        },
+        error: (err) => this.manejarError(err)
+      });
     } else if (tab === 'cosechas') {
-      this.analyticsService.getCosechasSeccion().subscribe({
-        next: (res) => {
-          this.datosCosechas = res.data;
+      forkJoin({
+        cosechas: this.analyticsService.getCosechasSeccion(),
+        stock: this.analyticsService.getPresupuestoStockCritico()
+      }).subscribe({
+        next: ({ cosechas, stock }) => {
+          this.datosCosechas = cosechas.data;
+          this.decisionStock = stock;
           this.statusOnline = true;
           this.prepararGraficosCosechas();
           this.cargando = false;
@@ -94,9 +136,13 @@ export class DashboardComponent implements OnInit {
         error: (err) => this.manejarError(err)
       });
     } else if (tab === 'campo') {
-      this.analyticsService.getCampoSeccion().subscribe({
-        next: (res) => {
-          this.datosCampo = res.data;
+      forkJoin({
+        campo: this.analyticsService.getCampoSeccion(),
+        insumos: this.analyticsService.getPresupuestoInsumosCategoria()
+      }).subscribe({
+        next: ({ campo, insumos }) => {
+          this.datosCampo = campo.data;
+          this.decisionInsumos = insumos;
           this.statusOnline = true;
           this.prepararGraficosCampo();
           this.cargando = false;
@@ -105,9 +151,13 @@ export class DashboardComponent implements OnInit {
         error: (err) => this.manejarError(err)
       });
     } else if (tab === 'personal') {
-      this.analyticsService.getPersonalSeccion().subscribe({
-        next: (res) => {
-          this.datosPersonal = res.data;
+      forkJoin({
+        personal: this.analyticsService.getPersonalSeccion(),
+        parcelas: this.analyticsService.getPresupuestoParcelasCultivo()
+      }).subscribe({
+        next: ({ personal, parcelas }) => {
+          this.datosPersonal = personal.data;
+          this.decisionParcelas = parcelas;
           this.statusOnline = true;
           this.prepararGraficosPersonal();
           this.cargando = false;
@@ -139,7 +189,7 @@ export class DashboardComponent implements OnInit {
   private prepararGraficosGeneral(): void {
     if (!this.datosGeneral) return;
 
-    // Gráfico circular: distribución de costos
+    // Gráfico circular: distribución de costos operativos
     const circularData = this.datosGeneral.grafico_circular.map(x => ({ label: x.categoria, value: x.monto }));
     this.donutSlices = this.calcularDonutSlices(circularData);
 
@@ -151,6 +201,28 @@ export class DashboardComponent implements OnInit {
       heightPercent: Math.round((x.kilos_totales / maxVal) * 100),
       formattedValue: `${x.kilos_totales.toLocaleString('es-PE')} kg`
     }));
+  }
+
+  private prepararGraficosDecisiones(): void {
+    // Gráfico de distribución de presupuesto de insumos (Hugo Fernández)
+    if (this.decisionInsumos && this.decisionInsumos.detalle_por_categoria) {
+      const catData = this.decisionInsumos.detalle_por_categoria.map(c => ({
+        label: c.categoria,
+        value: c.gasto_total_pen
+      }));
+      this.donutCategoriasInsumos = this.calcularDonutSlices(catData);
+    }
+
+    // Gráfico de barras de hectáreas por cultivo (Axel Huapaya)
+    if (this.decisionParcelas && this.decisionParcelas.detalle_cultivos) {
+      const maxHa = Math.max(...this.decisionParcelas.detalle_cultivos.map(c => c.hectareas), 1);
+      this.barCultivosHectareas = this.decisionParcelas.detalle_cultivos.map(c => ({
+        label: c.cultivo,
+        value: c.hectareas,
+        heightPercent: Math.round((c.hectareas / maxHa) * 100),
+        formattedValue: `${c.hectareas.toLocaleString('es-PE')} ha`
+      }));
+    }
   }
 
   private prepararGraficosCosechas(): void {

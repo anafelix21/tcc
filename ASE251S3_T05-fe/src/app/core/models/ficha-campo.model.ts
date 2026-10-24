@@ -1,8 +1,10 @@
 export interface FichaCampo {
-  idFicha?: number;
+  idFicha?: number | string;
+  id?: string;
+  codigoFicha?: string;
   idCultivo: number;
   nombreCultivo?: string;
-  idUsuario: number;
+  idUsuario: number | string;
   nombreUsuario?: string;
   fechaRegistro?: string;
   etapaFenologica: string;
@@ -15,12 +17,13 @@ export interface FichaCampo {
   diagnostico?: string;
   accionTomada?: string;
   accionPendiente?: string;
+  fotoUrl?: string;
   estado?: boolean;
 }
 
 export interface FichaCampoDTO {
   idCultivo: number;
-  idUsuario: number;
+  idUsuario: number | string;
   etapaFenologica: string;
   temperaturaAmb?: number | null;
   humedadRelativa?: number | null;
@@ -31,4 +34,5 @@ export interface FichaCampoDTO {
   diagnostico?: string | null;
   accionTomada?: string | null;
   accionPendiente?: string | null;
+  fotoUrl?: string | null;
 }

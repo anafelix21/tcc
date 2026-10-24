@@ -106,7 +106,7 @@ public class ParcelaController {
     }
 
     // GET - Exportar Excel
-    @GetMapping("/exportar/excel")
+    @GetMapping({"/exportar/excel", "/excel"})
     @Operation(summary = "Exportar parcelas a Excel")
     public Mono<ResponseEntity<byte[]>> exportarExcel() {
         return parcelaService.exportarExcel()
@@ -118,7 +118,7 @@ public class ParcelaController {
     }
 
     // GET - Exportar PDF
-    @GetMapping("/exportar/pdf")
+    @GetMapping({"/exportar/pdf", "/pdf"})
     @Operation(summary = "Exportar parcelas a PDF")
     public Mono<ResponseEntity<byte[]>> exportarPdf() {
         return parcelaService.exportarPdf()

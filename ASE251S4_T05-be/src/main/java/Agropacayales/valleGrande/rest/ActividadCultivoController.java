@@ -15,12 +15,15 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/api/actividades-cultivos")
-@RequiredArgsConstructor
+@RequestMapping({"/api/actividades-cultivos", "/api/actividades"})
 @Tag(name = "Actividad-Cultivo-Controller", description = "Módulo Transaccional de Hugo Fernández: Actividades agrícolas y consumo de insumos (WebFlux + SQL Server R2DBC + MongoDB)")
 public class ActividadCultivoController {
 
     private final ActividadCultivoService service;
+
+    public ActividadCultivoController(ActividadCultivoService service) {
+        this.service = service;
+    }
 
     // GET - Listar todas las actividades con cabecera y detalle (FLUX)
     @GetMapping
@@ -82,5 +85,20 @@ public class ActividadCultivoController {
     public Mono<ResponseEntity<ActividadCultivoResponseDto>> restaurar(@PathVariable Long id) {
         return service.restaurar(id)
                 .map(ResponseEntity::ok);
+    }
+
+    // PATCH - Culminar/Finalizar labor y descontar insumos automáticamente
+    @PatchMapping("/{id}/finalizar")
+    @Operation(summary = "Finalizar labor de campo", description = "Marca la actividad como culminada y descuenta automáticamente los insumos utilizados de MongoDB.")
+    public Mono<ResponseEntity<ActividadCultivoResponseDto>> finalizar(@PathVariable Long id) {
+        return service.finalizar(id)
+                .map(ResponseEntity::ok);
+    }
+
+    // GET - Labores del operario
+    @GetMapping({"/operario/{idUsuario}", "/usuario/{idUsuario}"})
+    @Operation(summary = "Listar labores asignadas al operario", description = "Obtiene las actividades de campo asignadas al trabajador.")
+    public Flux<ActividadCultivoResponseDto> listarPorOperario(@PathVariable String idUsuario) {
+        return service.listarPorOperario(idUsuario);
     }
 }

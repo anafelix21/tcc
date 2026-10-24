@@ -64,7 +64,7 @@ export class CultivoFormComponent implements OnInit, OnChanges {
       this.esEdicion = !!this.cultivoEditar?.idCultivo;
       if (this.esEdicion && this.cultivoEditar) {
         this.cultivoForm.patchValue({
-          parcelaId: this.cultivoEditar.parcela?.idParcela ?? '',
+          parcelaId: this.cultivoEditar.idParcela || (this.cultivoEditar.parcela as any)?.id || this.cultivoEditar.parcela?.idParcela || '',
           nombre: this.cultivoEditar.nombre,
           tipoCultivo: this.cultivoEditar.tipoCultivo,
           frecuenciaRiegoDias: this.cultivoEditar.frecuenciaRiegoDias,
@@ -84,10 +84,9 @@ export class CultivoFormComponent implements OnInit, OnChanges {
     if (this.cultivoForm.valid) {
       const formValue = this.cultivoForm.value;
 
-      // El backend espera { parcela: { idParcela: X }, ... }
-      // El formulario tiene { parcelaId: X, ... }
-      const payload = {
-        parcela: { idParcela: Number(formValue.parcelaId) },
+      const payload: CultivoDTO = {
+        idParcela: formValue.parcelaId,
+        parcela: { idParcela: formValue.parcelaId },
         nombre: formValue.nombre,
         tipoCultivo: formValue.tipoCultivo,
         frecuenciaRiegoDias: Number(formValue.frecuenciaRiegoDias),
@@ -97,7 +96,7 @@ export class CultivoFormComponent implements OnInit, OnChanges {
         observaciones: formValue.observaciones || null
       };
 
-      this.guardar.emit(payload as any);
+      this.guardar.emit(payload);
     } else {
       this.cultivoForm.markAllAsTouched();
     }

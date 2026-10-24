@@ -18,7 +18,10 @@ export default function RootLayout() {
       >
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="inicio" options={{ headerShown: false }} />
-        <Stack.Screen name="dashboard" options={{ title: 'Dashboard analítico' }} />
+        <Stack.Screen name="fichas-campo/index" options={{ title: 'Fichas de Campo' }} />
+        <Stack.Screen name="fichas-campo/[id]" options={{ title: 'Detalle de Ficha' }} />
+        <Stack.Screen name="fichas-campo/formulario" options={{ title: 'Ficha de Campo' }} />
+        <Stack.Screen name="mis-labores/index" options={{ title: 'Mis Labores de Campo' }} />
       </Stack>
     </AuthProvider>
   );

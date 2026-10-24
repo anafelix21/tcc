@@ -4,9 +4,10 @@
  */
 export interface Cultivo {
   idCultivo?: number;
-  parcela: {
-    idParcela: number;
-    nombre: string;
+  idParcela?: string;
+  parcela?: {
+    idParcela?: any;
+    nombre?: string;
   };
   nombre: string;
   tipoCultivo: string;
@@ -24,10 +25,10 @@ export interface Cultivo {
 
 /**
  * DTO para crear/editar cultivos
- * El backend espera el objeto parcela anidado, no un parcelaId plano
  */
 export interface CultivoDTO {
-  parcela: { idParcela: number };
+  idParcela?: string;
+  parcela?: { idParcela?: any };
   nombre: string;
   tipoCultivo: string;
   frecuenciaRiegoDias: number;

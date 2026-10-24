@@ -19,11 +19,14 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("/api/insumos")
-@RequiredArgsConstructor
 @Tag(name = "Insumo-Controller", description = "Operaciones reactivas de gestión de insumos agrícolas (WebFlux + MongoDB)")
 public class InsumoController {
 
     private final InsumoService insumoService;
+
+    public InsumoController(InsumoService insumoService) {
+        this.insumoService = insumoService;
+    }
 
     // GET - Listar todos los insumos (FLUX)
     @GetMapping
@@ -73,11 +76,18 @@ public class InsumoController {
 
     // PATCH - Eliminar lógico (MONO)
     @PatchMapping("/{id}/eliminar")
-    @Operation(summary = "Eliminar insumo (Lógico)", description = "Desactiva un insumo cambiando su estado a false, validando stock")
+    @Operation(summary = "Eliminar insumo (Lógico)", description = "Desactiva un insumo cambiando su estado a false")
     @ApiResponse(responseCode = "200", description = "Insumo eliminado lógicamente")
-    @ApiResponse(responseCode = "400", description = "Conflicto por existencia de stock remanente")
     @ApiResponse(responseCode = "404", description = "Insumo no encontrado")
     public Mono<ResponseEntity<Insumo>> eliminar(@PathVariable String id) {
+        return insumoService.eliminar(id)
+                .map(ResponseEntity::ok);
+    }
+
+    // DELETE - Alias para eliminar lógico
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar insumo por DELETE", description = "Desactiva un insumo cambiando su estado a false")
+    public Mono<ResponseEntity<Insumo>> eliminarPorDelete(@PathVariable String id) {
         return insumoService.eliminar(id)
                 .map(ResponseEntity::ok);
     }
@@ -121,7 +131,7 @@ public class InsumoController {
     }
 
     // GET - Exportar Excel
-    @GetMapping("/exportar/excel")
+    @GetMapping({"/exportar/excel", "/excel"})
     @Operation(summary = "Exportar insumos a Excel")
     public Mono<ResponseEntity<byte[]>> exportarExcel() {
         return insumoService.exportarExcel()
@@ -133,7 +143,7 @@ public class InsumoController {
     }
 
     // GET - Exportar PDF
-    @GetMapping("/exportar/pdf")
+    @GetMapping({"/exportar/pdf", "/pdf"})
     @Operation(summary = "Exportar insumos a PDF")
     public Mono<ResponseEntity<byte[]>> exportarPdf() {
         return insumoService.exportarPdf()

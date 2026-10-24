@@ -1,7 +1,7 @@
 """Maestro Parcela (MongoDB, colección `parcelas`)."""
 from app.models.base import asegurar_columnas, a_numero, a_booleano, a_texto, produccion_a_kg
 
-COLECCION = "parcelas"
+COLECCION = "plots"
 
 CAMPOS = {
     "_id": "id",

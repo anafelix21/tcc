@@ -59,6 +59,11 @@ public class UsuarioServiceImpl implements UsuarioService {
                                 "Ya existe un usuario registrado con el correo '" + correoTrimmed + "'."
                         ));
                     }
+                    if (usuario.getId() == null || usuario.getId().isBlank()) {
+                        String rolCode = resolverCodigoRol(usuario.getRol());
+                        long randomNum = (long) (Math.random() * 900) + 100;
+                        usuario.setId("USR-" + rolCode + "-" + randomNum);
+                    }
                     usuario.setEstado(true);
                     usuario.setCreatedAt(LocalDateTime.now());
                     usuario.setUpdatedAt(null);
@@ -186,5 +191,15 @@ public class UsuarioServiceImpl implements UsuarioService {
                     context.setVariable("usuarios", usuarios);
                     return ArchivoUtil.htmlAPdf(templateEngine.process("usuarios", context));
                 }).subscribeOn(Schedulers.boundedElastic()));
+    }
+
+    private String resolverCodigoRol(String rol) {
+        if (rol == null) return "OPE";
+        String r = rol.trim().toUpperCase();
+        if (r.contains("ADMIN")) return "ADM";
+        if (r.contains("SUPERVISOR")) return "SUP";
+        if (r.contains("TECNICO")) return "TEC";
+        if (r.contains("AGRONOMO")) return "AGR";
+        return "OPE";
     }
 }

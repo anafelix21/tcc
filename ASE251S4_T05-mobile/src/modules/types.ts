@@ -24,12 +24,17 @@ export type FormValores = Record<string, string>;
 
 export type Resumen = { titulo: string; subtitulo?: string; detalle?: string; insignia?: string; valor?: string };
 
+export type IconoDef = {
+  name: string;
+  family?: 'ionicons' | 'material';
+};
+
 /** Maestros en MongoDB: insumos, parcelas, usuarios. */
 export type ModuloMaestro = {
   clave: 'insumos' | 'parcelas' | 'usuarios';
   titulo: string;
   singular: string;
-  icono: string;
+  icono: IconoDef;
   endpoint: string;
   campos: Campo[];
   resumen: (r: Registro) => Resumen;
@@ -42,7 +47,7 @@ export type ModuloTransaccion = {
   clave: 'cosechas' | 'actividades' | 'asignaciones';
   titulo: string;
   singular: string;
-  icono: string;
+  icono: IconoDef;
   estudiante: string;
   endpoint: string;
   idKey: string;
@@ -58,3 +63,4 @@ export type ModuloTransaccion = {
   /** `etiqueta` traduce el id del catálogo del detalle (p. ej. idCultivo) a su nombre. */
   filasDetalle: (d: Registro, etiqueta: (id: unknown) => string | undefined) => { titulo: string; subtitulo: string; valor?: string };
 };
+

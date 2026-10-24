@@ -52,7 +52,8 @@ export class ActividadesComponent implements OnInit {
 
   ngOnInit(): void {
     const user = this.authService.getCurrentUser();
-    this.isOperador = user ? (user.rol.toUpperCase() === 'OPERADOR' || user.rol.toUpperCase() === 'TRABAJADOR') : false;
+    const role = user ? user.rol.toUpperCase() : '';
+    this.isOperador = (role === 'OPERADOR' || role === 'TRABAJADOR' || role === 'OPERARIO');
     this.cargarActividades();
     if (!this.isOperador) {
       this.cargarCultivos();
@@ -63,18 +64,17 @@ export class ActividadesComponent implements OnInit {
   cargarActividades(): void {
     if (this.isOperador) {
       const user = this.authService.getCurrentUser();
-      if (user && user.idUsuario) {
-        this.actividadService.obtenerPorUsuario(user.idUsuario, this.verActivos).subscribe({
-          next: (data) => {
-            this.actividades = data;
-            this.cdr.markForCheck();
-          },
-          error: () => {
-            this.actividades = [];
-            this.cdr.markForCheck();
-          }
-        });
-      }
+      const userId = user ? ((user as any).id || user.idUsuario || '') : '';
+      this.actividadService.obtenerPorUsuario(userId, this.verActivos).subscribe({
+        next: (data) => {
+          this.actividades = data;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.actividades = [];
+          this.cdr.markForCheck();
+        }
+      });
     } else {
       this.actividadService.obtenerPorEstado(this.verActivos).subscribe({
         next: (data) => {
@@ -129,7 +129,7 @@ export class ActividadesComponent implements OnInit {
     }
     const primerInsumo = this.insumos[0];
     this.formData.detalles.push({
-      idInsumo: primerInsumo.idInsumo!,
+      idInsumo: (primerInsumo.idInsumo || primerInsumo.id)!,
       nombreInsumo: primerInsumo.nombre,
       cantidad: 1,
       precioUnitario: primerInsumo.precio,
@@ -143,10 +143,11 @@ export class ActividadesComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
-  onInsumoChange(index: number, idInsumo: number): void {
-    const ins = this.insumos.find(i => i.idInsumo === Number(idInsumo));
+  onInsumoChange(index: number, idInsumo: any): void {
+    const ins = this.insumos.find(i => (i.idInsumo === idInsumo || i.id === idInsumo));
     if (ins) {
       const det = this.formData.detalles[index];
+      det.idInsumo = (ins.idInsumo || ins.id)!;
       det.nombreInsumo = ins.nombre;
       det.precioUnitario = ins.precio;
       det.subtotal = ins.precio * det.cantidad;
@@ -179,7 +180,7 @@ export class ActividadesComponent implements OnInit {
 
     // Validar stock físico
     for (const det of this.formData.detalles) {
-      const ins = this.insumos.find(i => i.idInsumo === Number(det.idInsumo));
+      const ins = this.insumos.find(i => i.idInsumo === det.idInsumo || i.id === det.idInsumo);
       if (ins && ins.stock < det.cantidad) {
         this.notificationService.show({
           type: 'error',
@@ -192,11 +193,11 @@ export class ActividadesComponent implements OnInit {
     const user = this.authService.getCurrentUser();
     const dto: ActividadCultivoDTO = {
       idCultivo: Number(this.formData.idCultivo),
-      idUsuario: user && user.idUsuario ? Number(user.idUsuario) : 0,
+      idUsuario: user ? ((user as any).id || user.idUsuario || 0) : 0,
       tipoActividad: this.formData.tipoActividad,
       descripcion: this.formData.descripcion,
       detalles: this.formData.detalles.map(d => ({
-        idInsumo: Number(d.idInsumo),
+        idInsumo: d.idInsumo,
         cantidad: Number(d.cantidad)
       }))
     };
@@ -238,19 +239,22 @@ export class ActividadesComponent implements OnInit {
   }
 
   confirmarTerminacion(act: ActividadCultivo): void {
-    const user = this.authService.getCurrentUser();
-    if (user && user.idUsuario) {
-      this.actividadService.confirmarTerminacion(act.idActividad!, user.idUsuario).subscribe({
-        next: () => {
-          this.notificationService.show({ type: 'success', message: '¡Labor finalizada! Consumo registrado y Kardex generado' });
-          this.cargarActividades();
-          this.cargarInsumos(); // Recargar insumos para refrescar stocks
-        },
-        error: (err) => {
-          this.notificationService.show({ type: 'error', message: err.error?.message || 'Error al finalizar la actividad' });
-        }
-      });
-    }
+    if (!act.idActividad) return;
+    this.actividadService.finalizarLabor(act.idActividad).subscribe({
+      next: () => {
+        this.notificationService.show({
+          type: 'success',
+          message: '¡Labor culminada con éxito! Insumos descontados automáticamente del inventario.'
+        });
+        this.cargarActividades();
+      },
+      error: (err) => {
+        this.notificationService.show({
+          type: 'error',
+          message: err?.error?.message || err?.message || 'Error al finalizar la labor'
+        });
+      }
+    });
   }
 
   cancelarEdicion(): void {
@@ -272,8 +276,8 @@ export class ActividadesComponent implements OnInit {
     this.cdr.markForCheck();
   }
 
-  getInsumoStock(idInsumo: number): string {
-    const ins = this.insumos.find(i => i.idInsumo === Number(idInsumo));
+  getInsumoStock(idInsumo: string | number): string {
+    const ins = this.insumos.find(i => i.idInsumo === idInsumo || i.id === idInsumo);
     return ins ? `${ins.stock} ${ins.unidadMedida}` : '0';
   }
 }

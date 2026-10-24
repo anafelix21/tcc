@@ -17,8 +17,8 @@ export class InsumoService {
     return this.apiService.getAll<Insumo>(this.endpoint);
   }
 
-  obtenerPorId(id: number): Observable<Insumo> {
-    return this.apiService.getById<Insumo>(this.endpoint, id);
+  obtenerPorId(id: string | number): Observable<Insumo> {
+    return this.apiService.getById<Insumo>(this.endpoint, id as any);
   }
 
   /** Usa /estado/{estado} con fallback automático a listarTodos + filtro local */
@@ -30,15 +30,15 @@ export class InsumoService {
     return this.apiService.create<Insumo>(this.endpoint, insumo, silent);
   }
 
-  editar(id: number, insumo: InsumoDTO, silent = false): Observable<Insumo> {
-    return this.apiService.update<Insumo>(this.endpoint, id, insumo, silent);
+  editar(id: string | number, insumo: InsumoDTO, silent = false): Observable<Insumo> {
+    return this.apiService.update<Insumo>(this.endpoint, id as any, insumo, silent);
   }
 
-  eliminar(id: number): Observable<Insumo> {
+  eliminar(id: string | number): Observable<Insumo> {
     return this.apiService.patch<Insumo>(`${this.endpoint}/${id}/eliminar`);
   }
 
-  restaurar(id: number): Observable<Insumo> {
+  restaurar(id: string | number): Observable<Insumo> {
     return this.apiService.patch<Insumo>(`${this.endpoint}/${id}/restaurar`);
   }
 

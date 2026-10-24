@@ -40,19 +40,17 @@ export class AsignacionesComponent implements OnInit {
   };
 
   // Inputs temporales para agregar operario al detalle
-  tempIdUsuario = 0;
+  tempIdUsuario: string | number = '';
   tempCostoManoObra = 40.0;
-  detallesForm: Array<{ idUsuario: number; nombreCompletoUsuario: string; costoManoObra: number; }> = [];
+  detallesForm: Array<{ idUsuario: string | number; nombreCompletoUsuario: string; costoManoObra: number; }> = [];
 
   mostrarConfirmacion = false;
   asignacionAEliminar: number | null = null;
   asignacionSeleccionada: AsignacionTrabajadores | null = null;
 
   ngOnInit(): void {
-    this.cdr.markForCheck();
     this.cargarAsignaciones();
     this.cargarActividades();
-    this.cdr.markForCheck();
     this.cargarTrabajadores();
   }
 
@@ -82,7 +80,7 @@ export class AsignacionesComponent implements OnInit {
     this.usuarioService.obtenerPorEstado(true).subscribe({
       next: (data) => {
         // Filtrar operarios o trabajadores de campo
-        this.trabajadores = data.filter(u => u.rol === 'TRABAJADOR' || u.rol === 'OPERADOR');
+        this.trabajadores = data.filter(u => ['TRABAJADOR', 'OPERADOR', 'OPERARIO'].includes(u.rol as any));
         this.cdr.markForCheck();
       }
     });
@@ -99,7 +97,7 @@ export class AsignacionesComponent implements OnInit {
       horasTrabajadas: 8,
       observacion: ''
     };
-    this.tempIdUsuario = this.trabajadores.length > 0 ? this.trabajadores[0].idUsuario! : 0;
+    this.tempIdUsuario = this.trabajadores.length > 0 ? ((this.trabajadores[0] as any).id || this.trabajadores[0].idUsuario) : '';
     this.tempCostoManoObra = 40.0;
     this.detallesForm = [];
     this.mostrarFormulario = true;
@@ -109,7 +107,7 @@ export class AsignacionesComponent implements OnInit {
     if (!this.tempIdUsuario) return;
     
     // Validar si el trabajador ya fue agregado localmente
-    const existe = this.detallesForm.some(d => d.idUsuario === Number(this.tempIdUsuario));
+    const existe = this.detallesForm.some(d => String(d.idUsuario) === String(this.tempIdUsuario));
     if (existe) {
       this.notificationService.show({
         type: 'error',
@@ -118,10 +116,10 @@ export class AsignacionesComponent implements OnInit {
       return;
     }
 
-    const t = this.trabajadores.find(u => u.idUsuario === Number(this.tempIdUsuario));
+    const t = this.trabajadores.find(u => String((u as any).id || u.idUsuario) === String(this.tempIdUsuario));
     if (t) {
       this.detallesForm.push({
-        idUsuario: Number(this.tempIdUsuario),
+        idUsuario: (t as any).id || t.idUsuario,
         nombreCompletoUsuario: `${t.nombre} ${t.apellido}`,
         costoManoObra: Number(this.tempCostoManoObra)
       });

@@ -13,7 +13,7 @@ import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
 
-@Document(collection = "fichas_campo")
+@Document(collection = "field_records")
 @Data
 @Builder
 @NoArgsConstructor

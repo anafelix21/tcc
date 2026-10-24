@@ -18,7 +18,9 @@ export const routes: Routes = [
       },
       { 
         path: 'dashboard',          
-        loadComponent: () => import('./features/dashboard/pages/dashboard.component').then(m => m.DashboardComponent) 
+        loadComponent: () => import('./features/dashboard/pages/dashboard.component').then(m => m.DashboardComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'SUPERVISOR'] }
       },
       { 
         path: 'usuarios',           
@@ -33,12 +35,6 @@ export const routes: Routes = [
         data: { roles: ['ADMIN', 'SUPERVISOR'] }
       },
       { 
-        path: 'insumos',            
-        loadComponent: () => import('./features/insumos/pages/insumos.component').then(m => m.InsumosComponent),
-        canActivate: [roleGuard],
-        data: { roles: ['ADMIN', 'SUPERVISOR', 'SUPERVISOR_ALMACEN'] }
-      },
-      { 
         path: 'cultivos',           
         loadComponent: () => import('./features/cultivos/pages/cultivos.component').then(m => m.CultivosComponent),
         canActivate: [roleGuard],
@@ -48,17 +44,19 @@ export const routes: Routes = [
         path: 'fichas-campo',       
         loadComponent: () => import('./features/fichas-campo/pages/fichas-campo.component').then(m => m.FichasCampoComponent),
         canActivate: [roleGuard],
-        data: { roles: ['ADMIN', 'SUPERVISOR'] }
+        data: { roles: ['ADMIN', 'SUPERVISOR', 'AGRONOMO', 'TECNICO'] }
       },
       { 
-        path: 'movimiento-insumos', 
-        loadComponent: () => import('./features/movimiento-insumos/pages/movimiento-insumos.component').then(m => m.MovimientoInsumosComponent),
+        path: 'insumos',            
+        loadComponent: () => import('./features/insumos/pages/insumos.component').then(m => m.InsumosComponent),
         canActivate: [roleGuard],
         data: { roles: ['ADMIN', 'SUPERVISOR', 'SUPERVISOR_ALMACEN'] }
       },
       { 
         path: 'actividades',        
-        loadComponent: () => import('./features/actividades/pages/actividades.component').then(m => m.ActividadesComponent) 
+        loadComponent: () => import('./features/actividades/pages/actividades.component').then(m => m.ActividadesComponent),
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'SUPERVISOR', 'OPERARIO', 'OPERADOR'] }
       },
       { 
         path: 'asignaciones',       

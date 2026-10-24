@@ -1,6 +1,6 @@
 export interface AsignacionDetalle {
   idAsignacionDetalle?: number;
-  idUsuario: number;
+  idUsuario: string | number;
   nombreCompletoUsuario?: string;
   costoManoObra: number;
 }
@@ -20,7 +20,7 @@ export interface AsignacionTrabajadores {
 }
 
 export interface AsignacionDetalleDTO {
-  idUsuario: number;
+  idUsuario: string | number;
   costoManoObra: number;
 }
 

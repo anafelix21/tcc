@@ -26,8 +26,8 @@
         <select id="parcelaId" formControlName="parcelaId"
           [class.input--error]="esInvalido('parcelaId')">
           <option value="">— Seleccionar parcela —</option>
-          <option *ngFor="let p of parcelas" [value]="p.idParcela">
-            {{ p.nombre }} ({{ p.ubicacion }})
+          <option *ngFor="let p of parcelas" [value]="p.id || p.idParcela">
+            {{ p.nombre }} ({{ p.id || p.idParcela }} - {{ p.ubicacion }})
           </option>
         </select>
         <span class="error-msg" *ngIf="esInvalido('parcelaId')">Debes seleccionar en qué parcela sembrar este cultivo.</span>

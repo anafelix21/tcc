@@ -3,7 +3,8 @@
  * Coincide exactamente con el modelo del backend Insumo.java
  */
 export interface Insumo {
-  idInsumo?: number;
+  id?: string;
+  idInsumo?: any;
   nombre: string;
   descripcion: string;
   precio: number;
@@ -34,7 +35,8 @@ export interface InsumoDTO {
 }
 
 export interface InsumoForm extends InsumoDTO {
-  idInsumo?: number;
+  id?: string;
+  idInsumo?: any;
 }
 
 /**

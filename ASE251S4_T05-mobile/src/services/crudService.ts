@@ -53,6 +53,27 @@ export const transaccionService = {
   },
 };
 
+/** Servicio de Fichas de Campo (MongoDB field_records) */
+export const fichaCampoService = {
+  listar: (activos: boolean) => api<Registro[]>(`/fichas-campo/estado/${activos}`),
+  obtener: (id: string) => api<Registro>(`/fichas-campo/${id}`),
+  registrar: (data: Registro) => api<Registro>('/fichas-campo', { method: 'POST', body: JSON.stringify(data) }),
+  editar: (id: string, data: Registro) => api<Registro>(`/fichas-campo/${id}`, { method: 'PUT', body: JSON.stringify(data) }),
+  eliminar: (id: string) => api<Registro>(`/fichas-campo/${id}/eliminar`, { method: 'PATCH' }),
+  restaurar: (id: string) => api<Registro>(`/fichas-campo/${id}/restaurar`, { method: 'PATCH' }),
+};
+
+/** Servicio especializado para Operarios (Mis Labores y Finalización con descuento de insumos) */
+export const actividadOperarioService = {
+  listarMisLabores: async (idUsuario?: string) => {
+    const ruta = idUsuario ? `/actividades-cultivos/operario/${idUsuario}` : '/actividades-cultivos/estado/true';
+    return api<Registro[]>(ruta);
+  },
+  finalizarLabor: (idActividad: string | number) =>
+    api<Registro>(`/actividades-cultivos/${idActividad}/finalizar`, { method: 'PATCH' }),
+};
+
+
 export type Opcion = { value: string; label: string; detalle?: string };
 
 /** Catálogos para los selectores (cultivos de SQL Server; insumos y usuarios de MongoDB). */

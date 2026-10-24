@@ -1,0 +1,108 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Backend Analítico AgroPacayales - Control de Presupuestos",
+    "description": "API analítica del proyecto AgroPacayales para calcular presupuestos de insumos y parcelas usando agregaciones de MongoDB Atlas (IESP Privado Valle Grande - Asignatura PIT).",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Equipo T05 - Valle Grande",
+      "email": "hugofernandezdev@example.com"
+    }
+  },
+  "host": "127.0.0.1:5000",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "tags": [
+    {
+      "name": "Estado del Sistema",
+      "description": "Rutas para verificar que el backend y MongoDB Atlas están funcionando"
+    },
+    {
+      "name": "Servicios Analíticos de Presupuesto",
+      "description": "Consultas analíticas para la toma de decisiones en insumos y parcelas"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "tags": [
+          "Estado del Sistema"
+        ],
+        "summary": "Verificar estado del backend",
+        "description": "Indica si el servidor Flask está activo y listo para responder peticiones.",
+        "responses": {
+          "200": {
+            "description": "Backend funcionando correctamente"
+          }
+        }
+      }
+    },
+    "/status/database": {
+      "get": {
+        "tags": [
+          "Estado del Sistema"
+        ],
+        "summary": "Verificar conexión con MongoDB Atlas",
+        "description": "Comprueba la conexión con la base de datos en la nube y lista las colecciones activas.",
+        "responses": {
+          "200": {
+            "description": "Conexión exitosa a MongoDB Atlas"
+          },
+          "500": {
+            "description": "Error al conectar con la base de datos"
+          }
+        }
+      }
+    },
+    "/analytics/presupuesto/insumos-categoria": {
+      "get": {
+        "tags": [
+          "Servicios Analíticos de Presupuesto"
+        ],
+        "summary": "Presupuesto de Insumos por Categoría",
+        "description": "Calcula cuánto dinero se ha invertido en insumos agrupados por su categoría (fertilizantes, insecticidas, herramientas) para saber en qué producto se concentra el mayor gasto.",
+        "responses": {
+          "200": {
+            "description": "Resumen de gastos por categoría de insumo"
+          }
+        }
+      }
+    },
+    "/analytics/presupuesto/parcelas-cultivo": {
+      "get": {
+        "tags": [
+          "Servicios Analíticos de Presupuesto"
+        ],
+        "summary": "Hectáreas y Presupuesto por Cultivo",
+        "description": "Agrupa las parcelas registradas por cultivo (Palto, Maíz, Espárrago, etc.) y suma el total de hectáreas para planificar los recursos y gastos de campo.",
+        "responses": {
+          "200": {
+            "description": "Distribución de hectáreas por tipo de cultivo"
+          }
+        }
+      }
+    },
+    "/analytics/presupuesto/stock-critico": {
+      "get": {
+        "tags": [
+          "Servicios Analíticos de Presupuesto"
+        ],
+        "summary": "Presupuesto de Reposición de Insumos Críticos",
+        "description": "Identifica los insumos con stock bajo (menos de 15 unidades) y calcula el dinero exacto que se necesita para comprar lo que falta antes de que se agoten.",
+        "responses": {
+          "200": {
+            "description": "Lista de compras urgentes y costo de reposición"
+          }
+        }
+      }
+    }
+  }
+}

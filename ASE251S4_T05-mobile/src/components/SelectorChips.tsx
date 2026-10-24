@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { colors } from '../theme/colors';
 import { estilosCampo } from './CampoTexto';
+import { Icono } from './Icono';
 
 type Props = {
   etiqueta: string;
@@ -30,7 +31,10 @@ export function SelectorChips({ etiqueta, opciones, valor, onChange, error, obli
               onPress={() => onChange(op)}
               style={[styles.chip, activo && styles.chipActivo]}
             >
-              <Text style={[styles.texto, activo && styles.textoActivo]}>{activo ? `✓ ${op}` : op}</Text>
+              <View style={styles.chipInterior}>
+                {activo ? <Icono name="checkmark" size={13} color={colors.white} /> : null}
+                <Text style={[styles.texto, activo && styles.textoActivo]}>{op}</Text>
+              </View>
             </Pressable>
           );
         })}
@@ -45,6 +49,7 @@ const styles = StyleSheet.create({
   fila: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: { paddingHorizontal: 14, paddingVertical: 9, borderRadius: 999, backgroundColor: colors.brownSoft, borderWidth: 1, borderColor: colors.brownLight },
   chipActivo: { backgroundColor: colors.primary, borderColor: colors.primary },
+  chipInterior: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   texto: { fontSize: 13, color: '#6D4C2F', fontWeight: '600' },
   textoActivo: { color: colors.white },
 });

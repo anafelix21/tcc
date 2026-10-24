@@ -42,12 +42,12 @@ export class UsuarioService {
   }
 
   exportarPdf(estado?: string): Observable<Blob> {
-    const url = estado ? `${environment.apiUrl}${this.endpoint}/pdf?estado=${estado}` : `${environment.apiUrl}${this.endpoint}/pdf`;
+    const url = `${environment.apiUrl}${this.endpoint}/exportar/pdf`;
     return this.http.get(url, { responseType: 'blob' });
   }
 
   exportarExcel(estado?: string): Observable<Blob> {
-    const url = estado ? `${environment.apiUrl}${this.endpoint}/excel?estado=${estado}` : `${environment.apiUrl}${this.endpoint}/excel`;
+    const url = `${environment.apiUrl}${this.endpoint}/exportar/excel`;
     return this.http.get(url, { responseType: 'blob' });
   }
 }

@@ -7,7 +7,10 @@ import {
   CosechasSeccionResponse,
   CampoSeccionResponse,
   PersonalSeccionResponse,
-  IndicadoresCatalogoResponse
+  IndicadoresCatalogoResponse,
+  PresupuestoInsumosCategoriaResponse,
+  PresupuestoParcelasCultivoResponse,
+  PresupuestoStockCriticoResponse
 } from '../models/analytics.model';
 
 @Injectable({ providedIn: 'root' })
@@ -33,5 +36,18 @@ export class AnalyticsService {
 
   getIndicadores(): Observable<IndicadoresCatalogoResponse> {
     return this.http.get<IndicadoresCatalogoResponse>(`${this.baseUrl}/indicadores`);
+  }
+
+  // Servicios PIT Valle Grande (1 por integrante)
+  getPresupuestoInsumosCategoria(): Observable<PresupuestoInsumosCategoriaResponse> {
+    return this.http.get<PresupuestoInsumosCategoriaResponse>(`${this.baseUrl}/presupuesto/insumos-categoria`);
+  }
+
+  getPresupuestoParcelasCultivo(): Observable<PresupuestoParcelasCultivoResponse> {
+    return this.http.get<PresupuestoParcelasCultivoResponse>(`${this.baseUrl}/presupuesto/parcelas-cultivo`);
+  }
+
+  getPresupuestoStockCritico(): Observable<PresupuestoStockCriticoResponse> {
+    return this.http.get<PresupuestoStockCriticoResponse>(`${this.baseUrl}/presupuesto/stock-critico`);
   }
 }

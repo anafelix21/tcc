@@ -6,7 +6,7 @@ o importa datos. El Backend Analítico los ingesta y los procesa con Pandas.
 import pandas as pd
 from app.models.base import asegurar_columnas, a_texto
 
-COLECCION = "eventos_negocio"
+COLECCION = "business_events"
 
 CAMPOS = ["_id", "tipo_evento", "entidad", "entidad_id", "origen", "usuario", "detalle", "fecha_evento"]
 

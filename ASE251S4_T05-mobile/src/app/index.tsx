@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '../context/AuthContext';
 import { CampoTexto } from '../components/CampoTexto';
 import { Boton } from '../components/Boton';
+import { Icono } from '../components/Icono';
 import { colors, radius, shadow } from '../theme/colors';
 import { API_URL } from '../config/env';
 
@@ -37,7 +38,9 @@ export default function LoginScreen() {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.contenido} keyboardShouldPersistTaps="handled">
           <View style={styles.hero}>
-            <View style={styles.logo}><Text style={{ fontSize: 40 }}>🌱</Text></View>
+            <View style={styles.logo}>
+              <Icono name="leaf" size={42} color={colors.primary} />
+            </View>
             <Text style={styles.marca}>AgroPacayales</Text>
             <Text style={styles.lema}>Gestión agrícola inteligente</Text>
           </View>

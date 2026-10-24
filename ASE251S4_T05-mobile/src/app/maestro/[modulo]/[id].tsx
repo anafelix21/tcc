@@ -3,15 +3,21 @@ import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { MAESTROS } from '../../../modules/maestros';
 import { maestroService } from '../../../services/crudService';
+import { useAuth } from '../../../context/AuthContext';
+import { puedeGestionarMaestroOTransaccion } from '../../../utils/permisos';
 import { useCarga } from '../../../hooks/useCarga';
 import { Cargando, FilaDato, Insignia, MensajeError, Tarjeta, Titulo } from '../../../components/ui';
 import { Boton } from '../../../components/Boton';
+import { Icono } from '../../../components/Icono';
 import { colors } from '../../../theme/colors';
 import { avisar, confirmar } from '../../../utils/dialogs';
 
 export default function MaestroDetalleScreen() {
   const { modulo, id } = useLocalSearchParams<{ modulo: string; id: string }>();
   const m = MAESTROS[modulo];
+  const { usuario } = useAuth();
+  const puedeGestionar = puedeGestionarMaestroOTransaccion(usuario);
+
   const { datos: r, setDatos, error } = useCarga(() => maestroService.obtener(m, id), [m, id]);
   const [procesando, setProcesando] = useState(false);
 
@@ -20,6 +26,7 @@ export default function MaestroDetalleScreen() {
   const resumen = m.resumen(r);
 
   const eliminar = async () => {
+    if (!puedeGestionar) return;
     const ok = await confirmar(`Eliminar ${m.singular}`, `¿Desea eliminar "${resumen.titulo}"? Podrá restaurarlo desde la pestaña Eliminados.`);
     if (!ok) return;
     setProcesando(true);
@@ -35,6 +42,7 @@ export default function MaestroDetalleScreen() {
   };
 
   const restaurar = async () => {
+    if (!puedeGestionar) return;
     setProcesando(true);
     try {
       setDatos(await maestroService.restaurar(m, id));
@@ -50,12 +58,15 @@ export default function MaestroDetalleScreen() {
     <ScrollView contentContainerStyle={styles.contenido}>
       <Stack.Screen options={{ title: `Detalle de ${m.singular}` }} />
       <Tarjeta style={styles.hero}>
-        <Text style={styles.icono}>{m.icono}</Text>
+        <View style={styles.contenedorIcono}>
+          <Icono name={m.icono.name as any} family={m.icono.family} size={38} color={colors.primaryDark} />
+        </View>
         <Text style={styles.titulo}>{resumen.titulo}</Text>
         {resumen.subtitulo ? <Text style={styles.sub}>{resumen.subtitulo}</Text> : null}
-        <View style={{ flexDirection: 'row', gap: 8, marginTop: 10 }}>
+        <View style={{ flexDirection: 'row', gap: 8, marginTop: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
           <Insignia texto={r.estado ? '● Activo' : '● Eliminado'} tono={r.estado ? 'verde' : 'rojo'} />
           {resumen.insignia ? <Insignia texto={resumen.insignia} tono="tierra" /> : null}
+          {!puedeGestionar ? <Insignia texto="Solo lectura" tono="tierra" /> : null}
         </View>
       </Tarjeta>
 
@@ -72,15 +83,24 @@ export default function MaestroDetalleScreen() {
         <FilaDato etiqueta="Restaurado" valor={r.restoredAt} />
       </Tarjeta>
 
-      {r.estado ? (
-        <View style={{ gap: 10 }}>
-          <Boton titulo="Editar" icono="✎"
-            onPress={() => router.push({ pathname: '/maestro/[modulo]/formulario', params: { modulo: m.clave, id } })} />
-          <Boton titulo="Eliminar" icono="🗑" variante="peligro" onPress={eliminar} cargando={procesando} />
-          {m.notaEliminar ? <Text style={styles.nota}>{m.notaEliminar}</Text> : null}
-        </View>
+      {puedeGestionar ? (
+        r.estado ? (
+          <View style={{ gap: 10 }}>
+            <Boton titulo="Editar" icono="create-outline"
+              onPress={() => router.push({ pathname: '/maestro/[modulo]/formulario', params: { modulo: m.clave, id } })} />
+            <Boton titulo="Eliminar" icono="trash-outline" variante="peligro" onPress={eliminar} cargando={procesando} />
+            {m.notaEliminar ? <Text style={styles.nota}>{m.notaEliminar}</Text> : null}
+          </View>
+        ) : (
+          <Boton titulo="Restaurar" icono="refresh-outline" onPress={restaurar} cargando={procesando} />
+        )
       ) : (
-        <Boton titulo="Restaurar" icono="↺" onPress={restaurar} cargando={procesando} />
+        <Tarjeta style={styles.avisoSoloLectura}>
+          <Icono name="eye-outline" size={20} color="#6D4C2F" />
+          <Text style={styles.avisoSoloLecturaTexto}>
+            Modo Consulta: Su rol ({usuario ? usuario.rol : 'Invitado'}) cuenta únicamente con permisos de lectura para este catálogo.
+          </Text>
+        </Tarjeta>
       )}
     </ScrollView>
   );
@@ -89,8 +109,23 @@ export default function MaestroDetalleScreen() {
 const styles = StyleSheet.create({
   contenido: { padding: 16, gap: 14, paddingBottom: 40 },
   hero: { alignItems: 'center', backgroundColor: colors.primarySoft, borderColor: colors.primarySoft },
-  icono: { fontSize: 36 },
+  contenedorIcono: { width: 64, height: 64, borderRadius: 32, backgroundColor: colors.white, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
   titulo: { fontSize: 22, fontWeight: '900', color: colors.primaryDark, textAlign: 'center', marginTop: 6 },
   sub: { color: colors.muted, marginTop: 2, textAlign: 'center' },
   nota: { color: colors.muted, fontSize: 12, textAlign: 'center' },
+  avisoSoloLectura: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: colors.brownSoft,
+    borderColor: colors.brownLight,
+    padding: 14,
+  },
+  avisoSoloLecturaTexto: {
+    flex: 1,
+    color: '#6D4C2F',
+    fontSize: 13,
+    fontWeight: '600',
+    lineHeight: 18,
+  },
 });

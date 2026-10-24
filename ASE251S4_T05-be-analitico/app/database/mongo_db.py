@@ -28,13 +28,29 @@ class MongoDB:
         return cls.db
 
     @classmethod
+    def _resolve_collection(cls, db, collection):
+        if collection in db.list_collection_names():
+            return collection
+        aliases = {
+            "supplies": "insumos", "insumos": "supplies",
+            "plots": "parcelas", "parcelas": "plots",
+            "users": "usuarios", "usuarios": "users",
+            "business_events": "eventos_negocio", "eventos_negocio": "business_events"
+        }
+        fallback = aliases.get(collection)
+        if fallback and fallback in db.list_collection_names():
+            return fallback
+        return collection
+
+    @classmethod
     def find_df(cls, collection, query=None, projection=None):
         """Lee una colección y la devuelve como DataFrame de Pandas (vacío si Mongo no responde)."""
         db = cls.get_db()
         if db is None:
             return pd.DataFrame()
         try:
-            docs = list(db[collection].find(query or {}, projection))
+            target_col = cls._resolve_collection(db, collection)
+            docs = list(db[target_col].find(query or {}, projection))
             for d in docs:
                 if "_id" in d:
                     d["_id"] = str(d["_id"])
@@ -48,7 +64,8 @@ class MongoDB:
         db = cls.get_db()
         if db is None:
             raise ConnectionError("MongoDB no disponible")
-        result = db[collection].insert_one(document)
+        target_col = cls._resolve_collection(db, collection)
+        result = db[target_col].insert_one(document)
         return str(result.inserted_id)
 
     @classmethod

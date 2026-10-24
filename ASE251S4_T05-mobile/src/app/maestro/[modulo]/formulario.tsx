@@ -3,6 +3,8 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 're
 import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { MAESTROS } from '../../../modules/maestros';
 import { maestroService } from '../../../services/crudService';
+import { useAuth } from '../../../context/AuthContext';
+import { puedeGestionarMaestroOTransaccion } from '../../../utils/permisos';
 import { CampoFormulario } from '../../../components/CampoFormulario';
 import { Cargando, MensajeError, Tarjeta } from '../../../components/ui';
 import { Boton } from '../../../components/Boton';
@@ -13,20 +15,35 @@ import { avisar } from '../../../utils/dialogs';
 export default function MaestroFormularioScreen() {
   const { modulo, id } = useLocalSearchParams<{ modulo: string; id?: string }>();
   const m = MAESTROS[modulo];
+  const { usuario } = useAuth();
+  const puedeGestionar = puedeGestionarMaestroOTransaccion(usuario);
+
   const esEdicion = Boolean(id);
-  const [valores, setValores] = useState(() => valoresVacios(m.campos));
+  const [valores, setValores] = useState(() => valoresVacios(m?.campos ?? []));
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [cargando, setCargando] = useState(esEdicion);
   const [guardando, setGuardando] = useState(false);
   const [errorApi, setErrorApi] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || !m) return;
     maestroService.obtener(m, id)
       .then((r) => setValores(aValores(m.campos, r)))
       .catch((e) => setErrorApi(e.message))
       .finally(() => setCargando(false));
   }, [m, id]);
+
+  if (!m) return <MensajeError mensaje={`Módulo "${modulo}" no existe`} />;
+
+  if (!puedeGestionar) {
+    return (
+      <View style={{ flex: 1, padding: 20, justifyContent: 'center', gap: 14 }}>
+        <Stack.Screen options={{ title: 'Acceso Restringido' }} />
+        <MensajeError mensaje={`Acceso restringido: Su rol (${usuario?.rol || 'Invitado'}) solo tiene permisos de consulta (modo lectura), no de registro o edición de catálogos maestros.`} />
+        <Boton titulo="Regresar" onPress={() => router.back()} />
+      </View>
+    );
+  }
 
   const cambiar = (key: string) => (v: string) => {
     setValores((prev) => ({ ...prev, [key]: v }));
@@ -64,7 +81,7 @@ export default function MaestroFormularioScreen() {
         </Tarjeta>
         {errorApi ? <MensajeError mensaje={errorApi} /> : null}
         <View style={{ gap: 10 }}>
-          <Boton titulo={esEdicion ? 'Guardar cambios' : 'Registrar'} icono="✓" onPress={guardar} cargando={guardando} />
+          <Boton titulo={esEdicion ? 'Guardar cambios' : 'Registrar'} icono="checkmark-circle-outline" onPress={guardar} cargando={guardando} />
           <Boton titulo="Cancelar" variante="tierra" onPress={() => router.back()} />
         </View>
       </ScrollView>

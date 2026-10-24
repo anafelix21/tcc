@@ -21,12 +21,17 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class InsumoServiceImpl implements InsumoService {
 
     private final InsumoRepository insumoRepository;
     private final TemplateEngine templateEngine;
     private final Validator validator;
+
+    public InsumoServiceImpl(InsumoRepository insumoRepository, TemplateEngine templateEngine, Validator validator) {
+        this.insumoRepository = insumoRepository;
+        this.templateEngine = templateEngine;
+        this.validator = validator;
+    }
 
     private static final List<String> TIPOS_PERMITIDOS = List.of(
             "FERTILIZANTE", "PESTICIDA", "HERBICIDA", "FUNGICIDA", "SEMILLA", "OTRO"
@@ -68,6 +73,12 @@ public class InsumoServiceImpl implements InsumoService {
                         return Mono.error(new BusinessValidationException(
                                 "Ya existe un insumo activo registrado con el nombre '" + nombreTrimmed + "'."
                         ));
+                    }
+
+                    if (insumo.getId() == null || insumo.getId().isBlank()) {
+                        String code = resolverCodigoTipo(insumo.getTipoInsumo());
+                        long randomNum = (long) (Math.random() * 900) + 100;
+                        insumo.setId("INS-" + code + "-" + randomNum);
                     }
 
                     insumo.setEstado(true);
@@ -128,14 +139,6 @@ public class InsumoServiceImpl implements InsumoService {
         return insumoRepository.findById(id)
                 .switchIfEmpty(Mono.error(new ResourceNotFoundException("Insumo no encontrado con ID: " + id)))
                 .flatMap(existente -> {
-                    if (existente.getStock() != null && existente.getStock() > 0) {
-                        return Mono.error(new BusinessValidationException(
-                                "No se puede eliminar/archivar el insumo '" + existente.getNombre() +
-                                "' porque todavía cuenta con " + existente.getStock() + " " +
-                                existente.getUnidadMedida() + " disponibles en el inventario activo."
-                        ));
-                    }
-
                     existente.setEstado(false);
                     existente.setDeletedAt(LocalDateTime.now());
                     return insumoRepository.save(existente);
@@ -285,5 +288,16 @@ public class InsumoServiceImpl implements InsumoService {
                     context.setVariable("insumos", lista);
                     return ArchivoUtil.htmlAPdf(templateEngine.process("insumos", context));
                 }).subscribeOn(Schedulers.boundedElastic()));
+    }
+
+    private String resolverCodigoTipo(String tipo) {
+        if (tipo == null) return "BIO";
+        String t = tipo.trim().toUpperCase();
+        if (t.contains("FERTILIZANTE")) return "FERT";
+        if (t.contains("PESTICIDA")) return "PEST";
+        if (t.contains("HERBICIDA")) return "HERB";
+        if (t.contains("FUNGICIDA")) return "FUNG";
+        if (t.contains("SEMILLA")) return "SEMI";
+        return "BIO";
     }
 }

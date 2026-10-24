@@ -23,7 +23,7 @@ export class FichaCampoService {
     );
   }
 
-  obtenerPorId(id: number): Observable<FichaCampo> {
+  obtenerPorId(id: number | string): Observable<FichaCampo> {
     return this.apiService.getById<FichaCampo>(this.endpoint, id);
   }
 
@@ -37,19 +37,19 @@ export class FichaCampoService {
     );
   }
 
-  editar(id: number, dto: FichaCampoDTO): Observable<FichaCampo> {
+  editar(id: number | string, dto: FichaCampoDTO): Observable<FichaCampo> {
     return this.apiService.update<FichaCampo>(this.endpoint, id, dto).pipe(
       tap(() => this.clearCache())
     );
   }
 
-  eliminar(id: number): Observable<FichaCampo> {
+  eliminar(id: number | string): Observable<FichaCampo> {
     return this.apiService.patch<FichaCampo>(`${this.endpoint}/${id}/eliminar`).pipe(
       tap(() => this.clearCache())
     );
   }
 
-  restaurar(id: number): Observable<FichaCampo> {
+  restaurar(id: number | string): Observable<FichaCampo> {
     return this.apiService.patch<FichaCampo>(`${this.endpoint}/${id}/restaurar`).pipe(
       tap(() => this.clearCache())
     );

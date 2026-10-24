@@ -79,6 +79,10 @@ export class AuthService {
   hasRole(allowedRoles: string[]): boolean {
     const user = this.getCurrentUser();
     if (!user || !user.rol) return false;
-    return allowedRoles.includes(user.rol.toUpperCase());
+    const rawRole = user.rol.toUpperCase().trim();
+    if (rawRole === 'ADMIN') return true;
+    let normalizedRole = rawRole;
+    if (normalizedRole === 'TRABAJADOR' || normalizedRole === 'OPERADOR') normalizedRole = 'OPERARIO';
+    return allowedRoles.includes(rawRole) || allowedRoles.includes(normalizedRole);
   }
 }

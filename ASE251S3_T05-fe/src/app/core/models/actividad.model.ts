@@ -1,6 +1,6 @@
 export interface DetalleActividad {
   idDetalle?: number;
-  idInsumo: number;
+  idInsumo: string | number;
   nombreInsumo?: string;
   cantidad: number;
   precioUnitario?: number;
@@ -22,7 +22,7 @@ export interface ActividadCultivo {
 
 export interface ActividadCultivoDTO {
   idCultivo: number;
-  idUsuario: number;
+  idUsuario?: string | number;
   tipoActividad: string;
   descripcion?: string | null;
   detalles: DetalleActividad[];

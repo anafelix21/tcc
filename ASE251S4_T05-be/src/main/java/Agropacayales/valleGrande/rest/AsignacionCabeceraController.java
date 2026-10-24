@@ -15,12 +15,15 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @RestController
-@RequestMapping("/api/asignaciones-trabajadores")
-@RequiredArgsConstructor
+@RequestMapping({"/api/asignaciones-trabajadores", "/api/asignaciones"})
 @Tag(name = "AsignacionTrabajadores-Controller", description = "Módulo Transaccional de Axel Huapaya: Asignación de operarios y costo de mano de obra (WebFlux + SQL Server R2DBC + MongoDB)")
 public class AsignacionCabeceraController {
 
     private final AsignacionCabeceraService service;
+
+    public AsignacionCabeceraController(AsignacionCabeceraService service) {
+        this.service = service;
+    }
 
     // GET - Listar todas las asignaciones (FLUX)
     @GetMapping

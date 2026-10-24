@@ -126,3 +126,76 @@ export interface IndicadoresCatalogoResponse {
     [estudiante: string]: IndicadorItem[];
   };
 }
+
+// ============================================================================
+// MODELOS PARA SERVICIOS PIT VALLE GRANDE (1 POR INTEGRANTE - TOMA DE DECISIONES)
+// ============================================================================
+
+export interface DetalleCategoriaInsumo {
+  categoria: string;
+  productos_diferentes: number;
+  unidades_en_stock: number;
+  precio_promedio: number;
+  gasto_total_pen: number;
+  porcentaje: string;
+}
+
+export interface PresupuestoInsumosCategoriaResponse {
+  titulo: string;
+  empresa: string;
+  moneda: string;
+  presupuesto_total_insumos_pen: number;
+  total_unidades_almacen: number;
+  categoria_con_mas_gasto: {
+    categoria: string;
+    gasto_total_pen: number;
+    porcentaje_del_total: string;
+  };
+  detalle_por_categoria: DetalleCategoriaInsumo[];
+  toma_de_decision: string;
+}
+
+export interface DetalleCultivoParcela {
+  cultivo: string;
+  cantidad_parcelas: number;
+  hectareas: number;
+  porcentaje: string;
+  fundos: string;
+}
+
+export interface PresupuestoParcelasCultivoResponse {
+  titulo: string;
+  empresa: string;
+  total_hectareas: number;
+  total_parcelas_registradas: number;
+  cultivo_con_mas_hectareas: {
+    cultivo: string;
+    hectareas: number;
+    porcentaje_del_terreno: string;
+  };
+  detalle_cultivos: DetalleCultivoParcela[];
+  toma_de_decision: string;
+}
+
+export interface InsumoCompraCritica {
+  codigo: string;
+  nombre_insumo: string;
+  categoria: string;
+  stock_actual: number;
+  unidades_a_comprar: number;
+  precio_unitario: number;
+  costo_total_compra_pen: number;
+  proveedor: string;
+}
+
+export interface PresupuestoStockCriticoResponse {
+  titulo: string;
+  empresa: string;
+  moneda: string;
+  umbral_minimo_stock: number;
+  insumos_con_stock_bajo: number;
+  presupuesto_total_necesario_pen: number;
+  insumos_a_comprar: InsumoCompraCritica[];
+  toma_de_decision: string;
+}
+

@@ -35,8 +35,44 @@ public class HarvestServiceImpl implements HarvestService {
 
     @Override
     public Flux<HarvestResponseDTO> listarTodas() {
-        return harvestRepo.findByEstado(true)
-                .flatMapSequential(this::populateResponseDTO);
+        Mono<List<Harvest>> harvestsMono = harvestRepo.findByEstado(true).collectList();
+        Mono<List<HarvestPlantingCycle>> allDetallesMono = detalleRepo.findAll().collectList();
+
+        return Mono.zip(harvestsMono, allDetallesMono)
+                .flatMapMany(tuple -> {
+                    List<Harvest> harvests = tuple.getT1();
+                    List<HarvestPlantingCycle> allDetalles = tuple.getT2();
+
+                    java.util.Map<Integer, List<HarvestPlantingCycle>> detallesMap = allDetalles.stream()
+                            .collect(java.util.stream.Collectors.groupingBy(HarvestPlantingCycle::getIdHarvest));
+
+                    List<HarvestResponseDTO> dtos = harvests.stream()
+                            .map(harvest -> {
+                                List<HarvestPlantingCycle> dets = detallesMap.getOrDefault(harvest.getIdHarvest(), java.util.Collections.emptyList());
+                                List<DetalleResponseDTO> detalleDtos = dets.stream()
+                                        .map(d -> DetalleResponseDTO.builder()
+                                                .idHarvestDetail(d.getIdHarvestDetail())
+                                                .idCultivo(d.getIdCultivo())
+                                                .kilosOptimos(d.getKilosOptimos())
+                                                .kilosMerma(d.getKilosMerma())
+                                                .totalKilos(d.getKilosOptimos().add(d.getKilosMerma()))
+                                                .build())
+                                        .collect(java.util.stream.Collectors.toList());
+
+                                return HarvestResponseDTO.builder()
+                                        .idHarvest(harvest.getIdHarvest())
+                                        .responsable(harvest.getResponsable())
+                                        .fechaCosecha(harvest.getFechaCosecha())
+                                        .estado(harvest.getEstado())
+                                        .createdAt(harvest.getCreatedAt())
+                                        .updatedAt(harvest.getUpdatedAt())
+                                        .detalles(detalleDtos)
+                                        .build();
+                            })
+                            .collect(java.util.stream.Collectors.toList());
+
+                    return Flux.fromIterable(dtos);
+                });
     }
 
     @Override

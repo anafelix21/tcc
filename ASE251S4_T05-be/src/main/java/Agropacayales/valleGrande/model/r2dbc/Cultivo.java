@@ -7,9 +7,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
+import Agropacayales.valleGrande.model.Parcela;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -28,6 +31,9 @@ public class Cultivo {
     @Column("id_parcela")
     private String idParcela;
 
+    @Transient
+    private Parcela parcela;
+
     @Column("nombre")
     private String nombre;
 
@@ -38,7 +44,7 @@ public class Cultivo {
     private Integer frecuenciaRiegoDias;
 
     @Column("temperatura_ideal")
-    private Double temperaturaIdeal;
+    private BigDecimal temperaturaIdeal;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
     @Column("fecha_siembra")

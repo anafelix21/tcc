@@ -148,7 +148,7 @@
         </thead>
         <tbody>
           <tr *ngFor="let f of fichas" [class.row--inactive]="!f.estado">
-            <td class="td-id">#{{ f.idFicha }}</td>
+            <td class="td-id">#{{ f.idFicha || f.id }}</td>
             <td class="td-date">{{ f.fechaRegistro }}</td>
             <td><strong>{{ f.nombreCultivo }}</strong></td>
             <td><span class="badge badge--gray">{{ f.etapaFenologica }}</span></td>
@@ -165,12 +165,12 @@
                 <button class="action-btn action-btn--edit" (click)="editarFicha(f)" title="Editar">
                   <span class="material-icons">edit</span>
                 </button>
-                <button class="action-btn action-btn--delete" (click)="confirmarEliminar(f.idFicha!)" title="Eliminar">
+                <button class="action-btn action-btn--delete" (click)="confirmarEliminar((f.idFicha || f.id)!)" title="Eliminar">
                   <span class="material-icons">delete</span>
                 </button>
               </ng-container>
               <ng-container *ngIf="!f.estado">
-                <button class="action-btn action-btn--restore" (click)="restaurarFicha(f.idFicha!)" title="Restaurar">
+                <button class="action-btn action-btn--restore" (click)="restaurarFicha((f.idFicha || f.id)!)" title="Restaurar">
                   <span class="material-icons">restore</span>
                 </button>
               </ng-container>

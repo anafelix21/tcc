@@ -21,6 +21,7 @@ export class InsumosComponent implements OnInit {
   private notificationService = inject(NotificationService);
   private cdr = inject(ChangeDetectorRef);
 
+  todosInsumos: Insumo[] = [];
   insumos: Insumo[] = [];
   insumoEditar: Insumo | null = null;
   mostrarFormulario = false;
@@ -36,7 +37,7 @@ export class InsumosComponent implements OnInit {
   totalElements = 0;
 
   mostrarConfirmacion = false;
-  insumoAEliminar: number | null = null;
+  insumoAEliminar: string | number | null = null;
 
   // Importación masiva (Mínimo 10 registros - Requisito Sprint 8)
   mostrarModalImportar = false;
@@ -74,69 +75,54 @@ export class InsumosComponent implements OnInit {
   anteriorPagina(): void {
     if (this.page > 0) {
       this.page--;
-      this.cargarInsumos();
+      const start = this.page * this.size;
+      this.insumos = this.todosInsumos.slice(start, start + this.size);
+      this.cdr.markForCheck();
     }
   }
 
   siguientePagina(): void {
     if (this.page < this.totalPages - 1) {
       this.page++;
-      this.cargarInsumos();
+      const start = this.page * this.size;
+      this.insumos = this.todosInsumos.slice(start, start + this.size);
+      this.cdr.markForCheck();
     }
   }
 
   cargarInsumos(): void {
-    if (this.tipoFiltro !== '') {
-      this.insumoService.filtrarPorTipo(this.tipoFiltro).subscribe({
-        next: (data) => {
-          let filtered = data.filter(p => p.estado === this.verActivos);
-          if (this.nombreFiltro.trim() !== '') {
-            filtered = filtered.filter(p => p.nombre.toLowerCase().includes(this.nombreFiltro.toLowerCase()));
-          }
-          this.insumos = filtered;
-          this.cdr.markForCheck();
-        },
-        error: () => {
-          this.insumos = [];
-          this.cdr.markForCheck();
+    const fetch$ = (this.tipoFiltro && this.tipoFiltro !== '')
+      ? this.insumoService.filtrarPorTipo(this.tipoFiltro)
+      : this.insumoService.obtenerPorEstado(this.verActivos);
+
+    fetch$.subscribe({
+      next: (data) => {
+        let filtered = (data || []).filter(p => p.estado === this.verActivos);
+        if (this.tipoFiltro && this.tipoFiltro !== '') {
+          filtered = filtered.filter(p => p.tipoInsumo === this.tipoFiltro);
         }
-      });
-    } else if (this.nombreFiltro.trim() !== '') {
-      this.insumoService.buscarPorNombre(this.nombreFiltro).subscribe({
-        next: (data) => {
-          this.insumos = data.filter(p => p.estado === this.verActivos);
-          this.cdr.markForCheck();
-        },
-        error: () => {
-          this.insumos = [];
-          this.cdr.markForCheck();
+        if (this.nombreFiltro.trim() !== '') {
+          const q = this.nombreFiltro.toLowerCase();
+          filtered = filtered.filter(p => p.nombre && p.nombre.toLowerCase().includes(q));
         }
-      });
-    } else if (this.paginado) {
-      this.insumoService.listarPaginado(this.page, this.size).subscribe({
-        next: (data) => {
-          this.insumos = data.content.filter((p: Insumo) => p.estado === this.verActivos);
-          this.totalPages = data.totalPages;
-          this.totalElements = data.totalElements;
-          this.cdr.markForCheck();
-        },
-        error: () => {
-          this.insumos = [];
-          this.cdr.markForCheck();
+        this.todosInsumos = filtered;
+        this.totalElements = filtered.length;
+        this.totalPages = Math.max(1, Math.ceil(filtered.length / this.size));
+        if (this.page >= this.totalPages) {
+          this.page = Math.max(0, this.totalPages - 1);
         }
-      });
-    } else {
-      this.insumoService.obtenerPorEstado(this.verActivos).subscribe({
-        next: (data) => { 
-          this.insumos = data; 
-          this.cdr.markForCheck();
-        },
-        error: () => { 
-          this.insumos = []; 
-          this.cdr.markForCheck();
-        }
-      });
-    }
+        const start = this.page * this.size;
+        this.insumos = filtered.slice(start, start + this.size);
+        this.cdr.markForCheck();
+      },
+      error: () => {
+        this.todosInsumos = [];
+        this.insumos = [];
+        this.totalElements = 0;
+        this.totalPages = 0;
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   errorServidor: string | null = null;
@@ -156,9 +142,11 @@ export class InsumosComponent implements OnInit {
 
   guardarInsumo(insumo: InsumoForm): void {
     this.errorServidor = null;
-    if (this.insumoEditar?.idInsumo) {
-      this.insumoService.editar(this.insumoEditar.idInsumo, insumo, true).subscribe({
+    const targetId = this.insumoEditar ? ((this.insumoEditar.idInsumo as any) || (this.insumoEditar as any).id) : null;
+    if (targetId) {
+      this.insumoService.editar(targetId, insumo, true).subscribe({
         next: () => { 
+          this.notificationService.show({ type: 'success', message: 'Insumo actualizado correctamente' });
           this.cargarInsumos(); 
           this.cancelarEdicion(); 
         },
@@ -170,6 +158,7 @@ export class InsumosComponent implements OnInit {
     } else {
       this.insumoService.crear(insumo, true).subscribe({
         next: () => { 
+          this.notificationService.show({ type: 'success', message: 'Insumo creado correctamente' });
           this.cargarInsumos(); 
           this.cancelarEdicion(); 
         },
@@ -181,7 +170,7 @@ export class InsumosComponent implements OnInit {
     }
   }
 
-  confirmarEliminar(id: number): void {
+  confirmarEliminar(id: string | number): void {
     this.insumoAEliminar = id;
     this.mostrarConfirmacion = true;
   }
@@ -194,18 +183,23 @@ export class InsumosComponent implements OnInit {
           this.cargarInsumos();
           this.cancelarConfirmacion();
         },
-        error: () => {}
+        error: (err) => {
+          this.notificationService.show({ type: 'error', message: err?.message || 'Error al eliminar el insumo' });
+          this.cancelarConfirmacion();
+        }
       });
     }
   }
 
-  restaurarInsumo(id: number): void {
+  restaurarInsumo(id: string | number): void {
     this.insumoService.restaurar(id).subscribe({
       next: () => {
         this.notificationService.show({ type: 'success', message: 'Insumo restaurado correctamente' });
         this.cargarInsumos();
       },
-      error: () => {}
+      error: (err) => {
+        this.notificationService.show({ type: 'error', message: err?.message || 'Error al restaurar el insumo' });
+      }
     });
   }
 
@@ -221,11 +215,11 @@ export class InsumosComponent implements OnInit {
   }
 
   getTotalStock(): number {
-    return this.insumos.reduce((s, p) => s + (p.stock || 0), 0);
+    return (this.todosInsumos.length > 0 ? this.todosInsumos : this.insumos).reduce((s, p) => s + (p.stock || 0), 0);
   }
 
   getValorInventario(): number {
-    return this.insumos.reduce((s, p) => s + ((p.precio || 0) * (p.stock || 0)), 0);
+    return (this.todosInsumos.length > 0 ? this.todosInsumos : this.insumos).reduce((s, p) => s + ((p.precio || 0) * (p.stock || 0)), 0);
   }
 
   getTipoClass(tipo: string): string {

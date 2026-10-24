@@ -49,13 +49,17 @@ export class ActividadCultivoService {
     );
   }
 
-  obtenerPorUsuario(idUsuario: number, estado: boolean): Observable<ActividadCultivo[]> {
-    return this.apiService.getAll<ActividadCultivo>(`${this.endpoint}/usuario/${idUsuario}?estado=${estado}`);
+  obtenerPorUsuario(idUsuario: string | number, estado?: boolean): Observable<ActividadCultivo[]> {
+    return this.apiService.getAll<ActividadCultivo>(`${this.endpoint}/operario/${idUsuario}`);
   }
 
-  confirmarTerminacion(idActividad: number, idUsuario: number): Observable<ActividadCultivo> {
-    return this.apiService.patch<ActividadCultivo>(`${this.endpoint}/${idActividad}/confirmar-terminacion?idUsuario=${idUsuario}`).pipe(
+  finalizarLabor(idActividad: number): Observable<ActividadCultivo> {
+    return this.apiService.patch<ActividadCultivo>(`${this.endpoint}/${idActividad}/finalizar`).pipe(
       tap(() => this.clearCache())
     );
+  }
+
+  confirmarTerminacion(idActividad: number, idUsuario?: any): Observable<ActividadCultivo> {
+    return this.finalizarLabor(idActividad);
   }
 }

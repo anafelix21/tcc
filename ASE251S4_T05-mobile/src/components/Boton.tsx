@@ -1,5 +1,7 @@
-import { ActivityIndicator, Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
+import { ReactNode } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { colors, radius } from '../theme/colors';
+import { Icono } from './Icono';
 
 type Variante = 'primario' | 'secundario' | 'tierra' | 'peligro' | 'contorno';
 
@@ -9,7 +11,8 @@ type Props = {
   variante?: Variante;
   cargando?: boolean;
   deshabilitado?: boolean;
-  icono?: string;
+  icono?: string | ReactNode;
+  iconoFamilia?: 'ionicons' | 'material';
   compacto?: boolean;
   style?: ViewStyle;
 };
@@ -22,9 +25,10 @@ const ESTILOS: Record<Variante, { fondo: string; texto: string; borde?: string }
   contorno: { fondo: colors.white, texto: colors.primary, borde: colors.border },
 };
 
-export function Boton({ titulo, onPress, variante = 'primario', cargando, deshabilitado, icono, compacto, style }: Props) {
+export function Boton({ titulo, onPress, variante = 'primario', cargando, deshabilitado, icono, iconoFamilia, compacto, style }: Props) {
   const e = ESTILOS[variante];
   const inactivo = deshabilitado || cargando;
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -41,7 +45,14 @@ export function Boton({ titulo, onPress, variante = 'primario', cargando, deshab
       {cargando ? (
         <ActivityIndicator color={e.texto} />
       ) : (
-        <Text style={[styles.texto, compacto && { fontSize: 13 }, { color: e.texto }]}>{icono ? `${icono}  ${titulo}` : titulo}</Text>
+        <View style={styles.fila}>
+          {typeof icono === 'string' ? (
+            <Icono name={icono as any} family={iconoFamilia} size={compacto ? 15 : 18} color={e.texto} />
+          ) : (
+            icono
+          )}
+          <Text style={[styles.texto, compacto && { fontSize: 13 }, { color: e.texto }]}>{titulo}</Text>
+        </View>
       )}
     </Pressable>
   );
@@ -50,5 +61,6 @@ export function Boton({ titulo, onPress, variante = 'primario', cargando, deshab
 const styles = StyleSheet.create({
   boton: { minHeight: 50, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18, borderWidth: 1 },
   compacto: { minHeight: 40, paddingHorizontal: 12, borderRadius: radius.sm },
+  fila: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   texto: { fontSize: 15, fontWeight: '700', letterSpacing: 0.2 },
 });

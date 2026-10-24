@@ -5,11 +5,13 @@ import { UsuarioService } from '../../../features/usuarios/services/usuario.serv
 import { ParcelaService } from '../../../features/parcelas/services/parcela.service';
 import { InsumoService } from '../../../features/insumos/services/insumo.service';
 import { CultivoService } from '../../../features/cultivos/services/cultivo.service';
+import { FichaCampoService } from '../../../features/fichas-campo/services/ficha-campo.service';
 import { AuthService } from '../../services/auth.service';
 import { Usuario } from '../../models/usuario.model';
 import { Parcela } from '../../models/parcela.model';
 import { Insumo } from '../../models/insumo.model';
 import { Cultivo } from '../../models/cultivo.model';
+import { FichaCampo } from '../../models/ficha-campo.model';
 
 @Component({
   selector: 'app-inicio',
@@ -24,6 +26,7 @@ export class InicioComponent implements OnInit {
   private parcelaService = inject(ParcelaService);
   private insumoService = inject(InsumoService);
   private cultivoService = inject(CultivoService);
+  private fichaService = inject(FichaCampoService);
   private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
 
@@ -31,13 +34,16 @@ export class InicioComponent implements OnInit {
   totalParcelas = 0;
   totalInsumos = 0;
   totalCultivos = 0;
+  totalFichas = 0;
 
   isAdmin = false;
   isSupervisor = false;
   isSupervisorAlmacen = false;
-  isOperador = false;
+  isAgronomo = false;
+  isOperario = false;
 
   currentUserNombre = '';
+  currentUserRol = '';
   currentDate = '';
 
   ngOnInit(): void {
@@ -48,15 +54,28 @@ export class InicioComponent implements OnInit {
       this.isAdmin = role === 'ADMIN';
       this.isSupervisor = role === 'SUPERVISOR';
       this.isSupervisorAlmacen = role === 'SUPERVISOR_ALMACEN';
-      this.isOperador = role === 'OPERADOR' || role === 'TRABAJADOR';
+      this.isAgronomo = role === 'AGRONOMO' || role === 'TECNICO';
+      this.isOperario = role === 'OPERARIO' || role === 'OPERADOR' || role === 'TRABAJADOR';
+
+      switch (role) {
+        case 'ADMIN': this.currentUserRol = 'Administrador General'; break;
+        case 'SUPERVISOR': this.currentUserRol = 'Supervisor de Operaciones'; break;
+        case 'SUPERVISOR_ALMACEN': this.currentUserRol = 'Supervisor de Almacén'; break;
+        case 'AGRONOMO': this.currentUserRol = 'Ingeniero Agrónomo'; break;
+        case 'TECNICO': this.currentUserRol = 'Técnico de Campo'; break;
+        case 'OPERARIO':
+        case 'OPERADOR':
+        case 'TRABAJADOR': this.currentUserRol = 'Operador Agrícola'; break;
+        default: this.currentUserRol = role;
+      }
     }
 
-    // Formatear la fecha actual en español
     const opciones: Intl.DateTimeFormatOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     const fecha = new Date();
     this.currentDate = fecha.toLocaleDateString('es-ES', opciones);
     this.currentDate = this.currentDate.charAt(0).toUpperCase() + this.currentDate.slice(1);
 
+    // Cargar datos según lo que cada rol necesita ver
     if (this.isAdmin || this.isSupervisor) {
       this.usuarioService.obtenerPorEstado(true).subscribe({ 
         next: (d: Usuario[]) => { this.totalUsuarios = d.length; this.cdr.markForCheck(); }, 
@@ -74,9 +93,35 @@ export class InicioComponent implements OnInit {
         next: (d: Cultivo[]) => { this.totalCultivos = d.length; this.cdr.markForCheck(); }, 
         error: () => {} 
       });
+      this.fichaService.obtenerPorEstado(true).subscribe({
+        next: (d: FichaCampo[]) => { this.totalFichas = d.length; this.cdr.markForCheck(); },
+        error: () => {}
+      });
+    } else if (this.isAgronomo) {
+      this.cultivoService.obtenerPorEstado(true).subscribe({ 
+        next: (d: Cultivo[]) => { this.totalCultivos = d.length; this.cdr.markForCheck(); }, 
+        error: () => {} 
+      });
+      this.parcelaService.obtenerPorEstado(true).subscribe({ 
+        next: (d: Parcela[]) => { this.totalParcelas = d.length; this.cdr.markForCheck(); }, 
+        error: () => {} 
+      });
+      this.fichaService.obtenerPorEstado(true).subscribe({
+        next: (d: FichaCampo[]) => { this.totalFichas = d.length; this.cdr.markForCheck(); },
+        error: () => {}
+      });
     } else if (this.isSupervisorAlmacen) {
       this.insumoService.obtenerPorEstado(true).subscribe({ 
         next: (d: Insumo[]) => { this.totalInsumos = d.length; this.cdr.markForCheck(); }, 
+        error: () => {} 
+      });
+    } else if (this.isOperario) {
+      this.fichaService.obtenerPorEstado(true).subscribe({
+        next: (d: FichaCampo[]) => { this.totalFichas = d.length; this.cdr.markForCheck(); },
+        error: () => {}
+      });
+      this.parcelaService.obtenerPorEstado(true).subscribe({ 
+        next: (d: Parcela[]) => { this.totalParcelas = d.length; this.cdr.markForCheck(); }, 
         error: () => {} 
       });
     }

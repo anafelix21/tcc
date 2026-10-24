@@ -6,8 +6,9 @@ load_dotenv()
 
 class Settings:
     # MongoDB Config (Atlas o Local)
-    MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://axelhuapaya_db_user:lider2021@cluster0.oyk6ogs.mongodb.net/?appName=Cluster0")
-    MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "agropacayales_db")
+    MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://hugofernandez_db_user:PmHQ4BXXbNvyxo6v@cluster0.pzehdgj.mongodb.net/agropacayales_db?retryWrites=true&w=majority")
+    MONGO_DATABASE = os.getenv("MONGO_DATABASE", os.getenv("MONGO_DB_NAME", "agropacayales_db"))
+    MONGO_DB_NAME = MONGO_DATABASE
 
     # SQL Server Config (Docker o Amazon RDS)
     SQL_SERVER = os.getenv("SQL_SERVER", "localhost")
@@ -17,7 +18,9 @@ class Settings:
     SQL_PASSWORD = os.getenv("SQL_PASSWORD", "AgroPacayales2026!")
 
     # Flask Config
-    FLASK_PORT = int(os.getenv("FLASK_PORT", 5000))
+    PORT = int(os.getenv("PORT", os.getenv("FLASK_PORT", 5000)))
+    FLASK_PORT = PORT
+    FLASK_ENV = os.getenv("FLASK_ENV", "development")
     FLASK_DEBUG = os.getenv("FLASK_DEBUG", "True").lower() in ("true", "1", "t")
 
 settings = Settings()

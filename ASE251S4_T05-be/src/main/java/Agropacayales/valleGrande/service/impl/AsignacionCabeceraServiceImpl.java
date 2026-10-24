@@ -28,7 +28,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class AsignacionCabeceraServiceImpl implements AsignacionCabeceraService {
 
@@ -39,22 +38,105 @@ public class AsignacionCabeceraServiceImpl implements AsignacionCabeceraService 
     private final UsuarioRepository usuarioRepo;
     private final TransactionalOperator transactionalOperator;
 
+    public AsignacionCabeceraServiceImpl(
+            AsignacionCabeceraR2dbcRepository cabeceraRepo,
+            AsignacionDetalleR2dbcRepository detalleRepo,
+            ActividadCultivoR2dbcRepository actividadRepo,
+            CultivoR2dbcRepository cultivoRepo,
+            UsuarioRepository usuarioRepo,
+            TransactionalOperator transactionalOperator) {
+        this.cabeceraRepo = cabeceraRepo;
+        this.detalleRepo = detalleRepo;
+        this.actividadRepo = actividadRepo;
+        this.cultivoRepo = cultivoRepo;
+        this.usuarioRepo = usuarioRepo;
+        this.transactionalOperator = transactionalOperator;
+    }
+
+    private Flux<AsignacionCabeceraResponseDto> buildBatchResponseDtos(List<AsignacionCabecera> cabeceras) {
+        if (cabeceras.isEmpty()) {
+            return Flux.empty();
+        }
+
+        Mono<java.util.Map<Long, ActividadCultivo>> actividadesMapMono = actividadRepo.findAll()
+                .collectMap(ActividadCultivo::getIdActividad, java.util.function.Function.identity());
+
+        Mono<java.util.Map<Long, String>> cultivosMapMono = cultivoRepo.findAll()
+                .collectMap(Cultivo::getIdCultivo, Cultivo::getNombre);
+
+        Mono<java.util.Map<Long, List<AsignacionDetalle>>> detallesMapMono = detalleRepo.findAll()
+                .collectList()
+                .map(list -> list.stream().collect(java.util.stream.Collectors.groupingBy(AsignacionDetalle::getIdAsignacionCabecera)));
+
+        Mono<java.util.Map<String, String>> usuariosMapMono = usuarioRepo.findAll()
+                .collectMap(Usuario::getId, u -> u.getNombre() + " " + u.getApellido());
+
+        return Mono.zip(actividadesMapMono, cultivosMapMono, detallesMapMono, usuariosMapMono)
+                .flatMapMany(tuple -> {
+                    java.util.Map<Long, ActividadCultivo> actividadesMap = tuple.getT1();
+                    java.util.Map<Long, String> cultivosMap = tuple.getT2();
+                    java.util.Map<Long, List<AsignacionDetalle>> detallesMap = tuple.getT3();
+                    java.util.Map<String, String> usuariosMap = tuple.getT4();
+
+                    List<AsignacionCabeceraResponseDto> dtos = cabeceras.stream()
+                            .map(cab -> {
+                                ActividadCultivo act = actividadesMap.get(cab.getIdActividad());
+                                String tipoActividad = act != null ? act.getTipoActividad() : "Actividad #" + cab.getIdActividad();
+                                String nombreCultivo = (act != null && act.getIdCultivo() != null)
+                                        ? cultivosMap.getOrDefault(act.getIdCultivo(), "Cultivo #" + act.getIdCultivo())
+                                        : "Cultivo General";
+
+                                List<AsignacionDetalle> dets = detallesMap.getOrDefault(cab.getIdAsignacionCabecera(), java.util.Collections.emptyList());
+                                List<AsignacionDetalleResponseDto> detDtos = dets.stream()
+                                        .map(d -> AsignacionDetalleResponseDto.builder()
+                                                .idAsignacionDetalle(d.getIdAsignacionDetalle())
+                                                .idUsuario(d.getIdUsuario())
+                                                .nombreCompletoUsuario(usuariosMap.getOrDefault(d.getIdUsuario(), "Usuario " + d.getIdUsuario()))
+                                                .costoManoObra(d.getCostoManoObra())
+                                                .build())
+                                        .collect(java.util.stream.Collectors.toList());
+
+                                return AsignacionCabeceraResponseDto.builder()
+                                        .idAsignacionCabecera(cab.getIdAsignacionCabecera())
+                                        .idActividad(cab.getIdActividad())
+                                        .tipoActividad(tipoActividad)
+                                        .nombreCultivo(nombreCultivo)
+                                        .fechaAsignacion(cab.getFechaAsignacion())
+                                        .horasTrabajadas(cab.getHorasTrabajadas())
+                                        .costoTotalManoObra(cab.getCostoTotalManoObra())
+                                        .observacion(cab.getObservacion())
+                                        .estado(cab.getEstado())
+                                        .createdAt(cab.getCreatedAt())
+                                        .updatedAt(cab.getUpdatedAt())
+                                        .detalles(detDtos)
+                                        .build();
+                            })
+                            .collect(java.util.stream.Collectors.toList());
+
+                    return Flux.fromIterable(dtos);
+                });
+    }
+
     @Override
     public Flux<AsignacionCabeceraResponseDto> listarTodas() {
         return cabeceraRepo.findAll()
-                .flatMapSequential(this::populateResponseDto);
+                .collectList()
+                .flatMapMany(this::buildBatchResponseDtos);
     }
 
     @Override
     public Flux<AsignacionCabeceraResponseDto> listarPorEstado(Boolean estado) {
-        return cabeceraRepo.findByEstado(estado)
-                .flatMapSequential(this::populateResponseDto);
+        return cabeceraRepo.findAll()
+                .filter(c -> estado == null || estado.equals(c.getEstado()))
+                .collectList()
+                .flatMapMany(this::buildBatchResponseDtos);
     }
 
     @Override
     public Flux<AsignacionCabeceraResponseDto> listarPorActividad(Long idActividad) {
         return cabeceraRepo.findByIdActividad(idActividad)
-                .flatMapSequential(this::populateResponseDto);
+                .collectList()
+                .flatMapMany(this::buildBatchResponseDtos);
     }
 
     @Override

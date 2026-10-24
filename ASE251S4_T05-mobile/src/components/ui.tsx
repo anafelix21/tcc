@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View, ViewSt
 import { colors, radius, shadow } from '../theme/colors';
 import { Resumen } from '../modules/types';
 import { texto } from '../utils/formato';
+import { Icono } from './Icono';
 
 export function Tarjeta({ children, style }: { children: ReactNode; style?: ViewStyle }) {
   return <View style={[styles.tarjeta, style]}>{children}</View>;
@@ -50,7 +51,7 @@ export function Pestanas({ activos, onChange }: { activos: boolean; onChange: (a
 export function Buscador({ valor, onChange }: { valor: string; onChange: (v: string) => void }) {
   return (
     <View style={styles.buscador}>
-      <Text style={{ fontSize: 15 }}>🔍</Text>
+      <Icono name="search-outline" size={18} color={colors.muted} />
       <TextInput accessibilityLabel="Buscar" style={styles.buscadorInput} placeholder="Buscar..." placeholderTextColor="#B3AA9C" value={valor} onChangeText={onChange} />
     </View>
   );

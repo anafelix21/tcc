@@ -51,7 +51,7 @@ export class InsumoFormComponent implements OnChanges {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['insumoEditar']) {
       this.submitted = false;
-      this.esEdicion = !!this.insumoEditar?.idInsumo;
+      this.esEdicion = !!(this.insumoEditar?.idInsumo || (this.insumoEditar as any)?.id);
       if (this.esEdicion && this.insumoEditar) {
         this.insumoForm.patchValue(this.insumoEditar);
       } else {

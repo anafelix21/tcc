@@ -14,6 +14,10 @@ import Agropacayales.valleGrande.repository.mongo.InsumoRepository;
 import Agropacayales.valleGrande.repository.r2dbc.ActividadCultivoR2dbcRepository;
 import Agropacayales.valleGrande.repository.r2dbc.CultivoR2dbcRepository;
 import Agropacayales.valleGrande.repository.r2dbc.DetalleActividadR2dbcRepository;
+import Agropacayales.valleGrande.model.r2dbc.AsignacionCabecera;
+import Agropacayales.valleGrande.model.r2dbc.AsignacionDetalle;
+import Agropacayales.valleGrande.repository.r2dbc.AsignacionCabeceraR2dbcRepository;
+import Agropacayales.valleGrande.repository.r2dbc.AsignacionDetalleR2dbcRepository;
 import Agropacayales.valleGrande.service.ActividadCultivoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,7 +32,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class ActividadCultivoServiceImpl implements ActividadCultivoService {
 
@@ -36,18 +39,98 @@ public class ActividadCultivoServiceImpl implements ActividadCultivoService {
     private final DetalleActividadR2dbcRepository detalleRepo;
     private final CultivoR2dbcRepository cultivoRepo;
     private final InsumoRepository insumoRepo;
+    private final AsignacionCabeceraR2dbcRepository asignacionCabeceraRepo;
+    private final AsignacionDetalleR2dbcRepository asignacionDetalleRepo;
     private final TransactionalOperator transactionalOperator;
+
+    public ActividadCultivoServiceImpl(
+            ActividadCultivoR2dbcRepository actividadRepo,
+            DetalleActividadR2dbcRepository detalleRepo,
+            CultivoR2dbcRepository cultivoRepo,
+            InsumoRepository insumoRepo,
+            AsignacionCabeceraR2dbcRepository asignacionCabeceraRepo,
+            AsignacionDetalleR2dbcRepository asignacionDetalleRepo,
+            TransactionalOperator transactionalOperator) {
+        this.actividadRepo = actividadRepo;
+        this.detalleRepo = detalleRepo;
+        this.cultivoRepo = cultivoRepo;
+        this.insumoRepo = insumoRepo;
+        this.asignacionCabeceraRepo = asignacionCabeceraRepo;
+        this.asignacionDetalleRepo = asignacionDetalleRepo;
+        this.transactionalOperator = transactionalOperator;
+    }
+
+    private Flux<ActividadCultivoResponseDto> buildBatchResponseDtos(List<ActividadCultivo> actividades) {
+        if (actividades.isEmpty()) {
+            return Flux.empty();
+        }
+
+        Mono<java.util.Map<Long, String>> cultivosMapMono = cultivoRepo.findAll()
+                .collectMap(Cultivo::getIdCultivo, Cultivo::getNombre);
+
+        Mono<java.util.Map<Long, List<DetalleActividad>>> detallesMapMono = detalleRepo.findAll()
+                .collectList()
+                .map(list -> list.stream().collect(java.util.stream.Collectors.groupingBy(DetalleActividad::getIdActividad)));
+
+        Mono<java.util.Map<String, String>> insumosMapMono = insumoRepo.findAll()
+                .collectMap(Insumo::getId, Insumo::getNombre);
+
+        return Mono.zip(cultivosMapMono, detallesMapMono, insumosMapMono)
+                .flatMapMany(tuple -> {
+                    java.util.Map<Long, String> cultivosMap = tuple.getT1();
+                    java.util.Map<Long, List<DetalleActividad>> detallesMap = tuple.getT2();
+                    java.util.Map<String, String> insumosMap = tuple.getT3();
+
+                    List<ActividadCultivoResponseDto> dtos = actividades.stream()
+                            .map(act -> {
+                                String nombreCultivo = cultivosMap.getOrDefault(act.getIdCultivo(), "Cultivo #" + act.getIdCultivo());
+                                List<DetalleActividad> dets = detallesMap.getOrDefault(act.getIdActividad(), java.util.Collections.emptyList());
+
+                                List<DetalleActividadResponseDto> detalleDtos = dets.stream()
+                                        .map(det -> DetalleActividadResponseDto.builder()
+                                                .idDetalle(det.getIdDetalle())
+                                                .idInsumo(det.getIdInsumo())
+                                                .nombreInsumo(insumosMap.getOrDefault(det.getIdInsumo(), "Insumo " + det.getIdInsumo()))
+                                                .cantidad(det.getCantidad())
+                                                .precioUnitario(det.getPrecioUnitario())
+                                                .subtotal(det.getSubtotal())
+                                                .build())
+                                        .collect(java.util.stream.Collectors.toList());
+
+                                return ActividadCultivoResponseDto.builder()
+                                        .idActividad(act.getIdActividad())
+                                        .idCultivo(act.getIdCultivo())
+                                        .nombreCultivo(nombreCultivo)
+                                        .tipoActividad(act.getTipoActividad())
+                                        .descripcion(act.getDescripcion())
+                                        .fechaActividad(act.getFechaActividad())
+                                        .costoTotal(act.getCostoTotal())
+                                        .estado(act.getEstado())
+                                        .completado(act.getCompletado())
+                                        .createdAt(act.getCreatedAt())
+                                        .updatedAt(act.getUpdatedAt())
+                                        .detalles(detalleDtos)
+                                        .build();
+                            })
+                            .collect(java.util.stream.Collectors.toList());
+
+                    return Flux.fromIterable(dtos);
+                });
+    }
 
     @Override
     public Flux<ActividadCultivoResponseDto> listarTodas() {
         return actividadRepo.findAll()
-                .flatMapSequential(this::populateResponseDto);
+                .collectList()
+                .flatMapMany(this::buildBatchResponseDtos);
     }
 
     @Override
     public Flux<ActividadCultivoResponseDto> listarPorEstado(Boolean estado) {
-        return actividadRepo.findByEstado(estado)
-                .flatMapSequential(this::populateResponseDto);
+        return actividadRepo.findAll()
+                .filter(act -> estado == null || estado.equals(act.getEstado()))
+                .collectList()
+                .flatMapMany(this::buildBatchResponseDtos);
     }
 
     @Override
@@ -183,6 +266,69 @@ public class ActividadCultivoServiceImpl implements ActividadCultivoService {
                     act.setRestoredAt(LocalDateTime.now());
                     return actividadRepo.save(act)
                             .flatMap(this::populateResponseDto);
+                });
+    }
+
+    @Override
+    public Mono<ActividadCultivoResponseDto> finalizar(Long id) {
+        return actividadRepo.findById(id)
+                .switchIfEmpty(Mono.error(new ResourceNotFoundException("Actividad de cultivo no encontrada con ID: " + id)))
+                .flatMap(act -> {
+                    if (Boolean.TRUE.equals(act.getCompletado())) {
+                        return populateResponseDto(act);
+                    }
+                    act.setCompletado(true);
+                    act.setUpdatedAt(LocalDateTime.now());
+
+                    // Descontar automáticamente insumos del inventario MongoDB (colección supplies)
+                    return detalleRepo.findByIdActividad(id)
+                            .flatMap(det -> insumoRepo.findById(det.getIdInsumo())
+                                    .flatMap(insumo -> {
+                                        int stockActual = insumo.getStock() != null ? insumo.getStock() : 0;
+                                        int cantidadUsada = det.getCantidad() != null ? det.getCantidad() : 0;
+                                        int nuevoStock = Math.max(0, stockActual - cantidadUsada);
+                                        insumo.setStock(nuevoStock);
+                                        insumo.setUpdatedAt(LocalDateTime.now());
+                                        log.info("Descontando insumo {} ({}): stock previo={}, consumo={}, nuevo stock={}",
+                                                insumo.getId(), insumo.getNombre(), stockActual, cantidadUsada, nuevoStock);
+                                        return insumoRepo.save(insumo);
+                                    })
+                            )
+                            .then(actividadRepo.save(act))
+                            .flatMap(this::populateResponseDto);
+                });
+    }
+
+    @Override
+    public Flux<ActividadCultivoResponseDto> listarPorOperario(String idUsuario) {
+        if (idUsuario == null || idUsuario.isBlank() || "null".equalsIgnoreCase(idUsuario)) {
+            return actividadRepo.findAll()
+                    .filter(act -> Boolean.TRUE.equals(act.getEstado()) && !Boolean.TRUE.equals(act.getCompletado()))
+                    .collectList()
+                    .flatMapMany(this::buildBatchResponseDtos);
+        }
+
+        return asignacionDetalleRepo.findAll()
+                .filter(d -> idUsuario.equalsIgnoreCase(d.getIdUsuario()))
+                .map(AsignacionDetalle::getIdAsignacionCabecera)
+                .distinct()
+                .collectList()
+                .flatMap(cabeceraIds -> asignacionCabeceraRepo.findAll()
+                        .filter(c -> cabeceraIds.contains(c.getIdAsignacionCabecera()))
+                        .map(AsignacionCabecera::getIdActividad)
+                        .distinct()
+                        .collectList())
+                .flatMapMany(actividadIds -> {
+                    if (actividadIds.isEmpty()) {
+                        return actividadRepo.findAll()
+                                .filter(act -> Boolean.TRUE.equals(act.getEstado()) && !Boolean.TRUE.equals(act.getCompletado()))
+                                .collectList()
+                                .flatMapMany(this::buildBatchResponseDtos);
+                    }
+                    return actividadRepo.findAll()
+                            .filter(act -> actividadIds.contains(act.getIdActividad()) && Boolean.TRUE.equals(act.getEstado()))
+                            .collectList()
+                            .flatMapMany(this::buildBatchResponseDtos);
                 });
     }
 

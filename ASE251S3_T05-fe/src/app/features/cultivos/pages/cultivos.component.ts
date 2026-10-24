@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Cultivo, CultivoDTO } from '../../../core/models/cultivo.model';
 import { CultivoService } from '../services/cultivo.service';
+import { Parcela } from '../../../core/models/parcela.model';
+import { ParcelaService } from '../../parcelas/services/parcela.service';
 import { NotificationService } from '../../../core/services/notification.service';
 import { CultivoFormComponent } from '../components/cultivo-form/cultivo-form.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -18,10 +20,12 @@ import { ToggleFilterComponent } from '../../../shared/components/toggle-filter/
 })
 export class CultivosComponent implements OnInit {
   private cultivoService = inject(CultivoService);
+  private parcelaService = inject(ParcelaService);
   private notificationService = inject(NotificationService);
   private cdr = inject(ChangeDetectorRef);
 
   cultivos: Cultivo[] = [];
+  parcelasMap: Map<string, Parcela> = new Map();
   cultivoEditar: Cultivo | null = null;
   mostrarFormulario = false;
   verActivos = true;
@@ -30,7 +34,35 @@ export class CultivosComponent implements OnInit {
   cultivoAEliminar: number | null = null;
 
   ngOnInit(): void {
+    this.cargarParcelas();
     this.cargarCultivos();
+  }
+
+  cargarParcelas(): void {
+    this.parcelaService.listarTodos().subscribe({
+      next: (data) => {
+        this.parcelasMap.clear();
+        (data || []).forEach(p => {
+          const id = p.id || p.idParcela;
+          if (id) {
+            this.parcelasMap.set(String(id), p);
+          }
+        });
+        this.cdr.markForCheck();
+      },
+      error: () => {}
+    });
+  }
+
+  getNombreParcela(c: Cultivo): string {
+    if (c.parcela?.nombre) {
+      const ubi = (c.parcela as any).ubicacion;
+      return ubi ? `${c.parcela.nombre} (${ubi})` : c.parcela.nombre;
+    }
+    const pid = c.idParcela || (c.parcela as any)?.idParcela;
+    if (!pid) return 'Sin Parcela Asignada';
+    const p = this.parcelasMap.get(String(pid));
+    return p ? `${p.nombre} (${p.ubicacion || pid})` : `Parcela ${pid}`;
   }
 
   toggleActivos(activos: boolean): void {

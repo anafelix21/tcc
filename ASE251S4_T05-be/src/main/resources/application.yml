@@ -15,7 +15,7 @@ spring:
   application:
     name: AgroPacayales-WebFlux
   profiles:
-    active: local
+    active: ${SPRING_PROFILES_ACTIVE:cloud}
   # Configuración Reactiva R2DBC para SQL Server 2022 (Transacciones)
   r2dbc:
     url: ${R2DBC_URL:r2dbc:sqlserver://${SQL_HOST:localhost}:${SQL_PORT:1433}/${SQL_DATABASE:agropacayales_db}?sendStringParametersAsUnicode=false}
@@ -68,18 +68,19 @@ spring:
       on-profile: local
   data:
     mongodb:
-      # Si tu Mongo local no tiene contraseña, cámbiala a: mongodb://localhost:27017/database_local
-      uri: ${MONGO_URI_LOCAL:mongodb://localhost:27017/database_local}
-      auto-index-creation: true
+      # Conexión por defecto a MongoDB Atlas agropacayales_db (o override con MONGO_URI_LOCAL)
+      uri: ${MONGO_URI_LOCAL:mongodb+srv://hugofernandez_db_user:PmHQ4BXXbNvyxo6v@cluster0.pzehdgj.mongodb.net/agropacayales_db?retryWrites=true&w=majority}
+      database: ${MONGO_DATABASE:agropacayales_db}
+      auto-index-creation: false
 
 ---
-# PERFIL: CLOUD (MongoDB Atlas - Axel)
+# PERFIL: CLOUD (MongoDB Atlas - Clúster de Hugo Fernández)
 spring:
   config:
     activate:
       on-profile: cloud
   data:
     mongodb:
-      uri: ${MONGO_URI:mongodb+srv://axelhuapaya_db_user:lider2021@cluster0.oyk6ogs.mongodb.net/?appName=Cluster0}
+      uri: ${MONGO_URI:mongodb+srv://hugofernandez_db_user:PmHQ4BXXbNvyxo6v@cluster0.pzehdgj.mongodb.net/agropacayales_db?retryWrites=true&w=majority}
       database: ${MONGO_DATABASE:agropacayales_db}
-      auto-index-creation: true
+      auto-index-creation: false

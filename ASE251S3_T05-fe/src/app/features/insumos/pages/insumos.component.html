@@ -125,7 +125,7 @@
         </thead>
         <tbody>
           <tr *ngFor="let p of insumos" [class.row--inactive]="!p.estado">
-            <td class="td-id">#{{ p.idInsumo }}</td>
+            <td class="td-id">#{{ p.idInsumo || p.id }}</td>
             <td>
               <div class="insumo-name">
                 <strong>{{ p.nombre }}</strong>
@@ -151,10 +151,10 @@
               </span>
             </td>
             <td class="td-actions">
-              <button class="action-btn action-btn--info" (click)="abrirDetalleAuditoria(p)" title="Ver auditoría y detalles (14 campos)"><span class="material-icons" style="font-size: 20px;">info</span></button>
+              <button class="action-btn action-btn--info" (click)="abrirDetalleAuditoria(p)" title="Ver auditoría y detalles"><span class="material-icons" style="font-size: 20px;">info</span></button>
               <button *ngIf="p.estado" class="action-btn action-btn--edit" (click)="editarInsumo(p)" title="Editar"><span class="material-icons" style="font-size: 20px;">edit</span></button>
-              <button *ngIf="p.estado" class="action-btn action-btn--delete" (click)="confirmarEliminar(p.idInsumo!)" title="Eliminar"><span class="material-icons" style="font-size: 20px;">delete</span></button>
-              <button *ngIf="!p.estado" class="action-btn action-btn--restore" (click)="restaurarInsumo(p.idInsumo!)" title="Restaurar"><span class="material-icons" style="font-size: 20px;">restore</span></button>
+              <button *ngIf="p.estado" class="action-btn action-btn--delete" (click)="confirmarEliminar((p.idInsumo || p.id)!)" title="Eliminar"><span class="material-icons" style="font-size: 20px;">delete</span></button>
+              <button *ngIf="!p.estado" class="action-btn action-btn--restore" (click)="restaurarInsumo((p.idInsumo || p.id)!)" title="Restaurar"><span class="material-icons" style="font-size: 20px;">restore</span></button>
             </td>
           </tr>
         </tbody>

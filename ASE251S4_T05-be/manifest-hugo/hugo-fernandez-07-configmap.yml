@@ -7,6 +7,6 @@ metadata:
   namespace: hugo-fernandez-07-namespace
 data:
   MONGO_DATABASE: "agropacayales_db"
-  MONGO_URI: "mongodb+srv://hugofernandez_db_user:PmHQ4BXXbNvyxo6v@cluster0.pzehdgj.mongodb.net/?appName=Cluster0"
+  MONGO_URI: "mongodb+srv://hugofernandez_db_user:PmHQ4BXXbNvyxo6v@cluster0.pzehdgj.mongodb.net/agropacayales_db?retryWrites=true&w=majority"
   SERVER_PORT: "8081"
   SPRING_PROFILES_ACTIVE: "cloud"

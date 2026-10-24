@@ -3,7 +3,8 @@
  * Coincide exactamente con DTO del backend
  */
 export interface Parcela {
-  idParcela?: number;
+  id?: string;
+  idParcela?: any;
   nombre: string;
   ubicacion: string;
   areaHectareas: number;

@@ -13,4 +13,6 @@ public interface ActividadCultivoService {
     Mono<ActividadCultivoResponseDto> editar(Long id, ActividadCultivoRequestDto request);
     Mono<ActividadCultivoResponseDto> eliminar(Long id);
     Mono<ActividadCultivoResponseDto> restaurar(Long id);
+    Mono<ActividadCultivoResponseDto> finalizar(Long id);
+    Flux<ActividadCultivoResponseDto> listarPorOperario(String idUsuario);
 }
