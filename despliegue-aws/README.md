@@ -37,6 +37,8 @@ Usuario ──► Frontend :30000 ──nginx──► Backend 1 :30001 ──ev
 | `anafelixmendoza21/agropacayales-backend:2.0` | Backend 1 |
 | `anafelixmendoza21/agropacayales-backend-analitico:2.0` | Backend 2 |
 
+Ya están publicadas: **no hay que construir nada para desplegar**. Para usar imágenes propias, ver [`../imagenes-docker/`](../imagenes-docker/README.md) y cambiar solo la línea `DOCKER_USER="..."` del user data.
+
 ## ⚡ Resumen del despliegue
 
 1. Crear grupos de seguridad `evi-ec2-sg` y `evi-rds-sg`

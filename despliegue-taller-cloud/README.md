@@ -39,6 +39,8 @@ Navegador ──► Amazon S3 (Frontend) ──► EC2 cc-backends ──┬─�
 | `anafelixmendoza21/agropacayales-cc-backend-analitico:1.0` | Backend 2 (Flask) |
 
 > Distintas de las de Kubernetes (`agropacayales-backend:2.0`, etc.) para no confundirlas. El frontend no usa imagen: va como archivos en S3.
+>
+> Ya están publicadas: **no hay que construir nada para desplegar**. Para usar imágenes propias, ver [`../imagenes-docker/`](../imagenes-docker/README.md) y cambiar solo la línea `DOCKER_USER="..."` del user data.
 
 ## ✅ Rúbrica
 

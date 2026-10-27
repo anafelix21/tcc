@@ -301,8 +301,14 @@ Qué pasa solo al encender:
 | `Esperando ...:27017` | Paso 2, regla interna: **All traffic** · source `sg-...` de `cc-ec2-sg` |
 | `Login failed for user 'admin'` | **RDS → Modify** → **Self managed** (desmarcar Secrets Manager) → New master password `AgroPacayales2026!` → **Apply immediately**. El script reintenta 20 min y sigue solo |
 | Frontend abre pero sin datos | Backend 1 tarda ≈ 1 min en arrancar: esperar y recargar |
+| Crear o importar **usuarios** falla con `Document failed validation` (`fecha_nacimiento`) | Solo en MongoDB creados **antes** del 27/10/2026 (los nuevos ya vienen corregidos). Entrar a `cc-mongodb` → **Connect → EC2 Instance Connect** y ejecutar **una vez** el comando de abajo ⬇️ Debe responder `{ ok: 1 }`. |
 | Frontend no abre (403/404) | **S3 → bucket → Permissions** → Block public access debe estar **Off**. Si sigue: **S3 → Block Public Access settings for this account → Edit** → desmarcar todo → **Save** → en `cc-backends` ejecutar `sudo /root/publicar-frontend-s3.sh` |
 | Reinicié el Learner Lab y el frontend no carga datos | La IP cambió: esperar 2 min, se vuelve a publicar solo. Si no: entrar a `cc-backends` y ejecutar `sudo /root/publicar-frontend-s3.sh` |
+
+**Comando para el error de fechas de usuarios** (en la EC2 de MongoDB):
+```bash
+mongosh "mongodb://admin:Mongo12345@localhost:27017/agropacayales_db?authSource=admin" --quiet --eval 'const v=db.getCollectionInfos({name:"users"})[0].options.validator; v.$jsonSchema.properties.fecha_nacimiento.bsonType=["string","date"]; v.$jsonSchema.properties.fecha_contratacion.bsonType=["string","date"]; printjson(db.runCommand({collMod:"users", validator:v}))'
+```
 
 ---
 

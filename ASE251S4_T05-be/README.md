@@ -109,3 +109,18 @@ A continuación, se proporcionan los cuerpos de petición listos para copiar y p
   "estado": true
 }
 ```
+
+---
+
+## 📁 Estructura del Repositorio
+
+| Carpeta / Archivo | Contenido |
+| :-- | :-- |
+| `src/main/java/Agropacayales/valleGrande/` | Código del Backend 1 (Spring Boot WebFlux): `rest/` controladores, `service/` lógica de negocio, `model/` entidades (MongoDB y R2DBC), `repository/`, `security/` (JWT), `events/` (eventos al Backend 2 analítico), `config/` (CORS y OpenAPI) |
+| `src/main/resources/` | `application.yml` (perfiles local y nube) y scripts SQL |
+| `csv/` | Archivos de ejemplo para importación masiva (CSV / Excel) |
+| `Dockerfile` | Imagen oficial del Backend 1 (Maven + JRE 21, puerto `8081`) |
+| `Dockerfile.fast` | Variante de construcción rápida |
+| `dockerfile-ana/`, `dockerfile-axel/`, `dockerfile-hugo/` | Dockerfiles usados por el CI de cada integrante |
+| `manifest-ana/`, `manifest-axel/`, `manifest-hugo/` | Manifiestos de Kubernetes de cada integrante |
+| `.github/workflows/` | Pipelines de GitHub Actions que publican la imagen en Docker Hub |

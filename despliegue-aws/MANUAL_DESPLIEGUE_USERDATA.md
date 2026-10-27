@@ -288,7 +288,13 @@ Cómo leer lo que sale:
 | `Login failed for user 'admin'` / `Reintento X de la carga SQL` | La contraseña de la RDS no es exactamente `AgroPacayales2026!`. Si en Connectivity & security aparece **Masters credentials ARN**, la RDS usa Secrets Manager: en Modify desmarca *Manage master credentials in AWS Secrets Manager*. RDS → Modify → New master password (escrita a mano) → Continue → Apply immediately. Si el master aún reintenta, sigue solo. **No relances el master** (los workers ya están unidos a él). |
 | Ya pasó `Reintento 10` | `k8s-master` → Connect → EC2 Instance Connect → `sudo /opt/mssql-tools18/bin/sqlcmd -C -S "<endpoint RDS>,1433" -U admin -P 'AgroPacayales2026!' -b -i /root/init_sqlserver.sql` → luego `kubectl -n agropacayales-namespace rollout restart deploy/backend-transaccional deploy/backend-analitico`. |
 | Pods en `Pending` | Un worker no se unió: revisa su registro del sistema. |
+| Crear o importar **usuarios** falla con `Document failed validation` (`fecha_nacimiento`) | Solo en MongoDB creados **antes** del 27/10/2026 (los nuevos ya vienen corregidos). Entrar a `ec2-mongodb` → **Connect → EC2 Instance Connect** y ejecutar **una vez** el comando de abajo ⬇️ Debe responder `{ ok: 1 }`. |
 | El frontend abre pero no muestra datos | Backend 1 tarda ≈ 1 min en arrancar. Espera y recarga. |
+
+**Comando para el error de fechas de usuarios** (en la EC2 de MongoDB):
+```bash
+mongosh "mongodb://admin:Mongo12345@localhost:27017/agropacayales_db?authSource=admin" --quiet --eval 'const v=db.getCollectionInfos({name:"users"})[0].options.validator; v.$jsonSchema.properties.fecha_nacimiento.bsonType=["string","date"]; v.$jsonSchema.properties.fecha_contratacion.bsonType=["string","date"]; printjson(db.runCommand({collMod:"users", validator:v}))'
+```
 
 > El user data solo corre en el **primer arranque**. Si reinicias el Learner Lab todo sigue configurado, pero las **IPs públicas cambian**: vuelve a leerlas (paso 13.1).
 
