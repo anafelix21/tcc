@@ -153,7 +153,7 @@ aws s3 sync /root/fe s3://\$BKT --delete
 cat > /home/ubuntu/URLS.txt <<EOT
 ==================== AGROPACAYALES - TALLER CLOUD COMPUTING ====================
 Frontend (Amazon S3) .... http://\$BKT.s3-website-\$AWS_DEFAULT_REGION.amazonaws.com
-Backend 1 Swagger ....... http://\$IP:8081/webjars/swagger-ui/index.html
+Backend 1 Swagger ....... http://\$IP:8081/swagger-ui.html
 Backend 1 OpenAPI ....... http://\$IP:8081/api-docs
 Backend 2 Swagger ....... http://\$IP:5000/apidocs/
 Backend 2 health ........ http://\$IP:5000/health

@@ -191,7 +191,7 @@ Debe quedar en **EC2 → Instances**:
 | ✔ | Qué | URL |
 | :-: | :-- | :-- |
 | ☐ | Frontend (S3) | `http://agropacayales-frontend-<número>.s3-website-us-east-1.amazonaws.com` |
-| ☐ | Backend 1 Swagger | `http://IP:8081/webjars/swagger-ui/index.html` |
+| ☐ | Backend 1 Swagger | `http://IP:8081/swagger-ui.html` |
 | ☐ | Backend 1 OpenAPI (Postman) | `http://IP:8081/api-docs` |
 | ☐ | Backend 2 Swagger | `http://IP:5000/apidocs/` |
 | ☐ | Backend 2 health | `http://IP:5000/health` |
