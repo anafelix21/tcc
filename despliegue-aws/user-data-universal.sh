@@ -14,9 +14,10 @@ K3S_TOKEN="agropacayales-token-2026"
 NS="agropacayales-namespace"
 MONGO_USER="admin"; MONGO_PASS="Mongo12345"; DB="agropacayales_db"
 SQL_USER="admin"; SQL_PASS='AgroPacayales2026!'
-IMG_FRONT="anafelixmendoza21/agropacayales-frontend:2.0"
-IMG_BACK1="anafelixmendoza21/agropacayales-backend:2.0"
-IMG_BACK2="anafelixmendoza21/agropacayales-backend-analitico:2.0"
+DOCKER_USER="anafelixmendoza21"   # Docker Hub con las imágenes (cambiar SOLO si usas tus propias imágenes)
+IMG_FRONT="$DOCKER_USER/agropacayales-frontend:2.0"
+IMG_BACK1="$DOCKER_USER/agropacayales-backend:2.0"
+IMG_BACK2="$DOCKER_USER/agropacayales-backend-analitico:2.0"
 # Fijado a un commit: aunque alguien suba cambios a main, los datos cargados no cambian
 RAW="https://raw.githubusercontent.com/anafelix21/tcc/8665dd9ba08e6a8d85827056c4e7fe29740966ff/scripts"
 

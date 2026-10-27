@@ -14,8 +14,9 @@ exec > >(tee -a /var/log/agropacayales.log) 2>&1
 # ---------- Constantes del equipo (no tocar) ----------
 MONGO_USER="admin"; MONGO_PASS="Mongo12345"; DB="agropacayales_db"
 SQL_USER="admin"; SQL_PASS='AgroPacayales2026!'
-IMG_BACK1="anafelixmendoza21/agropacayales-cc-backend:1.0"
-IMG_BACK2="anafelixmendoza21/agropacayales-cc-backend-analitico:1.0"
+DOCKER_USER="anafelixmendoza21"   # Docker Hub con las imágenes (cambiar SOLO si usas tus propias imágenes)
+IMG_BACK1="$DOCKER_USER/agropacayales-cc-backend:1.0"
+IMG_BACK2="$DOCKER_USER/agropacayales-cc-backend-analitico:1.0"
 RAW="https://raw.githubusercontent.com/anafelix21/tcc/main/despliegue-taller-cloud"
 
 log() { echo "[$(date +%H:%M:%S)] [AGRO] $*"; }

@@ -1,0 +1,3 @@
+# Scripts de Windows con CRLF y scripts de Linux (user data de EC2) siempre con LF
+*.bat -text
+*.sh text eol=lf

@@ -30,8 +30,10 @@ src/
 │   │   ├── index.tsx             #   lista + importar/exportar
 │   │   ├── [id].tsx              #   detalle + eliminar/restaurar
 │   │   └── formulario.tsx        #   registrar / editar
-│   └── transaccion/[modulo]/     # cosechas | actividades | asignaciones
-│       ├── index.tsx, [id].tsx, formulario.tsx   (cabecera + detalle dinámico)
+│   ├── transaccion/[modulo]/     # cosechas | actividades | asignaciones
+│   │   ├── index.tsx, [id].tsx, formulario.tsx   (cabecera + detalle dinámico)
+│   ├── fichas-campo/             # Fichas de campo: lista, detalle (baja/restaurar) y formulario
+│   └── mis-labores/              # Labores asignadas al operario de campo
 ├── modules/                      # Definición de cada módulo (campos, validaciones, resumen)
 │   ├── maestros.ts, transacciones.ts, types.ts
 ├── services/                     # apiClient (fetch + JWT), crudService (CRUD + catálogos), authService
@@ -55,6 +57,14 @@ npx expo start --web        # versión navegador
 npm run typecheck
 ```
 
-Requiere el Backend 1 (puerto 8081) y el Backend 2 (puerto 5000) levantados. Ver `docs/PROBAR_TODO.md`.
+Requiere el Backend 1 y el Backend 2 levantados. En `.env` se configuran sus URLs según dónde estén:
+
+| Dónde corren los backends | `EXPO_PUBLIC_API_URL` | `EXPO_PUBLIC_ANALYTICS_URL` |
+| :-- | :-- | :-- |
+| Su PC (misma red wifi) | `http://<IP_PC>:8081/api` | `http://<IP_PC>:5000/api/v1/analytics` |
+| AWS con Kubernetes (K3s) | `http://<IP_PUBLICA>:30001/api` | `http://<IP_PUBLICA>:30002/api/v1/analytics` |
+| AWS Taller Cloud (Docker en EC2) | `http://<IP_PUBLICA>:8081/api` | `http://<IP_PUBLICA>:5000/api/v1/analytics` |
+
+Después de cambiar `.env`, reiniciar Expo con `npx expo start -c`.
 
 > Regla de negocio: un insumo solo se elimina con **stock 0** (edítelo primero).
