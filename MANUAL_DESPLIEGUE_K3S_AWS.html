@@ -162,30 +162,30 @@
 <blockquote>
 <p>[!IMPORTANT]<br />
 <strong>GUÍA OFICIAL PARA LA SUSTENTACIÓN TÉCNICA:</strong><br />
-Este documento constituye la <strong>única fuente de verdad</strong> del proyecto. Contiene todos los fundamentos teóricos, pasos de aprovisionamiento en AWS, configuración de bases de datos, manifiestos completos de Kubernetes, payloads validados de Swagger, scripts CRUD en consola MongoDB, comandos de la app móvil y la <strong>Batería de Demostraciones en Vivo de Kubernetes</strong> para defender con éxito ante el jurado evaluador.</p>
+Este documento constituye la <strong>única fuente de verdad</strong> del proyecto. Ha sido diseñado para que el equipo pueda desplegar la infraestructura en AWS de manera <strong>100% automatizada mediante User Data</strong> (sin necesidad de configurar cada máquina por SSH), realizar pruebas completas con Swagger y MongoDB, operar la app móvil y ejecutar la <strong>Batería de Demostraciones en Vivo de Kubernetes</strong> ante el jurado evaluador.</p>
 </blockquote>
 <hr />
 <h2>Índice General</h2>
 <ol>
 <li><a href="#1-fundamentos-arquitectónicos-y-distribución-del-proyecto">Fundamentos Arquitectónicos y Distribución del Proyecto</a><br />
    - 1.1. <a href="#11-distribución-del-equipo-y-módulos-maestros">Distribución del Equipo y Módulos Maestros</a><br />
-   - 1.2. <a href="#12-por-qué-persistencia-políglota-mongodb--sql-server">¿Por qué Persistencia Políglota? (MongoDB + SQL Server)</a><br />
-   - 1.3. <a href="#13-por-qué-spring-boot-webflux-reactivo-asíncrono">¿Por qué Spring Boot WebFlux Reactivo Asíncrono?</a><br />
-   - 1.4. <a href="#14-por-qué-nodeports-30000-30002-y-no-loadbalancer-externo">¿Por qué NodePorts 30000-30002 y no LoadBalancer externo?</a><br />
-   - 1.5. <a href="#15-topología-de-red-y-arquitectura-de-cómputo-en-aws">Topología de Red y Arquitectura de Cómputo en AWS</a><br />
-   - 1.6. <a href="#16-matriz-maestra-de-parámetros-puertos-y-credenciales">Matriz Maestra de Parámetros, Puertos y Credenciales</a></li>
-<li><a href="#2-aprovisionamiento-de-infraestructura-en-aws-paso-a-paso">Aprovisionamiento de Infraestructura en AWS (Paso a Paso)</a><br />
-   - 2.1. <a href="#21-paso-1-amazon-rds-microsoft-sql-server-2022">Paso 1: Amazon RDS Microsoft SQL Server 2022</a><br />
-   - 2.2. <a href="#22-paso-2-servidor-mongodb-80-en-amazon-ec2-dedicado">Paso 2: Servidor MongoDB 8.0 en Amazon EC2 Dedicado</a><br />
-   - 2.3. <a href="#23-paso-3-matriz-de-reglas-de-seguridad-security-groups-de-aws">Paso 3: Matriz de Reglas de Seguridad (Security Groups de AWS)</a><br />
-   - 2.4. <a href="#24-paso-4-instalación-y-configuración-del-clúster-k3s">Paso 4: Instalación y Configuración del Clúster K3s</a><br />
-   - 2.5. <a href="#25-paso-5-etiquetado-de-nodos-para-enrutamiento-físico">Paso 5: Etiquetado de Nodos para Enrutamiento Físico</a></li>
+   - 1.2. <a href="#12-justificaciones-teóricas-de-arquitectura-preguntas-de-jurado">Justificaciones Teóricas de Arquitectura (Preguntas de Jurado)</a><br />
+   - 1.3. <a href="#13-topología-de-red-y-arquitectura-de-cómputo-en-aws">Topología de Red y Arquitectura de Cómputo en AWS</a><br />
+   - 1.4. <a href="#14-matriz-maestra-de-parámetros-puertos-y-credenciales">Matriz Maestra de Parámetros, Puertos y Credenciales</a></li>
+<li><a href="#2-aprovisionamiento-automatizado-en-aws-con-user-data-cero-ssh-manual">Aprovisionamiento Automatizado en AWS con User Data (Cero SSH Manual)</a><br />
+   - 2.1. <a href="#21-qué-es-el-user-data-y-por-qué-automatiza-todo-el-despliegue">¿Qué es el User Data y por qué automatiza todo el despliegue?</a><br />
+   - 2.2. <a href="#22-paso-1-amazon-rds-microsoft-sql-server-2022">Paso 1: Amazon RDS Microsoft SQL Server 2022</a><br />
+   - 2.3. <a href="#23-paso-2-matriz-de-reglas-de-seguridad-security-groups-de-aws">Paso 2: Matriz de Reglas de Seguridad (Security Groups de AWS)</a><br />
+   - 2.4. <a href="#24-paso-3-servidor-mongodb-80-script-user-data-autoinstalable">Paso 3: Servidor MongoDB 8.0 (Script User Data Autoinstalable)</a><br />
+   - 2.5. <a href="#25-paso-4-servidor-k3s-master-script-user-data-autoinstalable">Paso 4: Servidor K3s Master (Script User Data Autoinstalable)</a><br />
+   - 2.6. <a href="#26-paso-5-workers-k3s-con-auto-etiquetado-scripts-user-data-para-los-3-nodos">Paso 5: Workers K3s con Auto-Etiquetado (Scripts User Data para los 3 Nodos)</a><br />
+   - 2.7. <a href="#27-método-alternativo-comandos-manuales-por-ssh-si-no-usas-user-data">Método Alternativo: Comandos Manuales por SSH (Si no usas User Data)</a></li>
 <li><a href="#3-empaquetado-de-contenedores-docker-hub-versión-oficial-20">Empaquetado de Contenedores Docker Hub (Versión Oficial 2.0)</a><br />
-   - 3.1. <a href="#31-estructura-de-imágenes-y-dockerfiles">Estructura de Imágenes y Dockerfiles</a><br />
+   - 3.1. <a href="#31-imágenes-oficiales-y-nginx-reverse-proxy">Imágenes Oficiales y Nginx Reverse Proxy</a><br />
    - 3.2. <a href="#32-scripts-de-automatización-local-bat">Scripts de Automatización Local (.bat)</a></li>
 <li><a href="#4-manifiesto-maestro-de-kubernetes-y-despliegue-en-k3s">Manifiesto Maestro de Kubernetes y Despliegue en K3s</a><br />
    - 4.1. <a href="#41-manifiesto-completo-todo-en-uno-agropacayales-k8s-all-in-oneyml">Manifiesto Completo Todo-en-Uno (<code>agropacayales-k8s-all-in-one.yml</code>)</a><br />
-   - 4.2. <a href="#42-comandos-de-despliegue-y-verificación-en-aws">Comandos de Despliegue y Verificación en AWS</a></li>
+   - 4.2. <a href="#42-comandos-de-despliegue-y-verificación-en-el-master">Comandos de Despliegue y Verificación en el Master</a></li>
 <li><a href="#5-guía-exhaustiva-de-pruebas-en-swagger-ui-backend-1---spring-boot">Guía Exhaustiva de Pruebas en Swagger UI (Backend 1 - Spring Boot)</a><br />
    - 5.1. <a href="#51-acceso-al-portal-interactivo-swagger-ui">Acceso al Portal Interactivo Swagger UI</a><br />
    - 5.2. <a href="#52-módulo-de-parcelas-apiparcelas--mongodb-plots">Módulo de Parcelas (<code>/api/parcelas</code> — MongoDB <code>plots</code>)</a><br />
@@ -272,22 +272,16 @@ Este documento constituye la <strong>única fuente de verdad</strong> del proyec
 <li><strong>Paginación Dinámica:</strong> Selector de 10, 25, 50, 100, 200 y 500 registros para auditar el 100% de la base de datos sin truncar información.</li>
 </ol>
 <hr />
-<h3>1.2. ¿Por qué Persistencia Políglota? (MongoDB + SQL Server)</h3>
-<blockquote>
-<p><strong>Pregunta de Sustentación:</strong> <em>¿Por qué decidieron utilizar dos motores de bases de datos en lugar de guardar todo en una sola base de datos relacional?</em></p>
-</blockquote>
+<h3>1.2. Justificaciones Teóricas de Arquitectura (Preguntas de Jurado)</h3>
+<h4>Pregunta 1: ¿Por qué Persistencia Políglota (MongoDB + SQL Server)?</h4>
 <ul>
 <li><strong>MongoDB 8.0 (NoSQL Documental — <code>plots</code>, <code>supplies</code>, <code>users</code>, <code>field_records</code>):</strong></li>
-<li><strong>Flexibilidad Edafológica:</strong> Cada lote o parcela agrícola presenta variables dispares (análisis de textura, pH, materia orgánica, capacidad de intercambio catiónico) y sistemas de riego heterogéneos (caudales en L/h, emisores por pulso, válvulas de sector). Forzar este modelo en tablas relacionales exigiría decenas de tablas intermedias con <code>JOINs</code> costosos.</li>
+<li><strong>Flexibilidad Edafológica:</strong> Cada lote agrícola presenta variables dispares (análisis de textura, pH, materia orgánica) y sistemas de riego heterogéneos (caudales en L/h, emisores por pulso, válvulas de sector). En tablas relacionales exigiría decenas de tablas intermedias con <code>JOINs</code> innecesarios.</li>
 <li><strong>Subdocumentos Embebidos y Lectura Atómica:</strong> Al consultar una parcela o una ficha de campo, el cliente web o móvil obtiene en <strong>un solo viaje de red (Single Round-Trip)</strong> la información agronómica, las condiciones de suelo y el sistema de riego sin saturar el canal de comunicación.</li>
 <li><strong>Amazon RDS SQL Server 2022 (Relacional ACID — <code>harvests</code>, <code>activities</code>, <code>crops</code>, <code>plot_assignments</code>):</strong></li>
-<li><strong>Integridad Transaccional y Financiera:</strong> Las cosechas implican pesajes, mermas y liquidaciones comerciales. Las labores de campo conllevan deducción de inventario y costos de mano de obra devengada. Un motor relacional garantiza consistencia estricta (<strong>ACID</strong>) para que ninguna cosecha o actividad quede huérfana o con balances contables descuadrados.</li>
+<li><strong>Integridad Transaccional y Financiera:</strong> Las cosechas implican pesajes, mermas y balances contables. Las labores de campo conllevan deducción de inventario y costos devengados. Un motor relacional garantiza consistencia estricta (<strong>ACID</strong>) para que ninguna cosecha o labor quede huérfana o con balances contables descuadrados.</li>
 </ul>
-<hr />
-<h3>1.3. ¿Por qué Spring Boot WebFlux Reactivo Asíncrono?</h3>
-<blockquote>
-<p><strong>Pregunta de Sustentación:</strong> <em>¿Cuál es la diferencia entre Spring MVC tradicional y Spring WebFlux en este proyecto?</em></p>
-</blockquote>
+<h4>Pregunta 2: ¿Por qué Spring Boot WebFlux Reactivo Asíncrono?</h4>
 <ul>
 <li><strong>Arquitectura Basada en Event Loop (Netty):</strong> A diferencia de Spring MVC tradicional que utiliza un hilo por petición (<em>Thread-per-Request</em> sobre Tomcat, donde 200 peticiones consumen 200 MB de stack), <strong>Spring WebFlux opera sobre un bucle de eventos no bloqueante</strong>.</li>
 <li><strong>Consumo Mínimo de Recursos:</strong> Toda la JVM de Spring WebFlux corre con un consumo estable de <strong>~250 MB de RAM</strong>, permitiendo que miles de operarios y usuarios web consulten datos concurrentemente sin degradación.</li>
@@ -295,17 +289,13 @@ Este documento constituye la <strong>única fuente de verdad</strong> del proyec
 <li><code>Mono&lt;T&gt;</code>: Retorna 0 o 1 elemento de forma asíncrona (usado en búsquedas por ID, guardado o actualización).</li>
 <li><code>Flux&lt;T&gt;</code>: Emite una secuencia de 0 a N elementos como flujo continuo no bloqueante (usado en listados y catálogos).</li>
 </ul>
-<hr />
-<h3>1.4. ¿Por qué NodePorts 30000-30002 y no LoadBalancer externo?</h3>
-<blockquote>
-<p><strong>Pregunta de Sustentación:</strong> <em>¿Por qué utilizaron el tipo de servicio NodePort para exponer las aplicaciones en AWS?</em></p>
-</blockquote>
+<h4>Pregunta 3: ¿Por qué NodePorts 30000-30002 y no LoadBalancer externo?</h4>
 <ol>
 <li><strong>Eficiencia de Costos en la Nube:</strong> Un recurso <code>LoadBalancer</code> en AWS aprovisiona un Classic / Network Load Balancer que genera un costo fijo por hora ($0.0225/hora + LCU). Con <strong>NodePort</strong>, se aprovecha la infraestructura nativa de K3s sin costos ocultos.</li>
-<li><strong>K3s Kube-Proxy &amp; Service Routing:</strong> K3s abre el puerto (<code>30000</code>, <code>30001</code>, <code>30002</code>) en <strong>todas las interfaces de red de todos los nodos del clúster</strong>. Esto significa que cualquier solicitud enviada a la IP pública de cualquier nodo es redirigida internamente por iptables/IPVS hacia el pod correspondiente, garantizando alta disponibilidad.</li>
+<li><strong>K3s Kube-Proxy &amp; Service Routing:</strong> K3s abre el puerto (<code>30000</code>, <code>30001</code>, <code>30002</code>) en <strong>todas las interfaces de red de todos los nodos del clúster</strong>. Cualquier solicitud enviada a la IP pública de cualquier nodo es redirigida internamente por iptables/IPVS hacia el pod correspondiente, garantizando alta disponibilidad.</li>
 </ol>
 <hr />
-<h3>1.5. Topología de Red y Arquitectura de Cómputo en AWS</h3>
+<h3>1.3. Topología de Red y Arquitectura de Cómputo en AWS</h3>
 <pre class="codehilite"><code>                            USUARIO EXTERNO / DOCENTE / EVALUADOR
                                              |
           +----------------------------------+----------------------------------+
@@ -346,7 +336,7 @@ http://IP_PUB_NODE:30000          http://IP_PUB_NODE:30001          http://IP_PU
 </code></pre>
 
 <hr />
-<h3>1.6. Matriz Maestra de Parámetros, Puertos y Credenciales</h3>
+<h3>1.4. Matriz Maestra de Parámetros, Puertos y Credenciales</h3>
 <table>
 <thead>
 <tr>
@@ -426,104 +416,44 @@ http://IP_PUB_NODE:30000          http://IP_PUB_NODE:30001          http://IP_PU
 </tbody>
 </table>
 <hr />
-<h2>2. Aprovisionamiento de Infraestructura en AWS (Paso a Paso)</h2>
-<h3>2.1. Paso 1: Amazon RDS Microsoft SQL Server 2022</h3>
+<h2>2. Aprovisionamiento Automatizado en AWS con User Data (Cero SSH Manual)</h2>
+<h3>2.1. ¿Qué es el User Data y por qué automatiza todo el despliegue?</h3>
+<p>En AWS EC2, <strong>User Data</strong> (<code>cloud-init</code>) es una funcionalidad que permite ejecutar un script Bash con privilegios de <code>root</code> automáticamente durante el primer encendido de la máquina.<br />
+- <strong>¿Por qué es superior?</strong><br />
+  1. <strong>Ahorro masivo de tiempo:</strong> No tienes que conectarte por SSH a 4 terminales diferentes a escribir comandos.<br />
+  2. <strong>Cero errores humanos:</strong> Elimina el riesgo de equivocarse escribiendo una ruta o contraseña.<br />
+  3. <strong>Demostración de madurez DevOps:</strong> El jurado valora enormemente el aprovisionamiento automatizado tipo <em>Infrastructure as Code</em>.</p>
+<blockquote>
+<p><strong>¿Dónde se coloca en AWS?</strong><br />
+Al momento de lanzar cada instancia EC2, ve a la sección inferior:<br />
+<strong>Detalles avanzados (Advanced Details)</strong> ➔ baja hasta el último cuadro: <strong>Datos del usuario (User data)</strong> ➔ <strong>Pega el script correspondiente</strong>.</p>
+</blockquote>
+<hr />
+<h3>2.2. Paso 1: Amazon RDS Microsoft SQL Server 2022</h3>
 <blockquote>
 <p>[!TIP]<br />
-Inicia este paso primero porque AWS toma entre 10 y 14 minutos en aprovisionar la instancia de base de datos relacional.</p>
+Inicia este paso primero porque AWS toma ~12 minutos en aprovisionar la instancia RDS.</p>
 </blockquote>
 <ol>
-<li>Abre la consola de <strong>AWS</strong> en la región <strong><code>us-east-1</code> (N. Virginia)</strong>.</li>
-<li>Navega a <strong>RDS</strong> ➔ <strong>Bases de datos</strong> ➔ botón <strong>Crear base de datos</strong>.</li>
-<li>Configura los siguientes parámetros exactos:<br />
+<li>En la consola de AWS (Región: <code>us-east-1</code>), ve a <strong>RDS</strong> ➔ <strong>Bases de datos</strong> ➔ botón naranja <strong>Crear base de datos</strong>.</li>
+<li><strong>Parámetros exactos:</strong><br />
    - <strong>Método de creación:</strong> Creación estándar.<br />
-   - <strong>Tipo de motor:</strong> Microsoft SQL Server.<br />
-   - <strong>Edición del motor:</strong> SQL Server Express Edition.<br />
+   - <strong>Motor:</strong> Microsoft SQL Server ➔ Edición: <strong>SQL Server Express Edition</strong>.<br />
    - <strong>Versión:</strong> SQL Server 2022 (16.00.xxxx).<br />
    - <strong>Identificador de base de datos:</strong> <code>agropacayales-sqlserver</code>.<br />
-   - <strong>Nombre de usuario maestro:</strong> <code>admin</code>.<br />
+   - <strong>Usuario maestro:</strong> <code>admin</code>.<br />
    - <strong>Contraseña maestra:</strong> <code>AgroPacayales2026!</code>.<br />
-   - <strong>Configuración de instancia:</strong> <code>db.t3.micro</code> (1 vCPU, 1 GB RAM).<br />
-   - <strong>Almacenamiento:</strong> General Purpose SSD (gp2), 20 GiB, desactivar escalado automático.<br />
-   - <strong>Conectividad:</strong> VPC por defecto, Acceso público: <strong>Sí</strong> (para administración inicial desde SSMS), Grupo de seguridad: Crear nuevo <code>rds-sg-agropacayales</code> con puerto <code>1433</code>.</li>
-<li>Una vez creada y en estado <strong>Disponible</strong>, copia el <strong>Endpoint de conexión</strong> (ej: <code>agropacayales-sqlserver.c3...us-east-1.rds.amazonaws.com</code>).</li>
-<li>Abre <strong>SQL Server Management Studio (SSMS)</strong> desde tu laptop, conéctate con usuario <code>admin</code> y ejecuta:<br />
+   - <strong>Clase de instancia:</strong> <code>db.t3.micro</code> (1 vCPU, 1 GB RAM).<br />
+   - <strong>Almacenamiento:</strong> General Purpose SSD (gp2), 20 GiB (desactivar auto-escalado).<br />
+   - <strong>Conectividad:</strong> VPC por defecto, Acceso público: <strong>Sí</strong> (para conectarte desde SSMS), Grupo de seguridad: Crear nuevo <code>rds-sg</code> con puerto <code>1433</code>.</li>
+<li>Una vez en estado <strong>Disponible</strong>, copia el <strong>Endpoint de conexión</strong> (ej: <code>agropacayales-sqlserver.c3...us-east-1.rds.amazonaws.com</code>).</li>
+<li>Conéctate desde SQL Server Management Studio (SSMS) con usuario <code>admin</code> y ejecuta:<br />
 <code>sql
    CREATE DATABASE agropacayales_db;
    GO</code></li>
 </ol>
 <hr />
-<h3>2.2. Paso 2: Servidor MongoDB 8.0 en Amazon EC2 Dedicado</h3>
-<ol>
-<li>En la consola EC2, lanza una instancia con los siguientes datos:<br />
-   - <strong>Nombre:</strong> <code>ec2-mongodb-agropacayales</code><br />
-   - <strong>AMI:</strong> Ubuntu Server 24.04 LTS (HVM), SSD Volume Type (64-bit x86).<br />
-   - <strong>Tipo de instancia:</strong> <code>t3.small</code> (2 vCPU, 2 GB RAM).<br />
-   - <strong>Almacenamiento:</strong> 15 GiB gp3.<br />
-   - <strong>Security Group:</strong> <code>mongodb-sg</code> con puertos <code>22</code> (SSH) y <code>27017</code> (MongoDB).</li>
-<li>Conéctate por SSH:<br />
-<code>bash
-   ssh -i "tu-llave.pem" ubuntu@&lt;IP_PUBLICA_MONGO&gt;</code></li>
-<li>Ejecuta el script de instalación oficial de MongoDB 8.0:<br />
-   ```bash<br />
-   # 1. Instalar dependencias y llave GPG<br />
-   sudo apt-get update &amp;&amp; sudo apt-get install -y gnupg curl<br />
-   curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | \<br />
-     sudo gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg --dearmor --yes</li>
-</ol>
-<p># 2. Agregar repositorio oficial<br />
-   echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" | \<br />
-     sudo tee /etc/apt/sources.list.d/mongodb-org-8.0.list</p>
-<p># 3. Instalar paquetes de MongoDB<br />
-   sudo apt-get update<br />
-   sudo apt-get install -y mongodb-org</p>
-<p># 4. Iniciar y habilitar servicio<br />
-   sudo systemctl start mongod<br />
-   sudo systemctl enable mongod<br />
-   sudo systemctl status mongod<br />
-   ```</p>
-<ol start="4">
-<li><strong>Crear usuario administrador en MongoDB:</strong><br />
-<code>bash
-   mongosh</code><br />
-   Dentro de la consola <code>mongosh</code>:<br />
-   ```javascript<br />
-   use admin<br />
-   db.createUser({<br />
-     user: "admin",<br />
-     pwd: "Mongo12345",<br />
-     roles: [<br />
-       { role: "userAdminAnyDatabase", db: "admin" },<br />
-       { role: "readWriteAnyDatabase", db: "admin" },<br />
-       { role: "dbAdminAnyDatabase", db: "admin" }<br />
-     ]<br />
-   })</li>
-</ol>
-<p>use agropacayales_db<br />
-   db.createUser({<br />
-     user: "admin",<br />
-     pwd: "Mongo12345",<br />
-     roles: [{ role: "readWrite", db: "agropacayales_db" }]<br />
-   })<br />
-   exit<br />
-   ```</p>
-<ol start="5">
-<li><strong>Habilitar acceso de red y autenticación en <code>/etc/mongod.conf</code>:</strong><br />
-<code>bash
-   sudo nano /etc/mongod.conf</code><br />
-   Ajusta las siguientes secciones exactas:<br />
-   ```yaml<br />
-   net:<br />
-     port: 27017<br />
-     bindIp: 0.0.0.0</li>
-</ol>
-<p>security:<br />
-     authorization: enabled<br />
-<code>Guarda (`Ctrl + O`, `Enter`) y sal (`Ctrl + X`). Reinicia el servicio:</code>bash<br />
-   sudo systemctl restart mongod<br />
-   ```</p>
-<hr />
-<h3>2.3. Paso 3: Matriz de Reglas de Seguridad (Security Groups de AWS)</h3>
+<h3>2.3. Paso 2: Matriz de Reglas de Seguridad (Security Groups de AWS)</h3>
 <p>En la consola de AWS EC2 ➔ <strong>Security Groups</strong> ➔ <strong>Reglas de entrada (Inbound Rules)</strong>:</p>
 <table>
 <thead>
@@ -588,76 +518,179 @@ Inicia este paso primero porque AWS toma entre 10 y 14 minutos en aprovisionar l
 </tbody>
 </table>
 <hr />
-<h3>2.4. Paso 4: Instalación y Configuración del Clúster K3s</h3>
-<p>Lanza 4 instancias EC2 (<code>Ubuntu 24.04 LTS</code>):<br />
-- <code>k8s-master</code> (Control Plane — <code>t3.small</code>)<br />
-- <code>k8s-node-frontend</code> (Worker 1 — <code>t3.small</code>)<br />
-- <code>k8s-node-backend</code> (Worker 2 — <code>t3.medium</code>)<br />
-- <code>k8s-node-backendAnalitico</code> (Worker 3 — <code>t3.small</code>)</p>
-<h4>En el Nodo Master (<code>k8s-master</code>):</h4>
-<pre class="codehilite"><code class="language-bash"># 1. Instalar K3s Server definiendo token fijo
-curl -sfL https://get.k3s.io | K3S_TOKEN=&quot;agropacayales-token-2026&quot; sh -s - server \
-  --disable traefik \
-  --disable servicelb \
-  --node-name k8s-master
+<h3>2.4. Paso 3: Servidor MongoDB 8.0 (Script User Data Autoinstalable)</h3>
+<p>Al lanzar la instancia <code>ec2-mongodb-agropacayales</code> (<code>t3.small</code>, Ubuntu 24.04 LTS, SG: <code>mongodb-sg</code>):<br />
+Pega este script en <strong>Datos del usuario (User data)</strong>. La máquina arrancará con MongoDB 8.0 instalado, configurado con <code>bindIp: 0.0.0.0</code>, autenticación activada y los usuarios <code>admin</code> creados:</p>
+<pre class="codehilite"><code class="language-bash">#!/bin/bash
+set -e
+exec &gt; /var/log/user-data.log 2&gt;&amp;1
 
-# 2. Configurar permisos para ejecutar kubectl sin sudo
-mkdir -p ~/.kube
-sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
-sudo chown $(id -u):$(id -g) ~/.kube/config
-echo &quot;export KUBECONFIG=~/.kube/config&quot; &gt;&gt; ~/.bashrc
-source ~/.bashrc
+echo &quot;Iniciando aprovisionamiento automatizado de MongoDB 8.0...&quot;
 
-# 3. Verificar que el master esté listo
-kubectl get nodes
-</code></pre>
+# 1. Dependencias y llave GPG oficial
+apt-get update -y
+apt-get install -y gnupg curl
 
-<h4>En los 3 Nodos Workers (Ejecutar en cada uno):</h4>
-<blockquote>
-<p>Reemplaza <code>&lt;IP_PRIVADA_MASTER&gt;</code> por la IP interna del Master (ej: <code>172.31.21.112</code>).</p>
-</blockquote>
-<pre class="codehilite"><code class="language-bash">curl -sfL https://get.k3s.io | K3S_URL=https://&lt;IP_PRIVADA_MASTER&gt;:6443 \
-  K3S_TOKEN=&quot;agropacayales-token-2026&quot; sh -
+curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | \
+  gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg --dearmor --yes
+
+echo &quot;deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse&quot; | \
+  tee /etc/apt/sources.list.d/mongodb-org-8.0.list
+
+apt-get update -y
+apt-get install -y mongodb-org
+
+# 2. Iniciar servicio sin autenticacion para crear credenciales iniciales
+systemctl start mongod
+systemctl enable mongod
+
+until mongosh --eval &quot;db.adminCommand('ping')&quot; &gt; /dev/null 2&gt;&amp;1; do
+  sleep 2
+done
+
+# 3. Crear usuario administrador del cluster
+mongosh admin --eval '
+db.createUser({
+  user: &quot;admin&quot;,
+  pwd: &quot;Mongo12345&quot;,
+  roles: [
+    { role: &quot;userAdminAnyDatabase&quot;, db: &quot;admin&quot; },
+    { role: &quot;readWriteAnyDatabase&quot;, db: &quot;admin&quot; },
+    { role: &quot;dbAdminAnyDatabase&quot;, db: &quot;admin&quot; }
+  ]
+});
+'
+
+# 4. Crear usuario de la base de datos de aplicacion
+mongosh agropacayales_db --eval '
+db.createUser({
+  user: &quot;admin&quot;,
+  pwd: &quot;Mongo12345&quot;,
+  roles: [{ role: &quot;readWrite&quot;, db: &quot;agropacayales_db&quot; }]
+});
+'
+
+# 5. Habilitar bindIp 0.0.0.0 y seguridad en /etc/mongod.conf
+cat &lt;&lt; 'EOF' &gt; /etc/mongod.conf
+storage:
+  dbPath: /var/lib/mongodb
+systemLog:
+  destination: file
+  logAppend: true
+  path: /var/log/mongodb/mongod.log
+net:
+  port: 27017
+  bindIp: 0.0.0.0
+processManagement:
+  timeZoneInfo: /usr/share/zoneinfo
+security:
+  authorization: enabled
+EOF
+
+# 6. Reiniciar servicio
+systemctl restart mongod
+echo &quot;MongoDB 8.0 instalado y securizado con exito.&quot;
 </code></pre>
 
 <hr />
-<h3>2.5. Paso 5: Etiquetado de Nodos para Enrutamiento Físico</h3>
-<p>En el nodo Master, ejecuta el etiquetado para que los deployments se anclen en los servidores designados:</p>
-<pre class="codehilite"><code class="language-bash"># 1. Identificar nombres de los nodos registrados
-kubectl get nodes
+<h3>2.5. Paso 4: Servidor K3s Master (Script User Data Autoinstalable)</h3>
+<p>Al lanzar la instancia <code>k8s-master</code> (<code>t3.small</code>, Ubuntu 24.04 LTS, SG: <code>k8s-cluster-sg</code>):<br />
+Pega este script en <strong>Datos del usuario (User data)</strong>. La máquina arrancará con K3s Server listo, token configurado (<code>agropacayales-token-2026</code>), permisos de <code>kubectl</code> listos para el usuario <code>ubuntu</code> y alias configurados:</p>
+<pre class="codehilite"><code class="language-bash">#!/bin/bash
+set -e
+exec &gt; /var/log/user-data.log 2&gt;&amp;1
 
-# 2. Asignar etiquetas de rol de arquitectura
-kubectl label nodes &lt;NOMBRE_NODO_FRONTEND&gt; role=frontend --overwrite
+echo &quot;Iniciando instalacion automatizada de K3s Control Plane Master...&quot;
+
+# 1. Instalar K3s Server con token fijo
+curl -sfL https://get.k3s.io | K3S_TOKEN=&quot;agropacayales-token-2026&quot; sh -s - server \
+  --disable traefik \
+  --disable servicelb \
+  --node-name k8s-master \
+  --write-kubeconfig-mode 644
+
+# 2. Configurar kubeconfig para el usuario ubuntu
+mkdir -p /home/ubuntu/.kube
+cp /etc/rancher/k3s/k3s.yaml /home/ubuntu/.kube/config
+chown -R ubuntu:ubuntu /home/ubuntu/.kube
+
+# 3. Aliases y autocompletado
+echo &quot;export KUBECONFIG=/home/ubuntu/.kube/config&quot; &gt;&gt; /home/ubuntu/.bashrc
+echo &quot;alias k=kubectl&quot; &gt;&gt; /home/ubuntu/.bashrc
+echo &quot;complete -F __start_kubectl k&quot; &gt;&gt; /home/ubuntu/.bashrc
+
+echo &quot;K3s Master listo para recibir workers.&quot;
+</code></pre>
+
+<hr />
+<h3>2.6. Paso 5: Workers K3s con Auto-Etiquetado (Scripts User Data para los 3 Nodos)</h3>
+<blockquote>
+<p>[!IMPORTANT]<br />
+<strong>REEMPLAZO OBLIGATORIO:</strong> En los 3 scripts de abajo, reemplaza <code>&lt;IP_PRIVADA_MASTER&gt;</code> por la IP interna de tu nodo Master (ejemplo: <code>172.31.21.112</code>).<br />
+<strong>VENTAJA EXTRAORDINARIA:</strong> Gracias a la bandera <code>--node-label</code>, ¡los workers se unen al clúster <strong>ya etiquetados con su rol correspondiente</strong> automáticamente sin que tengas que ejecutar <code>kubectl label node</code>!</p>
+</blockquote>
+<h4>A) User Data para Worker 1: Frontend (<code>k8s-node-frontend</code> — <code>t3.small</code>)</h4>
+<pre class="codehilite"><code class="language-bash">#!/bin/bash
+set -e
+exec &gt; /var/log/user-data.log 2&gt;&amp;1
+
+curl -sfL https://get.k3s.io | K3S_URL=https://&lt;IP_PRIVADA_MASTER&gt;:6443 \
+  K3S_TOKEN=&quot;agropacayales-token-2026&quot; sh -s - agent \
+  --node-name k8s-node-frontend \
+  --node-label role=frontend
+</code></pre>
+
+<h4>B) User Data para Worker 2: Backend 1 WebFlux (<code>k8s-node-backend</code> — <code>t3.medium</code>)</h4>
+<pre class="codehilite"><code class="language-bash">#!/bin/bash
+set -e
+exec &gt; /var/log/user-data.log 2&gt;&amp;1
+
+curl -sfL https://get.k3s.io | K3S_URL=https://&lt;IP_PRIVADA_MASTER&gt;:6443 \
+  K3S_TOKEN=&quot;agropacayales-token-2026&quot; sh -s - agent \
+  --node-name k8s-node-backend \
+  --node-label role=backend1
+</code></pre>
+
+<h4>C) User Data para Worker 3: Backend 2 Analítico (<code>k8s-node-backendAnalitico</code> — <code>t3.small</code>)</h4>
+<pre class="codehilite"><code class="language-bash">#!/bin/bash
+set -e
+exec &gt; /var/log/user-data.log 2&gt;&amp;1
+
+curl -sfL https://get.k3s.io | K3S_URL=https://&lt;IP_PRIVADA_MASTER&gt;:6443 \
+  K3S_TOKEN=&quot;agropacayales-token-2026&quot; sh -s - agent \
+  --node-name k8s-node-backendAnalitico \
+  --node-label role=backend2
+</code></pre>
+
+<hr />
+<h3>2.7. Método Alternativo: Comandos Manuales por SSH (Si no usas User Data)</h3>
+<p>Si por alguna razón decides no usar User Data y prefieres ingresar por SSH:</p>
+<h4>En el Master:</h4>
+<pre class="codehilite"><code class="language-bash">curl -sfL https://get.k3s.io | K3S_TOKEN=&quot;agropacayales-token-2026&quot; sh -s - server \
+  --disable traefik \
+  --disable servicelb \
+  --node-name k8s-master
+mkdir -p ~/.kube &amp;&amp; sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config &amp;&amp; sudo chown $(id -u):$(id -g) ~/.kube/config
+echo &quot;export KUBECONFIG=~/.kube/config&quot; &gt;&gt; ~/.bashrc &amp;&amp; source ~/.bashrc
+</code></pre>
+
+<h4>En cada Worker:</h4>
+<pre class="codehilite"><code class="language-bash">curl -sfL https://get.k3s.io | K3S_URL=https://&lt;IP_PRIVADA_MASTER&gt;:6443 K3S_TOKEN=&quot;agropacayales-token-2026&quot; sh -
+</code></pre>
+
+<h4>Etiquetar desde el Master:</h4>
+<pre class="codehilite"><code class="language-bash">kubectl label nodes &lt;NOMBRE_NODO_FRONTEND&gt; role=frontend --overwrite
 kubectl label nodes &lt;NOMBRE_NODO_BACKEND1&gt; role=backend1 --overwrite
 kubectl label nodes &lt;NOMBRE_NODO_BACKEND2&gt; role=backend2 --overwrite
-
-# 3. Validar las etiquetas aplicadas
-kubectl get nodes --show-labels
 </code></pre>
 
 <hr />
 <h2>3. Empaquetado de Contenedores Docker Hub (Versión Oficial 2.0)</h2>
-<h3>3.1. Estructura de Imágenes y Dockerfiles</h3>
-<p>Todas las imágenes se encuentran empaquetadas en la versión oficial <code>2.0</code> en Docker Hub:<br />
+<h3>3.1. Imágenes Oficiales y Nginx Reverse Proxy</h3>
+<p>Todas las imágenes se encuentran subidas y verificadas en Docker Hub:<br />
 - <code>hugo454/agropacayales-frontend:2.0</code> (y <code>:latest</code>)<br />
 - <code>hugo454/agropacayales-backend1:2.0</code> (y <code>:latest</code>)<br />
 - <code>hugo454/agropacayales-backend-analitico:2.0</code> (y <code>:latest</code>)</p>
-<h4>Dockerfile del Frontend (<code>ASE251S3_T05-fe/Dockerfile</code>):</h4>
-<pre class="codehilite"><code class="language-dockerfile"># Multi-Stage Build: Node 20 para compilar y Nginx Alpine para servir
-FROM node:20-alpine AS builder
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
-RUN npm run build
-
-FROM nginx:alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
-CMD [&quot;nginx&quot;, &quot;-g&quot;, &quot;daemon off;&quot;]
-</code></pre>
-
 <h4>Nginx Reverse Proxy del Frontend (<code>ASE251S3_T05-fe/nginx.conf</code>):</h4>
 <pre class="codehilite"><code class="language-nginx">server {
     listen 80;
@@ -690,12 +723,9 @@ CMD [&quot;nginx&quot;, &quot;-g&quot;, &quot;daemon off;&quot;]
 
 <hr />
 <h3>3.2. Scripts de Automatización Local (.bat)</h3>
-<p>Si necesitas recompilar y subir las imágenes desde tu máquina con Docker Desktop:</p>
+<p>Ubicados en la raíz del repositorio para compilar y subir si realizas cambios locales:</p>
 <h4><code>build-all-images.bat</code>:</h4>
 <pre class="codehilite"><code class="language-cmd">@echo off
-echo ========================================================
-echo COMPILANDO IMAGENES DOCKER AGROPACAYALES 2.0
-echo ========================================================
 cd /d &quot;e:\Nueva carpeta (8)\tcc\ASE251S3_T05-fe&quot;
 docker build -t hugo454/agropacayales-frontend:2.0 -t hugo454/agropacayales-frontend:latest .
 
@@ -704,7 +734,6 @@ docker build -t hugo454/agropacayales-backend1:2.0 -t hugo454/agropacayales-back
 
 cd /d &quot;e:\Nueva carpeta (8)\tcc\ASE251S4_T05-be-analitico&quot;
 docker build -t hugo454/agropacayales-backend-analitico:2.0 -t hugo454/agropacayales-backend-analitico:latest .
-echo Compilacion exitosa.
 </code></pre>
 
 <h4><code>push-images-2.0.bat</code>:</h4>
@@ -715,13 +744,12 @@ docker push hugo454/agropacayales-backend1:2.0
 docker push hugo454/agropacayales-backend1:latest
 docker push hugo454/agropacayales-backend-analitico:2.0
 docker push hugo454/agropacayales-backend-analitico:latest
-echo Push a Docker Hub completado.
 </code></pre>
 
 <hr />
 <h2>4. Manifiesto Maestro de Kubernetes y Despliegue en K3s</h2>
 <h3>4.1. Manifiesto Completo Todo-en-Uno (<code>agropacayales-k8s-all-in-one.yml</code>)</h3>
-<p>Este archivo está disponible en <code>k8s-manifests/agropacayales-k8s-all-in-one.yml</code> o puedes crearlo directamente en el servidor Master:</p>
+<p>Disponible en el repositorio en <code>k8s-manifests/agropacayales-k8s-all-in-one.yml</code> o para copiar y pegar:</p>
 <pre class="codehilite"><code class="language-yaml"># ==============================================================================
 # AGROPACAYALES S.A.C. — MANIFIESTO MAESTRO KUBERNETES K3S (AWS)
 # ==============================================================================
@@ -917,15 +945,15 @@ spec:
 </code></pre>
 
 <hr />
-<h3>4.2. Comandos de Despliegue y Verificación en AWS</h3>
+<h3>4.2. Comandos de Despliegue y Verificación en el Master</h3>
 <p>En el nodo Master:</p>
 <pre class="codehilite"><code class="language-bash"># 1. Aplicar el manifiesto completo
 kubectl apply -f k8s-manifests/agropacayales-k8s-all-in-one.yml
 
-# 2. Monitorear el estado de arranque de los pods
+# 2. Monitorear los pods en tiempo real
 kubectl get pods -n agropacayales-namespace -o wide -w
 
-# 3. Verificar que los servicios NodePort estén activos
+# 3. Validar servicios NodePort activos
 kubectl get svc -n agropacayales-namespace
 </code></pre>
 
@@ -936,7 +964,6 @@ kubectl get svc -n agropacayales-namespace
 <li><strong>URL de Swagger:</strong><br />
 <code>text
   http://&lt;IP_PUBLICA_AWS&gt;:30001/webjars/swagger-ui/index.html</code></li>
-<li>Este portal interactivo permite ejecutar directamente peticiones HTTP a Spring Boot WebFlux sin necesidad de Postman.</li>
 </ul>
 <hr />
 <h3>5.2. Módulo de Parcelas (<code>/api/parcelas</code> — MongoDB <code>plots</code>)</h3>
@@ -988,10 +1015,10 @@ kubectl get svc -n agropacayales-namespace
 }
 </code></pre>
 
-<h4>C) <code>GET /api/parcelas</code> / <code>DELETE /api/parcelas/{id}</code></h4>
+<h4>C) <code>GET /api/parcelas</code> y <code>DELETE /api/parcelas/{id}</code></h4>
 <ul>
-<li><code>GET /api/parcelas</code>: Retorna el flujo JSON (<code>Flux&lt;Parcela&gt;</code>) de todos los lotes.</li>
-<li><code>DELETE /api/parcelas/PARC-NOR-999</code>: Elimina la parcela de MongoDB.</li>
+<li><code>GET /api/parcelas</code>: Retorna el flujo reactivo JSON (<code>Flux&lt;Parcela&gt;</code>).</li>
+<li><code>DELETE /api/parcelas/PARC-NOR-999</code>: Elimina la parcela de la base de datos.</li>
 </ul>
 <hr />
 <h3>5.3. Módulo de Insumos Agrícolas (<code>/api/insumos</code> — MongoDB <code>supplies</code>)</h3>
@@ -1159,13 +1186,10 @@ db.plots.insertOne({
 })
 
 // 2. READ (Listar y Filtrar)
-// Listar todas las parcelas activas
 db.plots.find({ estado: true })
-
-// Buscar la parcela creada por su clave primaria
 db.plots.find({ _id: &quot;PARC-NOR-999&quot; })
 
-// 3. UPDATE (Actualizar estado de riego y responsable)
+// 3. UPDATE (Actualizar estado de riego y observaciones)
 db.plots.updateOne(
   { _id: &quot;PARC-NOR-999&quot; },
   {
@@ -1177,8 +1201,7 @@ db.plots.updateOne(
   }
 )
 
-// 4. DELETE (Eliminación lógica o física)
-// Eliminación física:
+// 4. DELETE (Eliminación física)
 db.plots.deleteOne({ _id: &quot;PARC-NOR-999&quot; })
 </code></pre>
 
@@ -1198,14 +1221,13 @@ db.supplies.insertOne({
   createdAt: new Date()
 })
 
-// 2. READ
-// Buscar insumos con stock por debajo del mínimo (Alerta de Reabastecimiento)
+// 2. READ (Alerta de Stock Crítico)
 db.supplies.find({ $expr: { $lte: [&quot;$stock&quot;, &quot;$stockMinimo&quot;] } })
 
-// 3. UPDATE (Simular consumo de stock tras actividad de campo)
+// 3. UPDATE (Decrementar stock de forma atómica con $inc)
 db.supplies.updateOne(
   { _id: &quot;INS-FERT-999&quot; },
-  { $inc: { stock: -15.0 } } // Descuenta 15 litros atómicamente
+  { $inc: { stock: -15.0 } }
 )
 
 // 4. DELETE
@@ -1228,7 +1250,6 @@ db.users.insertOne({
 })
 
 // 2. READ
-// Buscar todos los agrónomos activos
 db.users.find({ rol: &quot;AGRONOMO&quot;, activo: true })
 
 // 3. UPDATE
@@ -1259,7 +1280,7 @@ db.field_records.insertOne({
   fechaRegistro: new Date()
 })
 
-// 2. READ (Última ficha de campo de un cultivo para el monitor fenológico)
+// 2. READ (Obtener última evaluación para el monitor fenológico)
 db.field_records.find({ nombreCultivo: &quot;Palta Hass&quot; }).sort({ fechaRegistro: -1 }).limit(1)
 </code></pre>
 
@@ -1271,7 +1292,7 @@ db.field_records.find({ nombreCultivo: &quot;Palta Hass&quot; }).sort({ fechaReg
 <code>text
   http://&lt;IP_PUBLICA_AWS&gt;:30002/api/v1/analytics/docs/</code></li>
 </ul>
-<h4>Endpoints Principales probables con <code>curl</code>:</h4>
+<h4>Comandos de prueba con <code>curl</code>:</h4>
 <pre class="codehilite"><code class="language-bash"># 1. Métricas de Rendimiento por Cultivo (ID 1)
 curl -s http://&lt;IP_PUBLICA_AWS&gt;:30002/api/v1/analytics/cultivo/1/metrics | jq .
 
