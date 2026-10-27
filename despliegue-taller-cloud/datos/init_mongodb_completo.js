@@ -139,8 +139,8 @@ db.createCollection('users', {
           enum: ['ADMIN', 'SUPERVISOR', 'OPERARIO', 'TECNICO', 'AGRONOMO'],
           description: 'Rol institucional restringido'
         },
-        fecha_nacimiento: { bsonType: 'string' },
-        fecha_contratacion: { bsonType: 'string' },
+        fecha_nacimiento: { bsonType: ['string', 'date'] },   // el backend (LocalDate) guarda tipo date; la carga inicial usa texto
+        fecha_contratacion: { bsonType: ['string', 'date'] },
         estado: { bsonType: 'bool' },
         created_at: { bsonType: 'date' }
       }
