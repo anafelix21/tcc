@@ -29,7 +29,7 @@ public class Parcela {
     private String id;
 
     @NotBlank(message = "El nombre de la parcela es obligatorio.")
-    @Size(max = 100, message = "El nombre no puede superar los 100 caracteres.")
+    @Size(min = 3, max = 100, message = "El nombre de la parcela debe tener entre 3 y 100 caracteres.")
     @Field("nombre")
     private String nombre;
 

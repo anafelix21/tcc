@@ -1,5 +1,6 @@
 package Agropacayales.valleGrande.exception;
 
+import Agropacayales.valleGrande.util.MongoValidacionUtil;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -80,6 +81,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public Mono<ResponseEntity<Map<String, Object>>> handleGeneralException(Exception ex) {
+        if (MongoValidacionUtil.esValidacionMongo(ex)) {
+            Map<String, Object> body = new HashMap<>();
+            body.put("timestamp", LocalDateTime.now());
+            body.put("status", HttpStatus.BAD_REQUEST.value());
+            body.put("error", "Error de validación de la base de datos");
+            body.put("message", MongoValidacionUtil.traducir(ex));
+
+            return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body));
+        }
+
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", HttpStatus.INTERNAL_SERVER_ERROR.value());

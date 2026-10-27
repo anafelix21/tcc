@@ -30,12 +30,12 @@ public class Usuario {
     private String id;
 
     @NotBlank(message = "El nombre es obligatorio.")
-    @Size(max = 100, message = "El nombre no puede superar los 100 caracteres.")
+    @Size(min = 2, max = 80, message = "El nombre debe tener entre 2 y 80 caracteres.")
     @Field("nombre")
     private String nombre;
 
     @NotBlank(message = "El apellido es obligatorio.")
-    @Size(max = 100, message = "El apellido no puede superar los 100 caracteres.")
+    @Size(min = 2, max = 80, message = "El apellido debe tener entre 2 y 80 caracteres.")
     @Field("apellido")
     private String apellido;
 

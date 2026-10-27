@@ -310,6 +310,19 @@ Qué pasa solo al encender:
 mongosh "mongodb://admin:Mongo12345@localhost:27017/agropacayales_db?authSource=admin" --quiet --eval 'const v=db.getCollectionInfos({name:"users"})[0].options.validator; v.$jsonSchema.properties.fecha_nacimiento.bsonType=["string","date"]; v.$jsonSchema.properties.fecha_contratacion.bsonType=["string","date"]; printjson(db.runCommand({collMod:"users", validator:v}))'
 ```
 
+**Actualizar el Backend 1 en un despliegue YA levantado** (después de publicar una imagen nueva; en despliegues nuevos no hace falta). En `cc-backends` → **Connect → EC2 Instance Connect** (conserva todas las conexiones y contraseñas del contenedor):
+```bash
+IMG=anafelixmendoza21/agropacayales-cc-backend:1.0; sudo docker pull -q $IMG; E=$(sudo docker inspect backend-transaccional --format '{{range .Config.Env}}{{printf "%q\n" .}}{{end}}' | grep -vE '^$|^"(PATH|JAVA_|LANG|LC_|HOME|HOSTNAME)' | sed 's/^/-e /' | tr '\n' ' '); sudo docker rm -f backend-transaccional && eval "sudo docker run -d --name backend-transaccional --network agro-net --restart always -p 8081:8081 $E $IMG" && echo ACTUALIZADO
+```
+
+**Login de la app móvil / web con usuarios del CSV** (`Correo o contraseña incorrectos`): el usuario **no existe** si la importación de `usuarios.csv` falló (en MongoDB anteriores al 27/10/2026 fallaba por las fechas). Solución: ejecutar el comando de fechas de arriba ⬆️ → volver a importar `usuarios.csv` (`POST /api/usuarios/importar/csv`, debe decir `importados: 12`) → iniciar sesión.
+
+| Usuario para iniciar sesión | Contraseña | Rol | Origen |
+| :-- | :-- | :-- | :-- |
+| `ana@agro.com` | `Password123!` | ADMIN | Carga inicial (siempre existe) |
+| `elena.flores@agropacayales.com` | `Pass123!` | ADMIN | `usuarios.csv` (después de importar) |
+| `carlos.mendoza@agropacayales.com` | `Pass123!` | ADMIN | `usuarios.csv` (después de importar) |
+
 ---
 
 ## Credenciales (ya están dentro del script)

@@ -48,6 +48,9 @@ public class UsuarioServiceImpl implements UsuarioService {
         if (usuario.getCorreo() == null || usuario.getCorreo().isBlank()) {
             return Mono.error(new BusinessValidationException("El correo del usuario es obligatorio."));
         }
+        if (usuario.getPassword() == null || usuario.getPassword().trim().length() < 6) {
+            return Mono.error(new BusinessValidationException("La contraseña es obligatoria y debe tener al menos 6 caracteres."));
+        }
 
         String correoTrimmed = usuario.getCorreo().trim();
         usuario.setCorreo(correoTrimmed);
@@ -92,6 +95,9 @@ public class UsuarioServiceImpl implements UsuarioService {
                                 existente.setApellido(datos.getApellido());
                                 existente.setCorreo(correoTrimmed);
                                 if (datos.getPassword() != null && !datos.getPassword().trim().isEmpty()) {
+                                    if (datos.getPassword().trim().length() < 6) {
+                                        return Mono.error(new BusinessValidationException("La contraseña debe tener al menos 6 caracteres."));
+                                    }
                                     existente.setPassword(datos.getPassword().trim());
                                 }
                                 existente.setRol(datos.getRol());
