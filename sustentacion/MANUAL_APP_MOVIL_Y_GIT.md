@@ -67,14 +67,31 @@ cd ASE251S4_T05-mo
 > Usa una carpeta **corta y sin espacios ni tildes** (`C:\dev`). Las rutas largas de OneDrive o "Imágenes" dan errores de *Filename too long* y npm falla.
 
 ### 2.2 Si NO puedes clonar → descargar ZIP
-1. Abre https://github.com/vallegrande/ASE251S4_T05-mo
-2. Arriba a la izquierda cambia la rama de **`main`** a **`develop`** ⚠️ (si bajas `main` solo viene el README).
-3. Botón verde **Code → Download ZIP**.
-4. Extrae el ZIP en `C:\dev\` (no en Descargas ni en OneDrive).
-5. Entra a la carpeta extraída (se llama `ASE251S4_T05-mo-develop`):
+
+⚠️ Los repos del equipo (`vallegrande/ASE251S4_T05-mo`, `-be`, `_ba`) son **privados**: sin iniciar sesión GitHub responde **404 "Not Found"**, también para el ZIP. Para el ZIP **no hacen falta credenciales de Git**, pero sí iniciar sesión **en el navegador**. Elige una opción:
+
+**Opción A — ZIP del repo del equipo (con sesión solo en el navegador)**
+1. Abre una **ventana de incógnito** (`Ctrl + Shift + N`), así no queda tu sesión guardada en la PC.
+2. Entra a https://github.com/login con tu cuenta.
+3. Abre https://github.com/vallegrande/ASE251S4_T05-mo
+4. Arriba a la izquierda cambia la rama de **`main`** a **`develop`** ⚠️ (si bajas `main` solo viene el README).
+5. Botón verde **Code → Download ZIP**.
+6. Cierra la ventana de incógnito (se cierra tu sesión).
+7. Extrae el ZIP en `C:\dev\` (no en Descargas ni en OneDrive) y entra a la carpeta:
 ```bash
 cd C:/dev/ASE251S4_T05-mo-develop
 ```
+
+**Opción B — ZIP de tu repo público `tcc` (sin iniciar sesión)**
+1. Abre https://github.com/anafelix21/tcc → **Code → Download ZIP** (no pide cuenta).
+2. Extrae en `C:\dev\` y entra a la carpeta de la app móvil:
+```bash
+cd C:/dev/tcc-main/ASE251S4_T05-mobile
+```
+> Es el mismo código que está en `develop` del repo del equipo. Trae un `.env`: revisa la IP (paso 3).
+
+**Opción C — USB o Drive**
+Copia la carpeta del proyecto **sin `node_modules`** (pesa mucho y se reinstala) y en la otra PC ejecuta el paso 2.3.
 
 ### 2.3 Si quedaron cosas antiguas y no deja ejecutar (limpieza total)
 Pasa cuando copias una carpeta vieja, cambias de versión o se cortó un `npm install`. Borra lo generado y vuelve a instalar:
