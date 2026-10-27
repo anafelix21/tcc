@@ -1,6 +1,0 @@
-@import "../../fichas-campo/pages/fichas-campo.component.css";
-
-/* Estilos específicos de Kardex */
-table strong {
-  font-weight: 700;
-}

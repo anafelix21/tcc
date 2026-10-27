@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
-import { Stack } from 'expo-router';
+import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { router, Stack } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { actividadOperarioService } from '../../services/crudService';
 import { useCarga } from '../../hooks/useCarga';
@@ -13,8 +13,10 @@ import { soles } from '../../utils/formato';
 
 export default function MisLaboresScreen() {
   const { usuario } = useAuth();
-  const [filtro, setFiltro] = useState<'pendientes' | 'culminadas' | 'todas'>('pendientes');
+  const [filtro, setFiltro] = useState<'pendientes' | 'en_proceso' | 'culminadas' | 'todas'>('pendientes');
   const [finalizandoId, setFinalizandoId] = useState<number | null>(null);
+  // Estado local para seguimiento en vivo del flujo de operario: 'pendiente' | 'en_proceso' | 'completado'
+  const [estadosLabor, setEstadosLabor] = useState<Record<number, 'pendiente' | 'en_proceso' | 'completado'>>({});
 
   const { datos, cargando, error, recargar } = useCarga(
     () => actividadOperarioService.listarMisLabores(usuario?.id),
@@ -22,9 +24,40 @@ export default function MisLaboresScreen() {
   );
 
   const lista = datos ?? [];
+
+  const getEstadoLabor = (item: any): 'pendiente' | 'en_proceso' | 'completado' => {
+    if (item.completado) return 'completado';
+    return estadosLabor[item.idActividad] || 'pendiente';
+  };
+
+  const cambiarEstado = async (item: any, nuevoEstado: 'pendiente' | 'en_proceso' | 'completado') => {
+    const estadoActual = getEstadoLabor(item);
+    if (estadoActual === nuevoEstado) return;
+
+    if (nuevoEstado === 'completado') {
+      await finalizar(item);
+      return;
+    }
+
+    // Actualizar estado local en vivo (ej. En Proceso o Pendiente)
+    setEstadosLabor((prev) => ({
+      ...prev,
+      [item.idActividad]: nuevoEstado,
+    }));
+
+    if (nuevoEstado === 'en_proceso') {
+      avisar(
+        'Labor En Proceso',
+        `Ha iniciado la labor "${item.tipoActividad}" en el lote/cultivo "${item.nombreCultivo ?? 'de campo'}". Recuerde finalizarla al terminar la jornada.`
+      );
+    }
+  };
+
   const filtrados = lista.filter((a: any) => {
-    if (filtro === 'pendientes') return !a.completado;
-    if (filtro === 'culminadas') return a.completado;
+    const st = getEstadoLabor(a);
+    if (filtro === 'pendientes') return st === 'pendiente';
+    if (filtro === 'en_proceso') return st === 'en_proceso';
+    if (filtro === 'culminadas') return st === 'completado';
     return true;
   });
 
@@ -39,6 +72,7 @@ export default function MisLaboresScreen() {
     setFinalizandoId(id);
     try {
       await actividadOperarioService.finalizarLabor(id);
+      setEstadosLabor((prev) => ({ ...prev, [id]: 'completado' }));
       avisar(
         'Labor completada con éxito',
         'La labor fue registrada como finalizada y el inventario de insumos fue actualizado automáticamente en el sistema.'
@@ -58,7 +92,7 @@ export default function MisLaboresScreen() {
           title: 'Mis Labores de Campo',
           headerBackTitle: 'Inicio',
           headerRight: () => (
-            <View style={{ marginRight: 8 }}>
+            <View style={{ marginRight: 8, flexDirection: 'row', alignItems: 'center', gap: 10 }}>
               <Icono name="checkmark-done-circle-outline" size={24} color={colors.white} />
             </View>
           ),
@@ -70,22 +104,41 @@ export default function MisLaboresScreen() {
           <Icono name="person-circle-outline" size={28} color={colors.primary} />
           <View style={{ flex: 1 }}>
             <Text style={styles.perfilNombre}>{usuario ? usuario.nombre : 'Operario de Campo'}</Text>
-            <Text style={styles.perfilSub}>Tareas de campo asignadas para hoy</Text>
+            <Text style={styles.perfilSub}>Flujo Diario del Operario · Tareas asignadas</Text>
           </View>
+          {/* Botón directo a Nueva Ficha de Campo */}
+          <Boton
+            compacto
+            titulo="+ Ficha"
+            variante="primario"
+            icono="add-circle-outline"
+            onPress={() => router.push('/fichas-campo/formulario')}
+          />
         </View>
 
-        {/* Selector de Pestañas */}
+        {/* Selector de Pestañas Flujo Operario */}
         <View style={styles.chipsFiltro}>
-          {(['pendientes', 'culminadas', 'todas'] as const).map((f) => (
-            <Boton
-              key={f}
-              compacto
-              variante={filtro === f ? 'primario' : 'tierra'}
-              titulo={f === 'pendientes' ? 'Pendientes' : f === 'culminadas' ? 'Finalizadas' : 'Todas'}
-              onPress={() => setFiltro(f)}
-              style={{ flex: 1 }}
-            />
-          ))}
+          {(['pendientes', 'en_proceso', 'culminadas', 'todas'] as const).map((f) => {
+            const label =
+              f === 'pendientes'
+                ? 'Pendientes'
+                : f === 'en_proceso'
+                ? 'En Proceso'
+                : f === 'culminadas'
+                ? 'Completadas'
+                : 'Todas';
+            const isActive = filtro === f;
+            return (
+              <Boton
+                key={f}
+                compacto
+                variante={isActive ? 'primario' : 'tierra'}
+                titulo={label}
+                onPress={() => setFiltro(f)}
+                style={{ flex: 1 }}
+              />
+            );
+          })}
         </View>
       </View>
 
@@ -96,12 +149,15 @@ export default function MisLaboresScreen() {
           data={filtrados}
           keyExtractor={(a) => String(a.idActividad)}
           contentContainerStyle={styles.lista}
-          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          ItemSeparatorComponent={() => <View style={{ height: 14 }} />}
           refreshControl={<RefreshControl refreshing={cargando} onRefresh={recargar} tintColor={colors.primary} />}
           ListHeaderComponent={
-            <Text style={styles.contador}>
-              {filtrados.length} labor(es) {filtro}
-            </Text>
+            <View style={styles.listHeader}>
+              <Text style={styles.contador}>
+                {filtrados.length} labor(es) en estado <Text style={{ color: colors.primaryDark, fontWeight: '800' }}>{filtro.replace('_', ' ')}</Text>
+              </Text>
+              <Text style={styles.listHeaderTip}>Toque un estado para alternar en 1 clic el ciclo de vida</Text>
+            </View>
           }
           ListEmptyComponent={
             error ? (
@@ -113,21 +169,38 @@ export default function MisLaboresScreen() {
                 <Text style={styles.vacioTexto}>
                   {filtro === 'pendientes'
                     ? 'No tiene labores pendientes en este momento.'
+                    : filtro === 'en_proceso'
+                    ? 'No tiene labores en ejecución activa actualmente.'
                     : 'No hay labores registradas en esta vista.'}
                 </Text>
               </View>
             )
           }
           renderItem={({ item }) => {
-            const esFinalizada = Boolean(item.completado);
+            const estadoActual = getEstadoLabor(item);
+            const esFinalizada = estadoActual === 'completado';
+            const esEnProceso = estadoActual === 'en_proceso';
+
             return (
               <Tarjeta style={styles.laborCard}>
                 <View style={styles.laborTop}>
-                  <View style={styles.laborIcono}>
+                  <View
+                    style={[
+                      styles.laborIcono,
+                      esEnProceso && { backgroundColor: '#FEF3C7' },
+                      esFinalizada && { backgroundColor: colors.primarySoft },
+                    ]}
+                  >
                     <Icono
-                      name={item.tipoActividad === 'Riego' ? 'water-outline' : 'construct-outline'}
+                      name={
+                        item.tipoActividad === 'Riego'
+                          ? 'water-outline'
+                          : esEnProceso
+                          ? 'timer-outline'
+                          : 'construct-outline'
+                      }
                       size={24}
-                      color={colors.primary}
+                      color={esEnProceso ? '#D97706' : esFinalizada ? colors.primaryDark : colors.brown}
                     />
                   </View>
                   <View style={{ flex: 1 }}>
@@ -138,8 +211,8 @@ export default function MisLaboresScreen() {
                     <Text style={styles.laborFecha}>Fecha: {item.fechaActividad}</Text>
                   </View>
                   <Insignia
-                    texto={esFinalizada ? 'Culminada' : 'Pendiente'}
-                    tono={esFinalizada ? 'verde' : 'tierra'}
+                    texto={esFinalizada ? 'Completado' : esEnProceso ? 'En Proceso' : 'Pendiente'}
+                    tono={esFinalizada ? 'verde' : esEnProceso ? 'rojo' : 'tierra'}
                   />
                 </View>
 
@@ -163,20 +236,110 @@ export default function MisLaboresScreen() {
                   </View>
                 ) : null}
 
-                {/* Botón de Acción para el Operario */}
-                {!esFinalizada ? (
+                {/* ============================================================== */}
+                {/* CONTROL TÁCTIL DE 1 CLIC: [Pendiente] ➔ [En Proceso] ➔ [Completado] */}
+                {/* ============================================================== */}
+                <View style={styles.tactilFlowContainer}>
+                  <Text style={styles.tactilFlowTitle}>Flujo Operativo (Alternar en 1 clic):</Text>
+                  <View style={styles.tactilButtonsRow}>
+                    {/* Botón Pendiente */}
+                    <Pressable
+                      disabled={esFinalizada}
+                      onPress={() => cambiarEstado(item, 'pendiente')}
+                      style={[
+                        styles.tactilBtn,
+                        estadoActual === 'pendiente' && styles.tactilBtnActivePendiente,
+                        esFinalizada && { opacity: 0.4 },
+                      ]}
+                    >
+                      <Icono
+                        name="time-outline"
+                        size={15}
+                        color={estadoActual === 'pendiente' ? '#8C5A3C' : colors.muted}
+                      />
+                      <Text
+                        style={[
+                          styles.tactilBtnText,
+                          estadoActual === 'pendiente' && styles.tactilBtnTextActivePendiente,
+                        ]}
+                      >
+                        Pendiente
+                      </Text>
+                    </Pressable>
+
+                    <Icono name="arrow-forward" size={14} color={colors.border} />
+
+                    {/* Botón En Proceso */}
+                    <Pressable
+                      disabled={esFinalizada}
+                      onPress={() => cambiarEstado(item, 'en_proceso')}
+                      style={[
+                        styles.tactilBtn,
+                        estadoActual === 'en_proceso' && styles.tactilBtnActiveProceso,
+                        esFinalizada && { opacity: 0.4 },
+                      ]}
+                    >
+                      <Icono
+                        name="play-circle-outline"
+                        size={15}
+                        color={estadoActual === 'en_proceso' ? '#D97706' : colors.muted}
+                      />
+                      <Text
+                        style={[
+                          styles.tactilBtnText,
+                          estadoActual === 'en_proceso' && styles.tactilBtnTextActiveProceso,
+                        ]}
+                      >
+                        En Proceso
+                      </Text>
+                    </Pressable>
+
+                    <Icono name="arrow-forward" size={14} color={colors.border} />
+
+                    {/* Botón Completado */}
+                    <Pressable
+                      onPress={() => cambiarEstado(item, 'completado')}
+                      style={[
+                        styles.tactilBtn,
+                        estadoActual === 'completado' && styles.tactilBtnActiveCompletado,
+                      ]}
+                    >
+                      <Icono
+                        name="checkmark-circle-outline"
+                        size={15}
+                        color={estadoActual === 'completado' ? colors.primaryDark : colors.muted}
+                      />
+                      <Text
+                        style={[
+                          styles.tactilBtnText,
+                          estadoActual === 'completado' && styles.tactilBtnTextActiveCompletado,
+                        ]}
+                      >
+                        Completado
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+
+                {/* Banner de Estado Final */}
+                {esFinalizada ? (
+                  <View style={styles.finalizadaBanner}>
+                    <Icono name="checkmark-circle" size={18} color={colors.primaryDark} />
+                    <Text style={styles.finalizadaTexto}>Labor completada · Insumos descargados de almacén</Text>
+                  </View>
+                ) : esEnProceso ? (
+                  <View style={styles.enProcesoBanner}>
+                    <Icono name="flash-outline" size={18} color="#D97706" />
+                    <Text style={styles.enProcesoTexto}>Labor en ejecución · Toque [Completado] al finalizar</Text>
+                  </View>
+                ) : (
                   <View style={{ marginTop: 12 }}>
                     <Boton
-                      titulo="Marcar como Finalizada"
+                      titulo="Finalizar y Registrar Descargo"
                       icono="checkmark-done-circle-outline"
                       onPress={() => finalizar(item)}
                       cargando={finalizandoId === item.idActividad}
                     />
-                  </View>
-                ) : (
-                  <View style={styles.finalizadaBanner}>
-                    <Icono name="checkmark-circle" size={18} color={colors.primary} />
-                    <Text style={styles.finalizadaTexto}>Labor culminada y registrada en el sistema</Text>
                   </View>
                 )}
               </Tarjeta>
@@ -266,4 +429,79 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   finalizadaTexto: { fontSize: 13, color: colors.primaryDark, fontWeight: '700' },
+  enProcesoBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: '#FEF3C7',
+    padding: 10,
+    borderRadius: radius.md,
+    marginTop: 12,
+    justifyContent: 'center',
+  },
+  enProcesoTexto: { fontSize: 13, color: '#D97706', fontWeight: '700' },
+  listHeader: { marginBottom: 10 },
+  listHeaderTip: { fontSize: 11, color: colors.brownLight, fontWeight: '600' },
+  tactilFlowContainer: {
+    marginTop: 12,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  tactilFlowTitle: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: colors.muted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 8,
+  },
+  tactilButtonsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.background,
+    padding: 6,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  tactilBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingVertical: 7,
+    paddingHorizontal: 8,
+    borderRadius: radius.sm,
+  },
+  tactilBtnActivePendiente: {
+    backgroundColor: '#E8D5C4',
+    borderWidth: 1,
+    borderColor: '#C28D66',
+  },
+  tactilBtnActiveProceso: {
+    backgroundColor: '#FEF3C7',
+    borderWidth: 1,
+    borderColor: '#F59E0B',
+  },
+  tactilBtnActiveCompletado: {
+    backgroundColor: colors.primarySoft,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  tactilBtnText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.muted,
+  },
+  tactilBtnTextActivePendiente: {
+    color: '#6D4C2F',
+  },
+  tactilBtnTextActiveProceso: {
+    color: '#B45309',
+  },
+  tactilBtnTextActiveCompletado: {
+    color: colors.primaryDark,
+  },
 });
+

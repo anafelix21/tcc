@@ -38,7 +38,7 @@ export default function TransaccionListaScreen() {
       />
       <View style={styles.cabecera}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={styles.estudiante}>Módulo transaccional de {t.estudiante} · SQL Server</Text>
+          <Text style={styles.estudiante}>Módulo transaccional · SQL Server</Text>
           {!puedeGestionar ? <Insignia texto="Solo lectura" tono="tierra" /> : null}
         </View>
         <Pestanas activos={activos} onChange={setActivos} />

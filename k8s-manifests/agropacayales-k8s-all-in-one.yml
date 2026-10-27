@@ -1,0 +1,174 @@
+# ==============================================================================
+# AGROPACAYALES S.A.C. — MANIFIESTO COMPLETO KUBERNETES (K3S)
+# Aplicaciones: Frontend (React+Vite), Backend 1 (WebFlux), Backend 2 (Flask)
+# NodePorts: Frontend=30000, Backend1=30001, Backend2=30002
+# NodeSelectors: role=frontend, role=backend1, role=backend2
+# ==============================================================================
+
+# 1. NAMESPACE
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: agropacayales-namespace
+---
+# 2. CONFIGMAP
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agropacayales-configmap
+  namespace: agropacayales-namespace
+data:
+  # Backend 1 Transaccional (Spring Boot WebFlux)
+  SERVER_PORT: "8081"
+  SPRING_PROFILES_ACTIVE: "cloud"
+  MONGO_DATABASE: "agropacayales_db"
+  SQL_HOST: "ENDPOINT_DE_RDS"
+  SQL_PORT: "1433"
+  SQL_DATABASE: "agropacayales_db"
+  SQL_USERNAME: "admin"
+  ANALYTICS_URL: "http://backend-analitico:5000"
+  ANALYTICS_EVENTS_ENABLED: "true"
+
+  # Backend 2 Analítico (Python Flask)
+  FLASK_PORT: "5000"
+  MONGO_DB_NAME: "agropacayales_db"
+  SQL_SERVER: "ENDPOINT_DE_RDS"
+  SQL_USER: "admin"
+---
+# 3. SECRET
+apiVersion: v1
+kind: Secret
+metadata:
+  name: agropacayales-secret
+  namespace: agropacayales-namespace
+type: Opaque
+stringData:
+  MONGO_URI: "mongodb://admin:Mongo12345@IP_PRIVADA_MONGO:27017/agropacayales_db?authSource=admin"
+  SQL_PASSWORD: "TU_PASSWORD_RDS"
+---
+# 4. BACKEND 1 (Spring Boot WebFlux - Transaccional)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-transaccional
+  namespace: agropacayales-namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-transaccional
+  template:
+    metadata:
+      labels:
+        app: backend-transaccional
+    spec:
+      nodeSelector:
+        role: backend1
+      containers:
+      - name: backend-transaccional
+        image: hugo454/agropacayales-backend1:2.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8081
+        envFrom:
+        - configMapRef:
+            name: agropacayales-configmap
+        - secretRef:
+            name: agropacayales-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-transaccional
+  namespace: agropacayales-namespace
+spec:
+  type: NodePort
+  selector:
+    app: backend-transaccional
+  ports:
+  - port: 8081
+    targetPort: 8081
+    nodePort: 30001
+---
+# 5. BACKEND 2 (Python Flask - Analítico)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-analitico
+  namespace: agropacayales-namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend-analitico
+  template:
+    metadata:
+      labels:
+        app: backend-analitico
+    spec:
+      nodeSelector:
+        role: backend2
+      containers:
+      - name: backend-analitico
+        image: hugo454/agropacayales-backend-analitico:2.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 5000
+        envFrom:
+        - configMapRef:
+            name: agropacayales-configmap
+        - secretRef:
+            name: agropacayales-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-analitico
+  namespace: agropacayales-namespace
+spec:
+  type: NodePort
+  selector:
+    app: backend-analitico
+  ports:
+  - port: 5000
+    targetPort: 5000
+    nodePort: 30002
+---
+# 6. FRONTEND (React + TypeScript + Vite + Nginx)
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: agropacayales-namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      nodeSelector:
+        role: frontend
+      containers:
+      - name: frontend
+        image: hugo454/agropacayales-frontend:2.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: agropacayales-namespace
+spec:
+  type: NodePort
+  selector:
+    app: frontend
+  ports:
+  - port: 80
+    targetPort: 80
+    nodePort: 30000

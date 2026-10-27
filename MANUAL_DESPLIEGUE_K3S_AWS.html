@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual Maestro de Despliegue K3s AWS - AgroPacayales S.A.C.</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    color: #1e293b;
+    background-color: #f8fafc;
+    margin: 0;
+    padding: 40px 20px;
+  }
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    background: #ffffff;
+    padding: 48px;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  h1 {
+    color: #0f172a;
+    font-size: 28px;
+    border-bottom: 2px solid #e2e8f0;
+    padding-bottom: 12px;
+    margin-top: 0;
+  }
+  h2 {
+    color: #1b4332;
+    font-size: 20px;
+    margin-top: 32px;
+    border-left: 4px solid #10b981;
+    padding-left: 12px;
+  }
+  h3 {
+    color: #0369a1;
+    font-size: 16px;
+    margin-top: 20px;
+  }
+  p, li {
+    font-size: 15px;
+    color: #334155;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 14px;
+  }
+  th {
+    background-color: #1b4332;
+    color: #ffffff;
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  tr:nth-child(even) td {
+    background-color: #f8fafc;
+  }
+  pre {
+    background-color: #0f172a;
+    color: #f1f5f9;
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+  code {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-size: 13.5px;
+  }
+  pre code {
+    background: transparent;
+    color: inherit;
+    padding: 0;
+  }
+  .callout {
+    padding: 16px;
+    border-radius: 8px;
+    margin: 20px 0;
+    border-left: 4px solid;
+    font-size: 14.5px;
+  }
+  .callout-warning {
+    background-color: #fefce8;
+    border-color: #f59e0b;
+    color: #78350f;
+  }
+  .callout-info {
+    background-color: #eff6ff;
+    border-color: #3b82f6;
+    color: #1e3a8a;
+  }
+  .callout-success {
+    background-color: #ecfdf5;
+    border-color: #10b981;
+    color: #064e3b;
+  }
+  .badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 9999px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .badge-green { background: #dcfce7; color: #166534; }
+  .badge-blue { background: #e0f2fe; color: #075985; }
+  .badge-yellow { background: #fef3c7; color: #92400e; }
+  .header-meta {
+    background: #f1f5f9;
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 13.5px;
+    color: #475569;
+    margin-bottom: 24px;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <h1>Manual Maestro de Despliegue en AWS K3s (Versión Final)</h1>
+  <div class="header-meta">
+    <strong>Proyecto:</strong> AgroPacayales S.A.C. &nbsp;|&nbsp;
+    <strong>Usuario Docker Hub:</strong> <code>hugo454</code> &nbsp;|&nbsp;
+    <strong>Tag Oficial:</strong> <code>:2.0</code> &nbsp;|&nbsp;
+    <strong>Namespace K8s:</strong> <code>agropacayales-namespace</code><br>
+    <strong>Equipo PIT:</strong> Hugo Fernández (#07) • Ana Félix (#05) • Axel Huapaya (#10)
+  </div>
+
+  <h2>1. Distribución del Equipo y Módulos Maestros</h2>
+  <p>El Frontend ha sido completamente migrado a <strong>React 19 + TypeScript + Vite</strong> con arquitectura basada en características (Feature-Based), eliminando cualquier rastro de Angular. La distribución de maestros por integrante es:</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Integrante</th>
+        <th>Código</th>
+        <th>Módulo Maestro Asignado</th>
+        <th>Ruta Web</th>
+        <th>Backend 1 (Spring)</th>
+        <th>Colección Mongo</th>
+        <th>Tabla SQL Server</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Hugo Fernández</strong></td>
+        <td><code>#07</code></td>
+        <td><strong>Insumos Agrícolas</strong></td>
+        <td><code>/insumos</code></td>
+        <td><code>/api/insumos</code></td>
+        <td><code>supplies</code> (200 registros)</td>
+        <td><code>movimiento_insumo</code></td>
+      </tr>
+      <tr>
+        <td><strong>Ana Félix</strong></td>
+        <td><code>#05</code></td>
+        <td><strong>Parcelas de Cultivo</strong></td>
+        <td><code>/parcelas</code></td>
+        <td><code>/api/parcelas</code></td>
+        <td><code>plots</code> (160 registros)</td>
+        <td><code>cultivos</code></td>
+      </tr>
+      <tr>
+        <td><strong>Axel Huapaya</strong></td>
+        <td><code>#10</code></td>
+        <td><strong>Usuarios y Personal</strong></td>
+        <td><code>/usuarios</code></td>
+        <td><code>/api/usuarios</code></td>
+        <td><code>users</code> (150 registros)</td>
+        <td><code>asignacion_cabecera</code></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout callout-success">
+    <strong>Funcionalidades Implementadas en el Frontend:</strong>
+    <ul>
+      <li><strong>Botón "Ojito" (Inspección Técnica):</strong> En todas las tablas (Insumos, Parcelas, Usuarios, Labores de campo, Cultivos, Cosechas, Fichas de campo y Asignaciones). Abre un modal completo con especificaciones agronómicas y tablas hijas.</li>
+      <li><strong>Centro de Inteligencia Analítica (/dashboard):</strong> Frontend del Backend 2 (Flask + Pandas) cubriendo los 18 indicadores, gráficos de barras de cosecha vs merma, composición de inventario y desglose de costos operativos.</li>
+      <li><strong>Paginación Ampliada:</strong> Soporta 10, 25, 50, 100, 200 y 500 (Todos los registros de la BD sin truncar).</li>
+    </ul>
+  </div>
+
+  <h2>2. Arquitectura de Red y Topología en AWS</h2>
+  <pre>
+[USUARIO EXTERNO / DOCENTE]
+    |
+    +---> http://&lt;IP_PUBLIC_FRONTEND&gt;:30000 --------> Frontend React 19 + Nginx
+    +---> http://&lt;IP_PUBLIC_BACKEND1&gt;:30001 --------> Swagger UI Spring WebFlux
+    +---> http://&lt;IP_PUBLIC_ANALITICO&gt;:30002 -------> OpenAPI Docs Flask + Pandas
+    |
+[VPC DEFAULT AWS 172.31.0.0/16]
+  • k8s-master                  (Control Plane K3s - t3.small)
+  • k8s-node-frontend           (role=frontend     - t3.small)
+  • k8s-node-backend            (role=backend1     - t3.medium)
+  • k8s-node-backendAnalitico   (role=backend2     - t3.small)
+  • ec2-mongodb                 (MongoDB 8.0       - t3.small)
+  • Amazon RDS SQL Server       (db.t3.micro       - Puerto 1433)
+  </pre>
+
+  <h2>3. Matriz de Parámetros y Credenciales</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Componente</th>
+        <th>Parámetro Clave</th>
+        <th>Valor Configurado</th>
+        <th>Uso</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Docker Hub</strong></td>
+        <td>Usuario / Tag Oficial</td>
+        <td><code>hugo454</code> / tag <code>:2.0</code></td>
+        <td>Imágenes públicas de K3s</td>
+      </tr>
+      <tr>
+        <td><strong>RDS SQL Server</strong></td>
+        <td>Base / Usuario / Pass</td>
+        <td><code>agropacayales_db</code> / <code>admin</code> / <code>AgroPacayales2026!</code></td>
+        <td>Tablas transaccionales</td>
+      </tr>
+      <tr>
+        <td><strong>MongoDB EC2</strong></td>
+        <td>Base / Usuario / Pass</td>
+        <td><code>agropacayales_db</code> / <code>admin</code> / <code>Mongo12345</code></td>
+        <td>Colecciones maestras</td>
+      </tr>
+      <tr>
+        <td><strong>K3s Token</strong></td>
+        <td>K3S_TOKEN</td>
+        <td><code>agropacayales-token-2026</code></td>
+        <td>Join de Workers a Master</td>
+      </tr>
+      <tr>
+        <td><strong>Puertos NodePort</strong></td>
+        <td>Front / Back1 / Back2</td>
+        <td><code>30000</code> / <code>30001</code> / <code>30002</code></td>
+        <td>Acceso externo en navegador</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h2>4. Paso a Paso Detallado</h2>
+
+  <h3>Paso 1: Crear Amazon RDS SQL Server (Toma 10-15 min)</h3>
+  <div class="callout callout-warning">
+    <strong>¡Hacer Primero!</strong> La base de datos tarda ~12 minutos en aprovisionarse. Lánzala mientras configuras los Security Groups e instancias EC2.
+  </div>
+  <ol>
+    <li>En AWS Console en español → escribe <strong>RDS</strong> → Bases de datos → <strong>Crear base de datos</strong>.</li>
+    <li>Método: <strong>Creación estándar</strong> | Motor: <strong>Microsoft SQL Server</strong> | Edición: <strong>SQL Server Express Edition</strong>.</li>
+    <li>Identificador de instancia: <code>agropacayales-rds-sqlserver</code></li>
+    <li>Usuario maestro: <code>admin</code> | Contraseña maestra: <code>AgroPacayales2026!</code></li>
+    <li>Clase de instancia: <strong>Clases ampliables</strong> → <code>db.t3.micro</code> (1 vCPU, 1 GiB RAM).</li>
+    <li>Almacenamiento: <code>gp3</code>, 20 GiB. Desmarcar "Habilitar escalado automático de almacenamiento".</li>
+    <li>Conectividad: VPC predeterminada | Acceso público: <strong>No</strong> | Grupo de seguridad: Crear nuevo llamado <code>evi-rds-sg</code>.</li>
+    <li>Desmarcar copias de seguridad automáticas y clic en <strong>Crear base de datos</strong>.</li>
+    <li>Una vez en estado <em>Disponible</em>, copia el <strong>Punto de enlace (Endpoint)</strong>.</li>
+  </ol>
+
+  <h3>Paso 2: Configurar Grupos de Seguridad (Security Groups)</h3>
+  <p>En el buscador de AWS escribe <strong>EC2</strong> → en el menú izquierdo entra a <strong>Grupos de seguridad</strong>:</p>
+  <ul>
+    <li><strong><code>evi-ec2-sg</code> (Para las 5 máquinas EC2):</strong>
+      <ul>
+        <li>SSH (TCP 22): <code>0.0.0.0/0</code></li>
+        <li>TCP personalizado (30000 - 30002): <code>0.0.0.0/0</code> (Frontend, Swagger y Flask)</li>
+        <li>TCP personalizado (6443): Origen <code>evi-ec2-sg</code> (API K3s)</li>
+        <li>TCP personalizado (10250): Origen <code>evi-ec2-sg</code> (Kubelet)</li>
+        <li>UDP personalizado (8472): Origen <code>evi-ec2-sg</code> (Red Flannel)</li>
+        <li>TCP personalizado (27017): Origen <code>evi-ec2-sg</code> (MongoDB)</li>
+      </ul>
+    </li>
+    <li><strong><code>evi-rds-sg</code> (Asignado a RDS SQL Server):</strong>
+      <ul>
+        <li>MSSQL (TCP 1433): Origen <code>evi-ec2-sg</code> (Solo las EC2 de la VPC pueden entrar)</li>
+      </ul>
+    </li>
+  </ul>
+
+  <h3>Paso 3: Lanzar las 5 Instancias EC2 con User Data</h3>
+  <p>Lanza 5 instancias con AMI <strong>Ubuntu 24.04 LTS (x86_64)</strong>, par de claves <code>.pem</code>, IP pública habilitada y grupo <code>evi-ec2-sg</code>:</p>
+
+  <p><strong>1. <code>ec2-mongodb</code> (t3.small):</strong> En 'Detalles avanzados' → 'Datos de usuario' pega:</p>
+  <pre>#!/bin/bash
+set -e
+apt-get update && apt-get install -y gnupg curl
+curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-8.0.gpg
+echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-8.0.list
+apt-get update && apt-get install -y mongodb-org
+
+# Parche rseq para Ubuntu 24.04
+mkdir -p /etc/systemd/system/mongod.service.d
+printf '[Service]
+Environment="GLIBC_TUNABLES=glibc.pthread.rseq=1"
+' > /etc/systemd/system/mongod.service.d/rseq.conf
+systemctl daemon-reload
+
+sed -i 's/bindIp: 127.0.0.1/bindIp: 0.0.0.0/' /etc/mongod.conf
+systemctl enable --now mongod
+sleep 6
+
+mongosh --eval 'db.getSiblingDB("admin").createUser({user:"admin",pwd:"Mongo12345",roles:["root"]})'
+printf "
+security:
+  authorization: enabled
+" >> /etc/mongod.conf
+systemctl restart mongod
+apt-mark hold linux-aws linux-image-aws linux-headers-aws</pre>
+
+  <p><strong>2. <code>k8s-master</code> (t3.small):</strong> En 'Datos de usuario' pega:</p>
+  <pre>#!/bin/bash
+set -e
+curl -sfL https://get.k3s.io | K3S_TOKEN="agropacayales-token-2026" sh -s - server --write-kubeconfig-mode 644
+mkdir -p /home/ubuntu/.kube
+cp /etc/rancher/k3s/k3s.yaml /home/ubuntu/.kube/config
+chown -R ubuntu:ubuntu /home/ubuntu/.kube
+echo 'export KUBECONFIG=/home/ubuntu/.kube/config' >> /home/ubuntu/.bashrc
+apt-get update && apt-get install -y netcat-openbsd curl jq</pre>
+
+  <p><strong>3. Los 3 Workers (sin datos de usuario):</strong></p>
+  <ul>
+    <li><code>k8s-node-frontend</code>: tipo <code>t3.small</code></li>
+    <li><code>k8s-node-backend</code>: tipo <code>t3.medium</code> (4 GB RAM para Spring)</li>
+    <li><code>k8s-node-backendAnalitico</code>: tipo <code>t3.small</code></li>
+  </ul>
+
+  <h3>Paso 4: Unir Workers a K3s y Etiquetar Nodos</h3>
+  <p>1. Conéctate por SSH a cada uno de los 3 workers y ejecuta:</p>
+  <pre>curl -sfL https://get.k3s.io | K3S_URL=https://&lt;IP_PRIVADA_MASTER&gt;:6443 K3S_TOKEN="agropacayales-token-2026" sh -</pre>
+
+  <p>2. Conéctate por SSH a <code>k8s-master</code> y etiqueta cada nodo:</p>
+  <pre># Ver nodos conectados
+kubectl get nodes
+
+# Etiquetar cada worker con su rol de cómputo
+kubectl label node &lt;NOMBRE_NODO_FRONTEND&gt; role=frontend
+kubectl label node &lt;NOMBRE_NODO_BACKEND&gt; role=backend1
+kubectl label node &lt;NOMBRE_NODO_BACKEND_ANALITICO&gt; role=backend2
+
+# Verificar roles asignados
+kubectl get nodes -L role</pre>
+
+  <h3>Paso 5: Carga de Bases de Datos (Método para la PC del Instituto)</h3>
+  <div class="callout callout-info">
+    <strong>Sin Dependencias Locales:</strong> En la PC del instituto no tienes acceso a rutas de tu disco local ni mongosh en Windows. Sigue estos pasos garantizados:
+  </div>
+
+  <p><strong>A) SQL Server (RDS):</strong></p>
+  <ol>
+    <li>En tu terminal local de Windows abre el túnel SSH hacia Master usando tu clave <code>k8s-master.pem</code>:
+      <pre>ssh -i k8s-master.pem -N -L 1433:&lt;ENDPOINT_RDS&gt;:1433 -L 27017:&lt;IP_PRIVADA_MONGO&gt;:27017 ubuntu@&lt;IP_PUBLICA_MASTER&gt;</pre>
+      <p><em>Ejemplo directo listo para copiar y pegar:</em></p>
+      <pre>ssh -i k8s-master.pem -N -L 1433:agropacayales-rds-sqlserver.c4rhnptakjkc.us-east-1.rds.amazonaws.com:1433 -L 27017:172.31.26.155:27017 ubuntu@13.218.110.179</pre>
+    </li>
+    <li>Abre SSMS o Azure Data Studio, conéctate a <code>localhost,1433</code> (user: <code>admin</code> / pass: <code>AgroPacayales2026!</code>).</li>
+    <li>Abre una nueva consulta, copia el texto de <code>init_sqlserver_completo.sql</code> y presiona <strong>Execute</strong> (+800 registros creados).</li>
+  </ol>
+
+  <p><strong>B) MongoDB (Directo en la máquina EC2):</strong></p>
+  <ol>
+    <li>Conéctate por SSH directo a la máquina de MongoDB con tu clave <code>k8s-master.pem</code>:
+      <pre>ssh -i k8s-master.pem ubuntu@&lt;IP_PUBLICA_EC2_MONGODB&gt;</pre>
+    </li>
+    <li>Crea el archivo pegando el script con cat:
+      <pre>cat &lt;&lt; 'EOF' &gt; init_mongodb.js
+[Pega aquí el contenido de init_mongodb_completo.js]
+EOF</pre>
+    </li>
+    <li>Ejecútalo dentro de Linux:
+      <pre>mongosh "mongodb://admin:Mongo12345@localhost:27017/?authSource=admin" init_mongodb.js</pre>
+    </li>
+    <li>Debe confirmar: <em>Insertados 200 insumos, 160 parcelas y 150 usuarios</em>.</li>
+  </ol>
+
+  <h3>Paso 6: Desplegar en Kubernetes (agropacayales.yml)</h3>
+  <p>En <code>k8s-master</code> crea el archivo con nano:</p>
+  <pre>nano agropacayales.yml</pre>
+  <p>Pega el manifiesto asegurando que use las imágenes con tag <code>:2.0</code>:</p>
+  <ul>
+    <li><code>hugo454/agropacayales-frontend:2.0</code></li>
+    <li><code>hugo454/agropacayales-backend:2.0</code></li>
+    <li><code>hugo454/agropacayales-backend-analitico:2.0</code></li>
+  </ul>
+  <p>Aplica los cambios:</p>
+  <pre>kubectl apply -f agropacayales.yml
+
+# Monitorear pods en tiempo real
+kubectl get pods -n agropacayales-namespace -o wide -w</pre>
+
+  <h2>5. Correcciones Clave Aplicadas Durante el Sprint</h2>
+  <ol>
+    <li><strong>Swagger UI Backend 2 ("Failed to fetch"):</strong> Se eliminó <code>"host": "127.0.0.1:5000"</code> de <code>swagger.json</code> para que tome automáticamente la IP de la petición externa (<code>window.location.host</code>).</li>
+    <li><strong>Nginx DNS Resolver y Tiempos de Espera:</strong> Se depuró <code>nginx.conf</code> eliminando el resolver innecesario <code>127.0.0.11:53</code> (propio de Docker Compose que arrojaba <code>111: Connection refused</code> en Kubernetes). Se fijó el resolver interno de K3s (<code>10.43.0.10</code>) con timeouts de proxy explícitos y FQDN completo.</li>
+    <li><strong>Resolución de Bloqueo de Red Inter-Nodos (Flannel VXLAN UDP 8472):</strong> Al distribuir los pods en diferentes instancias EC2 (<code>role=frontend</code> en Worker 3 y <code>role=backend1</code> en Worker 1), el Security Group de AWS descartaba el tráfico UDP 8472 entre instancias. Se implementó la apertura de la regla Todo el Tráfico en <code>172.31.0.0/16</code> y la co-localización en el nodo backend (<code>nodeSelector: role: backend1</code>) logrando latencia < 0.2ms.</li>
+    <li><strong>Purga Total de Datos Mock:</strong> Se eliminaron todos los arreglos estáticos locales en los servicios del frontend, garantizando sincronización bidireccional real con MongoDB y SQL Server.</li>
+    <li><strong>Exportación a Excel y PDF:</strong> Se implementó <code>exportUtils.ts</code> para descargas tabulares en CSV con BOM UTF-8 e impresión directa PDF vectorizada.</li>
+  </ol>
+
+  <h2>6. Cliente Móvil: AgroPacayales Mobile (React Native + Expo SDK 58)</h2>
+  <p>La aplicación móvil (<code>ASE251S4_T05-mobile</code>) fue diseñada para operarios, agrónomos y supervisores. Cubre el <strong>Flujo Diario del Operario</strong> en 1 clic, registro fitosanitario de <strong>Fichas de Campo</strong>, catálogos maestros y dashboard analítico.</p>
+
+  <h3>6.1. ¿Dónde está el archivo de configuración y qué contiene?</h3>
+  <p>Ruta física en tu disco: <code>e:\Nueva carpeta (8)\tcc\ASE251S4_T05-mobile\.env</code></p>
+  <p>React Native y Expo leen las variables con prefijo <code>EXPO_PUBLIC_</code> en tiempo de compilación para inyectarlas directamente en la aplicación.</p>
+
+  <h3>6.2. ¿Qué poner exactamente en el archivo .env?</h3>
+  <div class="note">
+    <strong>Escenario A (Recomendado para la Sustentación) — Conectado a AWS K3s:</strong>
+    <pre>EXPO_PUBLIC_API_URL=http://13.218.34.30:30001/api
+EXPO_PUBLIC_ANALYTICS_URL=http://13.218.34.30:30002/api/v1/analytics</pre>
+    <p><em>Explicación:</em> <code>13.218.34.30</code> es la IP pública de AWS. El puerto <code>30001</code> es el NodePort hacia Spring Boot WebFlux, y el puerto <code>30002</code> es el NodePort hacia Flask Analítico.</p>
+  </div>
+
+  <div class="note" style="border-left-color: #d97706; background-color: #fefce8;">
+    <strong>¡Regla de Oro de Celulares Físicos!</strong> En un smartphone físico <strong>NUNCA uses <code>localhost</code></strong> (el celular intentaría conectarse a sí mismo). Con la IP pública de AWS funcionará desde cualquier celular con Wi-Fi o datos 4G/5G.
+  </div>
+
+  <h3>6.3. ¡Crítico! La regla de la memoria caché de Expo</h3>
+  <p>Si modificas el archivo <code>.env</code> mientras Expo está corriendo, <strong>Expo NO detecta los cambios automáticamente</strong>. Debes presionar <code>Ctrl + C</code> en la terminal y reiniciar con:</p>
+  <pre>npx expo start -c</pre>
+
+  <h3>6.4. Modos de Ejecución Paso a Paso</h3>
+  <ul>
+    <li><strong>Modo 1: En tu PC (Simulador Smartphone de Lujo - Recomendado):</strong> Presiona <code>w</code> en la terminal de Expo. Se abrirá en el navegador con un contenedor de smartphone centrado (520px, fondo Deep Earth Brown, bisel y controles táctiles).</li>
+    <li><strong>Modo 2: En Celular Físico (Expo Go):</strong> Instala la app gratuita <strong>Expo Go</strong> en Android o iOS y escanea el código QR de la terminal. Ocupará el 100% de la pantalla táctil nativa.</li>
+    <li><strong>Modo 3: En Emulador Android:</strong> Presiona <code>a</code> en la terminal de Expo para abrir en Android Studio.</li>
+  </ul>
+
+  <h3>6.5. Flujo Diario del Operario y Ficha de Campo</h3>
+  <ul>
+    <li><strong>Control Táctil de 1 Clic:</strong> Permite alternar cada labor entre <code>[Pendiente] ➔ [En Proceso] ➔ [Completado]</code>. Al marcar "Completado", descuenta automáticamente los insumos en SQL Server y MongoDB.</li>
+    <li><strong>+ Nueva Ficha de Campo:</strong> Botón de acceso directo en el inicio que abre el formulario fitosanitario respetando el 100% de las validaciones de negocio.</li>
+  </ul>
+
+  <h2>7. URLs de Demostración para la Sustentación</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Servicio</th>
+        <th>URL de Acceso</th>
+        <th>Puntos a Sustentar</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Frontend Web</strong></td>
+        <td><code>http://&lt;IP_FRONTEND&gt;:30000</code></td>
+        <td>Interfaz React 19 limpia sin nombres de estudiantes, formularios estilizados, botón "Ojito", exportación Excel/PDF y Centro Analítico.</td>
+      </tr>
+      <tr>
+        <td><strong>App Móvil</strong></td>
+        <td>Expo Go (QR) / <code>http://localhost:8081</code></td>
+        <td>App React Native móvil con navegación por Expo Router, catálogos maestros y registro de cosechas/labores conectado a AWS.</td>
+      </tr>
+      <tr>
+        <td><strong>Backend 1 Swagger</strong></td>
+        <td><code>http://&lt;IP_BACKEND1&gt;:30001/webjars/swagger-ui/index.html</code></td>
+        <td>Endpoints Spring Boot WebFlux de Insumos, Parcelas, Usuarios y Labores.</td>
+      </tr>
+      <tr>
+        <td><strong>Backend 2 OpenAPI</strong></td>
+        <td><code>http://&lt;IP_ANALITICO&gt;:30002/api/v1/analytics/docs/</code></td>
+        <td>18 indicadores PIT por estudiante (Hugo, Ana, Axel) y status de conexión.</td>
+      </tr>
+    </tbody>
+  </table>
+
+</div>
+</body>
+</html>

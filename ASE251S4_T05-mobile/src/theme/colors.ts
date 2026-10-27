@@ -1,32 +1,44 @@
-/** Paleta AgroPacayales: verde (campo), blanco y marrón claro (tierra). */
+/** Paleta AgroPacayales Enterprise: Deep Earth Brown, Terracotta & Sand, Vibrant Emerald. */
 export const colors = {
-  primary: '#2E7D32',
-  primaryDark: '#1B5E20',
-  primarySoft: '#E7F2E5',
-  brown: '#B08D6A',
-  brownLight: '#D9C2A5',
-  brownSoft: '#F3EADF',
-  background: '#FAF7F2',
-  card: '#FFFFFF',
-  text: '#2A2A26',
-  muted: '#7A7468',
-  border: '#ECE4D8',
-  danger: '#C0392B',
-  dangerSoft: '#FBE9E7',
-  warning: '#C98A1B',
-  success: '#2E7D32',
+  // Deep Earth Brown
+  earthDarkest: '#1A110B',
+  earthDark: '#2A1E17',
+  
+  // Vibrant Emerald
+  primary: '#10B981',
+  primaryDark: '#059669',
+  primarySoft: '#ECFDF5',
+  
+  // Terracotta & Sand
+  brown: '#8C5A3C',
+  brownLight: '#C28D66',
+  brownSoft: '#E8D5C4',
+  
+  // Superficie / Confort visual
+  background: '#F8F6F3',
+  card: '#FDFBF9',
+  surface: '#FFFFFF',
+  text: '#1A110B',
+  muted: '#7A695D',
+  border: '#E7DFD5',
+  
+  danger: '#E11D48',
+  dangerSoft: '#FFE4E6',
+  warning: '#D97706',
+  warningSoft: '#FEF3C7',
+  success: '#10B981',
   white: '#FFFFFF',
 };
 
-/** Colores para gráficos (verdes y marrones). */
-export const chartColors = ['#2E7D32', '#B08D6A', '#66BB6A', '#D9C2A5', '#1B5E20', '#8D6E63', '#A5D6A7'];
+/** Colores para gráficos (Emerald, Terracotta y Sand). */
+export const chartColors = ['#10B981', '#8C5A3C', '#22C55E', '#C28D66', '#059669', '#E8D5C4', '#1E3A2B'];
 
 export const radius = { sm: 10, md: 14, lg: 20, xl: 28 };
 
 export const shadow = {
-  shadowColor: '#5B4632',
-  shadowOpacity: 0.08,
-  shadowRadius: 12,
-  shadowOffset: { width: 0, height: 4 },
-  elevation: 3,
+  shadowColor: '#1A110B',
+  shadowOpacity: 0.10,
+  shadowRadius: 14,
+  shadowOffset: { width: 0, height: 5 },
+  elevation: 4,
 };

@@ -62,12 +62,13 @@ export default function InicioScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.primaryDark }} edges={['top']}>
       <ScrollView style={{ backgroundColor: colors.background }} contentContainerStyle={{ paddingBottom: 40 }}>
         {/* Hero Header */}
+        {/* Hero Header */}
         <View style={styles.hero}>
           <View style={styles.heroFila}>
             <View style={{ flex: 1 }}>
               <Text style={styles.saludo}>Hola{usuario ? `, ${usuario.nombre}` : ''}</Text>
               <View style={styles.rolBadge}>
-                <Icono name="shield-checkmark-outline" size={14} color={colors.brownLight} />
+                <Icono name="shield-checkmark" size={14} color={colors.primary} />
                 <Text style={styles.heroSub}>{usuario ? `Rol: ${usuario.rol}` : 'Modo Invitado'}</Text>
               </View>
             </View>
@@ -83,34 +84,89 @@ export default function InicioScreen() {
               <Text style={styles.salirTexto}>{usuario ? 'Salir' : 'Ingresar'}</Text>
             </Pressable>
           </View>
+
+          {/* Acceso Rápido Directo: Nueva Ficha de Campo & Labores */}
+          <View style={styles.quickActionsBar}>
+            <Pressable
+              style={({ pressed }) => [styles.quickActionBtnPrimary, pressed && { opacity: 0.85 }]}
+              onPress={() => router.push('/fichas-campo/formulario')}
+            >
+              <View style={styles.quickActionIconWrap}>
+                <Icono name="add-circle" size={22} color={colors.white} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.quickActionTitle}>+ Nueva Ficha de Campo</Text>
+                <Text style={styles.quickActionSub}>Evaluación fitosanitaria en 1 clic</Text>
+              </View>
+              <Icono name="chevron-forward" size={18} color="rgba(255,255,255,0.7)" />
+            </Pressable>
+          </View>
         </View>
 
         {/* ================================================================ */}
-        {/* VISTA OPERARIO: MIS LABORES DE CAMPO                            */}
+        {/* VISTA OPERARIO: FLUJO DIARIO DEL OPERARIO EN 1 CLIC             */}
         {/* ================================================================ */}
         {(operario || adminOSupervisor || !usuario) && (
           <View style={styles.seccion}>
             <View style={styles.seccionHeader}>
-              <Icono name="construct-outline" size={20} color={colors.primary} />
-              <Text style={styles.seccionTitulo}>Labores del Operario</Text>
+              <Icono name="flash-outline" size={20} color={colors.primary} />
+              <Text style={styles.seccionTitulo}>Flujo Diario del Operario</Text>
             </View>
-            <Text style={styles.seccionSub}>Gestión y finalización de tareas de campo asignadas</Text>
+            <Text style={styles.seccionSub}>Ciclo de vida de actividades agrícolas en terreno</Text>
 
-            <Pressable
-              style={({ pressed }) => [styles.bannerOperario, pressed && { opacity: 0.95 }]}
-              onPress={() => router.push('/mis-labores')}
-            >
-              <View style={styles.bannerOperarioIcono}>
-                <Icono name="checkmark-done-circle" size={32} color={colors.primaryDark} />
+            {/* Tarjeta de Ciclo de Vida Táctil */}
+            <View style={styles.flujoCard}>
+              <View style={styles.flujoRow}>
+                {/* 1. Pendiente */}
+                <Pressable
+                  style={({ pressed }) => [styles.flujoPaso, pressed && { opacity: 0.8 }]}
+                  onPress={() => router.push('/mis-labores')}
+                >
+                  <View style={[styles.flujoIconoCirculo, { backgroundColor: '#E8D5C4' }]}>
+                    <Icono name="time-outline" size={20} color="#8C5A3C" />
+                  </View>
+                  <Text style={styles.flujoPasoTitulo}>Pendiente</Text>
+                  <Text style={styles.flujoPasoSub}>Asignadas</Text>
+                </Pressable>
+
+                <Icono name="chevron-forward" size={18} color={colors.border} />
+
+                {/* 2. En Proceso */}
+                <Pressable
+                  style={({ pressed }) => [styles.flujoPaso, pressed && { opacity: 0.8 }]}
+                  onPress={() => router.push('/mis-labores')}
+                >
+                  <View style={[styles.flujoIconoCirculo, { backgroundColor: '#FEF3C7' }]}>
+                    <Icono name="play" size={20} color="#D97706" />
+                  </View>
+                  <Text style={[styles.flujoPasoTitulo, { color: '#B45309' }]}>En Proceso</Text>
+                  <Text style={styles.flujoPasoSub}>En campo</Text>
+                </Pressable>
+
+                <Icono name="chevron-forward" size={18} color={colors.border} />
+
+                {/* 3. Completado */}
+                <Pressable
+                  style={({ pressed }) => [styles.flujoPaso, pressed && { opacity: 0.8 }]}
+                  onPress={() => router.push('/mis-labores')}
+                >
+                  <View style={[styles.flujoIconoCirculo, { backgroundColor: colors.primarySoft }]}>
+                    <Icono name="checkmark-done" size={20} color={colors.primaryDark} />
+                  </View>
+                  <Text style={[styles.flujoPasoTitulo, { color: colors.primaryDark }]}>Completado</Text>
+                  <Text style={styles.flujoPasoSub}>Insumos OK</Text>
+                </Pressable>
               </View>
-              <View style={{ flex: 1 }}>
-                <Text style={styles.bannerOperarioTitulo}>Mis Labores Asignadas</Text>
-                <Text style={styles.bannerOperarioSub}>
-                  Vea sus actividades asignadas y márquelas como finalizadas al culminar la labor
-                </Text>
-              </View>
-              <Icono name="chevron-forward" size={22} color={colors.primary} />
-            </Pressable>
+
+              <Pressable
+                style={({ pressed }) => [styles.flujoBotonAcceso, pressed && { opacity: 0.9 }]}
+                onPress={() => router.push('/mis-labores')}
+              >
+                <Icono name="construct-outline" size={18} color={colors.primaryDark} />
+                <Text style={styles.flujoBotonTexto}>Ir a Mis Labores Asignadas</Text>
+                <Icono name="arrow-forward" size={16} color={colors.primaryDark} />
+              </Pressable>
+            </View>
           </View>
         )}
 
@@ -120,7 +176,7 @@ export default function InicioScreen() {
         {(agronomo || adminOSupervisor || operario || !usuario) && (
           <View style={styles.seccion}>
             <View style={styles.seccionHeader}>
-              <Icono name="clipboard-outline" size={20} color={colors.primary} />
+              <Icono name="clipboard-outline" size={20} color={colors.brown} />
               <Text style={styles.seccionTitulo}>Evaluaciones Fitosanitarias</Text>
             </View>
             <Text style={styles.seccionSub}>
@@ -134,17 +190,17 @@ export default function InicioScreen() {
               onPress={() => router.push('/fichas-campo')}
             >
               <View style={styles.bannerFichasIcono}>
-                <Icono name="document-text" size={30} color="#0369A1" />
+                <Icono name="document-text" size={30} color={colors.primaryDark} />
               </View>
               <View style={{ flex: 1 }}>
-                <Text style={styles.bannerFichasTitulo}>Fichas de Campo</Text>
+                <Text style={styles.bannerFichasTitulo}>Fichas de Campo Registradas</Text>
                 <Text style={styles.bannerFichasSub}>
                   {puedeEditarFichas
-                    ? 'Registrar estado de cultivo, etapa fenológica, clima y diagnóstico'
+                    ? 'Consultar historial técnico, vigor fenológico y diagnóstico'
                     : 'Consultar diagnósticos, recomendaciones de riego y fumigación'}
                 </Text>
               </View>
-              <Icono name="chevron-forward" size={22} color="#0369A1" />
+              <Icono name="chevron-forward" size={22} color={colors.primaryDark} />
             </Pressable>
           </View>
         )}
@@ -170,7 +226,7 @@ export default function InicioScreen() {
                 iconName={t.icono.name}
                 iconFamily={t.icono.family}
                 titulo={t.titulo}
-                subtitulo={puedeEditarMaestros ? `Módulo ${t.estudiante.split(' ')[0]}` : 'Solo consulta'}
+                subtitulo={puedeEditarMaestros ? 'Gestión y registros' : 'Solo consulta'}
                 tono="tierra"
                 onPress={() => router.push({ pathname: '/transaccion/[modulo]', params: { modulo: t.clave } })}
               />
@@ -298,11 +354,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    backgroundColor: '#E0F2FE',
+    backgroundColor: '#F0FDF4',
     borderRadius: radius.lg,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#BAE6FD',
+    borderColor: '#BBF7D0',
     ...shadow,
   },
   bannerFichasIcono: {
@@ -313,6 +369,94 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  bannerFichasTitulo: { fontSize: 16, fontWeight: '800', color: '#0369A1' },
-  bannerFichasSub: { fontSize: 12, color: '#0284C7', marginTop: 2, lineHeight: 16 },
+  bannerFichasTitulo: { fontSize: 16, fontWeight: '800', color: colors.primaryDark },
+  bannerFichasSub: { fontSize: 12, color: colors.muted, marginTop: 2, lineHeight: 16 },
+  quickActionsBar: {
+    marginTop: 14,
+  },
+  quickActionBtnPrimary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: radius.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.25)',
+    ...shadow,
+  },
+  quickActionIconWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quickActionTitle: {
+    fontSize: 15,
+    fontWeight: '800',
+    color: colors.white,
+  },
+  quickActionSub: {
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.85)',
+    marginTop: 1,
+  },
+  flujoCard: {
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    ...shadow,
+    gap: 14,
+  },
+  flujoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  flujoPaso: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  flujoIconoCirculo: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  flujoPasoTitulo: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: colors.text,
+  },
+  flujoPasoSub: {
+    fontSize: 11,
+    color: colors.muted,
+    marginTop: 1,
+  },
+  flujoBotonAcceso: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: colors.primarySoft,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
+  },
+  flujoBotonTexto: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: colors.primaryDark,
+  },
 });
+

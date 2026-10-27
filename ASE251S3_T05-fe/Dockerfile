@@ -1,37 +1,23 @@
-# Stage 1: Build Angular application
+# Stage 1: Build de la aplicacion React + TypeScript + Vite
 FROM node:20-alpine AS builder
 WORKDIR /app
+
+# Copiar definicion de dependencias
 COPY package*.json ./
 RUN npm install
+
+# Copiar codigo fuente y compilar
 COPY . .
-RUN npm run build -- --configuration production
+RUN npm run build
 
-# Stage 2: Serve application with Nginx
+# Stage 2: Servidor Web Nginx de produccion
 FROM nginx:alpine
-# Copiar los archivos compilados del build de Angular
-COPY --from=builder /app/dist/AgropacayalesWeb/browser /usr/share/nginx/html
 
-# Copiar configuración personalizada de Nginx para manejar rutas SPA (Single Page Application)
+# Copiar bundle compilado de Vite (dist)
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copiar configuracion de proxy inverso para backend 1 y backend 2
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
-
-
-# ==============================================================================
-# 🚀 COMANDOS RÁPIDOS PARA EL EXAMEN (Docker Hub: hugo454)
-# ==============================================================================
-#
-# 1. Construir la imagen del Frontend:
-#    docker build -t hugo454/agropacayales-frontend:1.0 .
-#
-# 2. Iniciar sesión en Docker Hub (si no lo has hecho):
-#    docker login
-#
-# 3. Subir la imagen a Docker Hub:
-#    docker push hugo454/agropacayales-frontend:1.0
-#
-# 4. Probar localmente en el puerto 80:
-#    docker run -d --name angular-frontend -p 80:80 hugo454/agropacayales-frontend:1.0
-#
-# ==============================================================================
