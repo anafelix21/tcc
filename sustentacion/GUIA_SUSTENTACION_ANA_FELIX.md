@@ -3,7 +3,7 @@
 Guía para estudiar la **Evaluación del Proyecto Web y Móvil (20 puntos)**. Por cada criterio dice **cómo lo cumplo**, **qué decir** y **qué comando ejecutar para demostrarlo**.
 
 > ✅ **Todos los comandos y resultados de esta guía se probaron** contra las imágenes reales del proyecto (Backend 1, Backend 2) con SQL Server 2022 y MongoDB 8 cargados con los scripts del equipo.
-> 📎 JSON de los 3 maestros: [`JSON_MAESTROS_SWAGGER.md`](JSON_MAESTROS_SWAGGER.md) · CSV corregidos para importar: [`csv/`](csv/)
+> 📎 JSON de los 3 maestros: [`JSON_MAESTROS_SWAGGER.md`](JSON_MAESTROS_SWAGGER.md) · CSV corregidos para importar: [`csv/`](csv/) · App móvil conectada a la nube + Git en otra PC: [`MANUAL_APP_MOVIL_Y_GIT.md`](MANUAL_APP_MOVIL_Y_GIT.md)
 
 ---
 
@@ -251,11 +251,12 @@ db.plots.find({nombre:"Parcela Demo Ana"}, {nombre:1, estado:1, created_at:1, up
 | Tabla maestra: modificar y eliminar | 0.5 | `maestro/[modulo]/formulario.tsx` edita · `maestro/[modulo]/[id].tsx` elimina y restaura |
 | Lista de 10 registros + formulario | 1 | `maestro/[modulo]/index.tsx` lista los registros de la BD (160 parcelas) con búsqueda; botón **Registrar** abre el formulario |
 
-**🖥️ Demostrar** (en tu PC, con el repo `ASE251S4_T05-mo` rama `develop`):
+**🖥️ Demostrar** (en tu PC, con el repo `ASE251S4_T05-mo` rama `develop`). Paso a paso completo (ZIP, limpieza, IP y puertos): [`MANUAL_APP_MOVIL_Y_GIT.md`](MANUAL_APP_MOVIL_Y_GIT.md)
 ```bash
 git clone -b develop https://github.com/vallegrande/ASE251S4_T05-mo.git && cd ASE251S4_T05-mo
 npm install --legacy-peer-deps
-# .env: EXPO_PUBLIC_API_URL=http://<IP>:30001/api  y  EXPO_PUBLIC_ANALYTICS_URL=http://<IP>:30002/api/v1/analytics
+# .env Taller:      EXPO_PUBLIC_API_URL=http://<IP cc-backends>:8081/api   EXPO_PUBLIC_ANALYTICS_URL=http://<IP cc-backends>:5000/api/v1/analytics
+# .env Kubernetes:  EXPO_PUBLIC_API_URL=http://<IP nodo>:30001/api         EXPO_PUBLIC_ANALYTICS_URL=http://<IP nodo>:30002/api/v1/analytics
 npx expo start -c        # escanear el QR con Expo Go (o tecla w para web)
 ```
 Mostrar en el código (VS Code): `src/services/apiClient.ts` → la línea `Authorization: Bearer` y que todas las llamadas usan `API_URL` (nunca una conexión directa a la BD).
