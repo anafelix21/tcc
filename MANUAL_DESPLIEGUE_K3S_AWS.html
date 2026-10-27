@@ -155,63 +155,166 @@
 <h3>Proyecto: AgroPacayales S.A.C. (Equipo T05)</h3>
 <p><em>Guía paso a paso para desplegar en una cuenta de AWS nueva desde cero. Incluye qué valores debes anotar y reemplazar.</em></p>
 <hr />
-<h2>📋 1. Hoja de Datos de tu Despliegue (Anota tus valores aquí)</h2>
-<p>A medida que vayas creando los recursos en tu cuenta de AWS, <strong>anota estos 6 datos</strong>. Los usarás para conectarte y para configurar los archivos sin equivocarte:</p>
+<h2>📋 1. Lo que Tienes que Reemplazar si Creas desde Cero (Hoja de Datos)</h2>
+<p>Cada integrante del equipo tiene su propia cuenta de AWS en el Learner Lab. Por lo tanto, ciertos nombres de red, endpoints e IPs serán <strong>únicos para cada uno</strong>, mientras que otros valores son <strong>fijos y compartidos</strong>.</p>
+<h3>1.1. Tabla de Reemplazos Obligatorios (Valores Dinámicos)</h3>
+<p>A medida que crees los recursos en tu cuenta, anota estos <strong>6 datos</strong>. Los usarás para conectarte y para configurar los manifiestos:</p>
 <table>
 <thead>
 <tr>
 <th>#</th>
-<th>Dato a Anotar</th>
-<th>¿En qué paso se genera?</th>
-<th>Ejemplo de Valor</th>
-<th>Tu Valor Real (Rellena aquí)</th>
+<th>Variable en este Manual</th>
+<th>Qué es exactamente</th>
+<th>¿Dónde lo obtienes en AWS?</th>
+<th>Ejemplo real</th>
+<th>Tu Valor Real (Anota aquí)</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td><strong>1</strong></td>
-<td><strong>Endpoint de Amazon RDS</strong></td>
-<td>Paso 2 (al crear RDS SQL Server)</td>
+<td><code>&lt;TU_ENDPOINT_DE_RDS&gt;</code></td>
+<td>Dirección DNS del servidor SQL Server</td>
+<td>RDS → Databases → <code>agropacayales-rds</code> → Pestaña <em>Connectivity &amp; security</em> → <strong>Endpoint</strong></td>
 <td><code>agropacayales-rds.c4rhnptakjkc.us-east-1.rds.amazonaws.com</code></td>
 <td><code>________________________________</code></td>
 </tr>
 <tr>
 <td><strong>2</strong></td>
-<td><strong>Contraseña de RDS</strong></td>
-<td>Paso 2 (la que definas al crear RDS)</td>
-<td><code>SQLServer12345</code></td>
+<td><code>&lt;TU_PASSWORD_RDS&gt;</code></td>
+<td>Contraseña maestra elegida al crear RDS</td>
+<td>La contraseña que escribiste en el campo <em>Master password</em></td>
+<td><code>SQLServer12345</code> (o <code>AgroPacayales2026!</code>)</td>
 <td><code>________________________________</code></td>
 </tr>
 <tr>
 <td><strong>3</strong></td>
-<td><strong>IP Privada de <code>ec2-mongodb</code></strong></td>
-<td>Paso 3 (en la consola EC2)</td>
+<td><code>&lt;TU_IP_PRIVADA_EC2_MONGO&gt;</code></td>
+<td>IP privada interna de la máquina MongoDB</td>
+<td>EC2 → Instancia <code>ec2-mongodb</code> → <strong>Private IPv4 addresses</strong></td>
 <td><code>10.0.5.187</code></td>
 <td><code>________________________________</code></td>
 </tr>
 <tr>
 <td><strong>4</strong></td>
-<td><strong>IP Pública de <code>ec2-mongodb</code></strong></td>
-<td>Paso 3 (para MongoDB Compass)</td>
+<td><code>&lt;TU_IP_PUBLICA_EC2_MONGO&gt;</code></td>
+<td>IP pública de la máquina MongoDB (para Compass)</td>
+<td>EC2 → Instancia <code>ec2-mongodb</code> → <strong>Public IPv4 address</strong></td>
 <td><code>98.20.208.209</code></td>
 <td><code>________________________________</code></td>
 </tr>
 <tr>
 <td><strong>5</strong></td>
-<td><strong>IP Elástica de <code>k8s-master</code></strong></td>
-<td>Paso 4 (al asignar Elastic IP)</td>
+<td><code>&lt;TU_IP_ELASTICA_MASTER&gt;</code></td>
+<td>IP fija asignada a <code>k8s-master</code> (Persistente)</td>
+<td>EC2 → Elastic IPs → <strong>Allocated IPv4 address</strong></td>
 <td><code>100.55.148.151</code></td>
 <td><code>________________________________</code></td>
 </tr>
 <tr>
 <td><strong>6</strong></td>
-<td><strong>Nombre de tu Bucket S3</strong></td>
-<td>Paso 5 (debe ser único en el mundo)</td>
-<td><code>agropacayales-frontend-juan</code></td>
+<td><code>&lt;NOMBRE_DE_TU_BUCKET&gt;</code></td>
+<td>Nombre único global para el Frontend en S3</td>
+<td>S3 → Buckets → Nombre que elijas (ej: <code>agropacayales-frontend-&lt;tu-nombre&gt;</code>)</td>
+<td><code>agropacayales-frontend-ana</code></td>
 <td><code>________________________________</code></td>
 </tr>
 </tbody>
 </table>
+<h3>1.2. Tabla de Valores Fijos (¡NO LOS REEMPLACES NI MODIFIQUES!)</h3>
+<p>Estos valores están configurados en el código fuente, imágenes Docker y scripts. <strong>Deben ser exactamente iguales en todas las cuentas:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Componente</th>
+<th>Parámetro</th>
+<th>Valor Fijo Obligatorio</th>
+<th>Nota</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>SQL Server</strong></td>
+<td>Usuario Maestro</td>
+<td><code>admin</code></td>
+<td>No usar <code>sa</code></td>
+</tr>
+<tr>
+<td><strong>SQL Server</strong></td>
+<td>Puerto</td>
+<td><code>1433</code></td>
+<td>Estándar TDS</td>
+</tr>
+<tr>
+<td><strong>SQL Server</strong></td>
+<td>Base de Datos</td>
+<td><code>agropacayales_db</code></td>
+<td>La crea <code>init_sqlserver_completo.sql</code></td>
+</tr>
+<tr>
+<td><strong>MongoDB</strong></td>
+<td>Usuario Maestro</td>
+<td><code>admin</code></td>
+<td>Con rol <code>root</code></td>
+</tr>
+<tr>
+<td><strong>MongoDB</strong></td>
+<td>Contraseña</td>
+<td><code>Mongo12345</code></td>
+<td>Fija para todo el equipo</td>
+</tr>
+<tr>
+<td><strong>MongoDB</strong></td>
+<td>Puerto</td>
+<td><code>27017</code></td>
+<td>Puerto NoSQL estándar</td>
+</tr>
+<tr>
+<td><strong>MongoDB</strong></td>
+<td>Base y AuthSource</td>
+<td><code>agropacayales_db?authSource=admin</code></td>
+<td>Crucial para que conecte Compass y los Backends</td>
+</tr>
+<tr>
+<td><strong>Kubernetes</strong></td>
+<td>Namespace</td>
+<td><code>agropacayales-namespace</code></td>
+<td>Todos los pods se aíslan aquí</td>
+</tr>
+<tr>
+<td><strong>Kubernetes</strong></td>
+<td>Token de Cluster</td>
+<td><code>agropacayales-token-2026</code></td>
+<td>Token K3s</td>
+</tr>
+<tr>
+<td><strong>Frontend Web</strong></td>
+<td>NodePort K8s</td>
+<td><code>30000</code></td>
+<td>Puerto externo del Nginx en EC2</td>
+</tr>
+<tr>
+<td><strong>Backend 1</strong></td>
+<td>NodePort K8s</td>
+<td><code>30001</code></td>
+<td>Swagger: <code>http://&lt;IP_ELASTICA&gt;:30001/swagger-ui.html</code></td>
+</tr>
+<tr>
+<td><strong>Backend 2</strong></td>
+<td>NodePort K8s</td>
+<td><code>30002</code></td>
+<td>Docs/Health: <code>http://&lt;IP_ELASTICA&gt;:30002/health</code></td>
+</tr>
+</tbody>
+</table>
+<h3>1.3. ¿Dónde se Reemplaza Cada Variable? (Cheat Sheet de Reemplazos)</h3>
+<ul>
+<li>En <strong>Azure Data Studio / SSMS</strong>: Servidor = <code>&lt;TU_ENDPOINT_DE_RDS&gt;,1433</code> | Clave = <code>&lt;TU_PASSWORD_RDS&gt;</code>.</li>
+<li>En <strong>MongoDB Compass</strong>: URI = <code>mongodb://admin:Mongo12345@&lt;TU_IP_PUBLICA_EC2_MONGO&gt;:27017/agropacayales_db?authSource=admin</code>.</li>
+<li>En la <strong>Terminal del Master K3s</strong> (Paso 4.4): Asignar las variables <code>MI_RDS_ENDPOINT</code>, <code>MI_MONGO_IP</code> y <code>MI_RDS_PASS</code>.</li>
+<li>En la <strong>Compilación de S3</strong> (Paso 5.1): Correr <code>build-s3.bat &lt;TU_IP_ELASTICA_MASTER&gt;</code>.</li>
+<li>En la <strong>Política Pública de S3</strong> (Paso 5.2): Pegar <code>arn:aws:s3:::&lt;NOMBRE_DE_TU_BUCKET&gt;/*</code>.</li>
+</ul>
 <hr />
 <h2>🎯 2. Matriz de Cumplimiento de Rúbrica Oficial (20/20)</h2>
 <table>
@@ -447,6 +550,7 @@ data:
   SERVER_PORT: &quot;8081&quot;
   SPRING_PROFILES_ACTIVE: &quot;cloud&quot;
   MONGO_DATABASE: &quot;agropacayales_db&quot;
+  MONGO_DB_NAME: &quot;agropacayales_db&quot;
   SQL_HOST: &quot;${MI_RDS_ENDPOINT}&quot;
   SQL_SERVER: &quot;${MI_RDS_ENDPOINT}&quot;
   SQL_PORT: &quot;1433&quot;
@@ -454,7 +558,8 @@ data:
   SQL_USERNAME: &quot;admin&quot;
   SQL_USER: &quot;admin&quot;
   R2DBC_URL: &quot;r2dbc:sqlserver://${MI_RDS_ENDPOINT}:1433/agropacayales_db?sendStringParametersAsUnicode=false&quot;
-  ANALYTICS_URL: &quot;http://backend2-service:5000&quot;
+  ANALYTICS_URL: &quot;http://backend-analitico:5000&quot;
+  ANALYTICS_EVENTS_ENABLED: &quot;true&quot;
 ---
 apiVersion: v1
 kind: Secret
@@ -464,29 +569,31 @@ metadata:
 type: Opaque
 stringData:
   MONGO_URI: &quot;mongodb://admin:Mongo12345@${MI_MONGO_IP}:27017/agropacayales_db?authSource=admin&quot;
+  MONGO_URI_LOCAL: &quot;mongodb://admin:Mongo12345@${MI_MONGO_IP}:27017/agropacayales_db?authSource=admin&quot;
   SQL_PASSWORD: &quot;${MI_RDS_PASS}&quot;
   SQL_SERVER_PASSWORD: &quot;${MI_RDS_PASS}&quot;
   SQL_USERNAME: &quot;admin&quot;
+  SQL_USER: &quot;admin&quot;
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend1-deployment
+  name: backend-transaccional
   namespace: agropacayales-namespace
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: backend1
+      app: backend-transaccional
   template:
     metadata:
       labels:
-        app: backend1
+        app: backend-transaccional
     spec:
       containers:
-        - name: backend1
-          image: hugo454/agropacayales-backend1:2.0
-          imagePullPolicy: Always
+        - name: backend-transaccional
+          image: anafelixmendoza21/agropacayales-backend:2.0
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081
           envFrom:
@@ -498,12 +605,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend1-service
+  name: backend-transaccional
   namespace: agropacayales-namespace
 spec:
   type: NodePort
   selector:
-    app: backend1
+    app: backend-transaccional
   ports:
     - port: 8081
       targetPort: 8081
@@ -512,22 +619,22 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend2-deployment
+  name: backend-analitico
   namespace: agropacayales-namespace
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: backend2
+      app: backend-analitico
   template:
     metadata:
       labels:
-        app: backend2
+        app: backend-analitico
     spec:
       containers:
-        - name: backend2
-          image: hugo454/agropacayales-backend-analitico:2.0
-          imagePullPolicy: Always
+        - name: backend-analitico
+          image: anafelixmendoza21/agropacayales-backend-analitico:2.0
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5000
           envFrom:
@@ -539,21 +646,35 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: backend2-service
+  name: backend-analitico
   namespace: agropacayales-namespace
 spec:
   type: NodePort
   selector:
-    app: backend2
+    app: backend-analitico
   ports:
     - port: 5000
       targetPort: 5000
       nodePort: 30002
 ---
+# Alias de servicio para compatibilidad con llamadas internas backend2-service
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend2-service
+  namespace: agropacayales-namespace
+spec:
+  type: ClusterIP
+  selector:
+    app: backend-analitico
+  ports:
+    - port: 5000
+      targetPort: 5000
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: frontend-deployment
+  name: frontend
   namespace: agropacayales-namespace
 spec:
   replicas: 1
@@ -567,15 +688,15 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: hugo454/agropacayales-frontend:2.0
-          imagePullPolicy: Always
+          image: anafelixmendoza21/agropacayales-frontend:2.0
+          imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: frontend-service
+  name: frontend
   namespace: agropacayales-namespace
 spec:
   type: NodePort
@@ -771,46 +892,107 @@ kubectl apply -f ~/agropacayales.yml
 </code></pre>
 
 <hr />
-<h2>🎓 7. Guion de Sustentación para la Evaluación Intermedia (20/20)</h2>
-<p>Al defender ante el jurado o docente, muestra los 4 servicios en este orden cronológico:</p>
-<h3>1. Evidencia de Red y Seguridad (Amazon VPC)</h3>
-<ul>
-<li>Abre la consola de <strong>Amazon VPC</strong> y muestra <code>agropacayales-vpc</code> (<code>10.0.0.0/16</code>).</li>
-<li>Muestra las 2 subredes públicas y el Security Group <code>agropacayales-sg</code>.</li>
-<li>Explica: <em>"Profesor, diseñamos una VPC aislada que separa y asegura el tráfico interno entre Kubernetes, RDS y MongoDB sin exponer puertos innecesarios a internet"</em>.</li>
-</ul>
-<h3>2. Evidencia de las 2 Bases de Datos (Amazon RDS + EC2 MongoDB)</h3>
-<ul>
-<li><strong>RDS:</strong> Muestra la consola de <strong>Amazon RDS</strong> con <code>agropacayales-rds</code> y en Azure Data Studio ejecuta:<br />
-<code>SELECT TOP 10 * FROM agropacayales_db.dbo.cultivos;</code>.</li>
-<li><strong>MongoDB:</strong> Muestra la consola de <strong>EC2</strong> con <code>ec2-mongodb</code> y abre <strong>MongoDB Compass</strong> mostrando las colecciones <code>supplies</code>, <code>plots</code> y <code>field_records</code>.</li>
-</ul>
-<h3>3. Evidencia de los 2 Backends en Kubernetes (Amazon EC2)</h3>
-<ul>
-<li>Muestra la terminal SSH de <code>k8s-master</code> ejecutando:<br />
-<code>bash
-  kubectl get pods -n agropacayales-namespace</code><br />
-<em>(Señala que los 3 pods están en <code>Running 1/1</code>)</em>.</li>
-<li>Abre en vivo ambos Swagger interactivos:</li>
-<li><strong>Backend 1:</strong> <code>http://&lt;TU_IP_ELASTICA&gt;:30001/swagger-ui.html</code> → Ejecuta <code>GET /api/cultivos</code> y <code>GET /api/parcelas</code>.</li>
-<li><strong>Backend 2:</strong> <code>http://&lt;TU_IP_ELASTICA&gt;:30002/docs</code> | <code>/health</code> → Ejecuta <code>GET /health</code> mostrando que ambas bases de datos están <code>UP</code>.</li>
-</ul>
-<h3>4. Evidencia del Frontend Web en Amazon S3</h3>
-<ul>
-<li>Muestra el bucket en <strong>Amazon S3</strong> con <em>Static website hosting</em> activo.</li>
-<li>Abre la URL <code>s3-website</code> e inicia sesión en vivo: <code>ana.felix@agropacayales.com</code> / <code>Pass123!</code>.</li>
-<li>Navega por los módulos demostrando la interacción en tiempo real con las parcelas, insumos y el monitor fenológico.</li>
-</ul>
-<h3>5. Demostración de Resiliencia en Kubernetes (Bonus Jurado)</h3>
-<pre class="codehilite"><code class="language-bash"># Elimina el pod del backend y demuestra que se auto-repara en segundos:
-kubectl delete pod -l app=backend1 -n agropacayales-namespace
-kubectl get pods -n agropacayales-namespace -w
+<h2>🎓 7. Guion Oficial de Sustentación y Demostración en Vivo ante el Docente (20/20)</h2>
+<p>Este es el guion paso a paso que debes seguir en la sustentación en vivo. Puedes ejecutarlo abriendo la terminal de tu master (vía SSH o mediante <strong>EC2 Instance Connect</strong> en la consola de AWS).</p>
+<hr />
+<h3>Paso 1: Resumen de URLs y Estado del Clúster</h3>
+<p>Si usaste el script de despliegue automatizado, ejecuta:</p>
+<pre class="codehilite"><code class="language-bash">cat ~/URLS.txt
+</code></pre>
 
-# Escala dinámicamente a 3 réplicas:
-kubectl scale deployment backend1-deployment --replicas=3 -n agropacayales-namespace
+<blockquote>
+<p><strong>Qué demostrar:</strong> Muestra al docente las URLs del Frontend, de Swagger UI (Backend 1), de la API Analítica (Backend 2) y las IPs internas de conexión a MongoDB y RDS SQL Server.</p>
+</blockquote>
+<hr />
+<h3>Paso 2: Criterio 1 — Nodos del Clúster Kubernetes y Roles</h3>
+<p>Ejecuta:</p>
+<pre class="codehilite"><code class="language-bash">kubectl get nodes -L role -o wide
+</code></pre>
+
+<blockquote>
+<p><strong>Qué explicar al docente:</strong> <em>"Profesor, aquí evidenciamos el clúster de Kubernetes orquestado con K3s. Cada nodo está etiquetado con su rol de carga de trabajo (<code>role=frontend</code>, <code>role=backend1</code>, <code>role=backend2</code>). Si estamos en arquitectura de nodo maestro consolidado, K3s gestiona la concurrencia de los 3 microservicios con límites estrictos de memoria y CPU."</em></p>
+</blockquote>
+<hr />
+<h3>Paso 3: Criterio 1 — Pods en Ejecución y Distribución</h3>
+<p>Ejecuta:</p>
+<pre class="codehilite"><code class="language-bash">kubectl get pods -n agropacayales-namespace -o wide
+</code></pre>
+
+<blockquote>
+<p><strong>Qué demostrar:</strong> Muestra que todos los pods están en estado <strong><code>1/1 Running</code></strong>, con sus IPs internas del clúster (rango <code>10.42.x.x</code>) y sin reinicios anómalos (<code>RESTARTS = 0</code>).</p>
+</blockquote>
+<hr />
+<h3>Paso 4: Criterio 2 — Comunicación Interna entre Microservicios (Backend 1 ➔ Backend 2)</h3>
+<p>Ejecuta:</p>
+<pre class="codehilite"><code class="language-bash">kubectl -n agropacayales-namespace exec deploy/backend-transaccional -- wget -qO- http://backend-analitico:5000/health
+</code></pre>
+
+<blockquote>
+<p><strong>Qué demostrar:</strong> El Backend 1 (Spring Boot WebFlux) invoca internamente al Backend 2 (Flask) a través del DNS interno de Kubernetes (<code>http://backend-analitico:5000</code>), recibiendo un <code>{"status": "UP"}</code> con código HTTP 200. Esto demuestra que los microservicios se comunican en una red privada sin salir a internet.</p>
+</blockquote>
+<hr />
+<h3>Paso 5: Criterio 3 — Verificación de Persistencia Políglota desde el Clúster</h3>
+<p>Ejecuta:</p>
+<pre class="codehilite"><code class="language-bash">kubectl -n agropacayales-namespace exec deploy/backend-analitico -- curl -s localhost:5000/status/database
+</code></pre>
+
+<blockquote>
+<p><strong>Qué demostrar:</strong> Este endpoint inspecciona desde el interior del pod la conexión hacia ambas bases de datos:<br />
+1. Conexión hacia <strong>Amazon RDS SQL Server</strong> en el puerto <code>1433</code>.<br />
+2. Conexión hacia <strong>Amazon EC2 MongoDB</strong> en el puerto <code>27017</code>.<br />
+Ambas deben reportar estado <strong>CONNECTED</strong>.</p>
+</blockquote>
+<hr />
+<h3>Paso 6: Criterio 4 — Demostración de Resiliencia y Self-Healing en Vivo</h3>
+<p>Ejecuta:</p>
+<pre class="codehilite"><code class="language-bash"># Eliminar el pod de frontend en vivo:
+kubectl delete pod -l app=frontend -n agropacayales-namespace
+
+# Ver en tiempo real cómo Kubernetes crea uno nuevo de inmediato:
+kubectl get pods -n agropacayales-namespace -w
+</code></pre>
+
+<p><em>(Presiona <code>Ctrl + C</code> para detener el monitoreo continuo).</em></p>
+<blockquote>
+<p><strong>Qué explicar al docente:</strong> <em>"Kubernetes detecta automáticamente la pérdida del pod y lo recrea en menos de 3 segundos para garantizar la alta disponibilidad de la aplicación."</em></p>
+</blockquote>
+<hr />
+<h3>Paso 7: Criterio 4 (Bonus) — Escalabilidad Horizontal Dinámica</h3>
+<p>Ejecuta:</p>
+<pre class="codehilite"><code class="language-bash"># Escalar el Backend Transaccional a 3 réplicas en caliente:
+kubectl scale deployment backend-transaccional --replicas=3 -n agropacayales-namespace
+
+# Verificar las 3 réplicas corriendo simultáneamente:
 kubectl get pods -n agropacayales-namespace
 </code></pre>
 
+<p><em>(Para volver a 1 réplica luego de la demo: <code>kubectl scale deployment backend-transaccional --replicas=1 -n agropacayales-namespace</code>)</em>.</p>
+<hr />
+<h3>Paso 8: Criterio 5 — Demostración de CRUD en Swagger UI (Backend 1)</h3>
+<ol>
+<li>Abre en tu navegador:<br />
+   👉 <strong><code>http://&lt;TU_IP_ELASTICA_MASTER&gt;:30001/swagger-ui.html</code></strong></li>
+<li>Despliega <strong><code>insumo-controller</code></strong> ➔ <strong><code>POST /api/insumos</code></strong> ➔ Clic en <strong>Try it out</strong>.</li>
+<li>Pega el JSON del <strong>Paso 6.1</strong> y haz clic en <strong>Execute</strong>:<br />
+   * Recibirás un <strong>HTTP 200</strong> o <strong>201</strong> confirmando la inserción directa en MongoDB.</li>
+<li>Despliega <strong><code>GET /api/insumos</code></strong> ➔ Clic en <strong>Execute</strong>:<br />
+   * Verás el nuevo insumo listado en la colección <code>supplies</code>.</li>
+<li><em>(Opcional)</em> Despliega <strong><code>cultivo-controller</code></strong> ➔ <strong><code>GET /api/cultivos</code></strong>:<br />
+   * Demuestra la lectura directa desde <strong>Amazon RDS SQL Server</strong>.</li>
+</ol>
+<hr />
+<h3>Paso 9: Demostración del Frontend Web en Amazon S3</h3>
+<ol>
+<li>Abre en el navegador la URL pública de tu bucket S3:<br />
+   👉 <strong><code>http://&lt;NOMBRE_DE_TU_BUCKET&gt;.s3-website-us-east-1.amazonaws.com</code></strong></li>
+<li>Inicia sesión:<br />
+   * <strong>Usuario:</strong> <code>ana.felix@agropacayales.com</code><br />
+   * <strong>Contraseña:</strong> <code>Pass123!</code></li>
+<li>Muestra:<br />
+   * <strong>Módulo de Insumos:</strong> El insumo recién creado en Swagger aparece reflejado en tiempo real.<br />
+   * <strong>Módulo de Parcelas y Monitor Fenológico:</strong> Datos cargados directamente desde la base NoSQL y microservicios.<br />
+   * <strong>Exportación a Excel / PDF:</strong> Generación en el cliente sin recarga.</li>
+</ol>
 <hr />
 <h2>🛠️ 8. Solucionario Rápido de Errores Comunes (Cheat Sheet)</h2>
 <table>
