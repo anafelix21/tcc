@@ -1,6 +1,7 @@
 # Manual Rápido Clic por Clic — AgroPacayales en AWS (Desde Cero)
 
-> **Unidad Didáctica:** Taller de Cloud Computing — Evaluación Intermedia (20/20)  
+> **Despliegue:** Orquestador **Kubernetes (K3s)** sobre EC2 — Evaluación Intermedia  
+> ⚠️ Este manual es **solo para orquestadores**. El del Taller de Cloud Computing (S3, puertos 8081/5000) está en [`../despliegue-taller-cloud/`](../despliegue-taller-cloud/MANUAL_TALLER_CLOUD.md).  
 > **Proyecto:** AgroPacayales S.A.C. (Equipo T05)  
 > Consola de AWS en **inglés**. Orden: **Grupos de seguridad → RDS → EC2 → IP Elástica → BDs → Demo en Vivo**.  
 > Tener abierto [`user-data-universal.sh`](user-data-universal.sh) para copiar (Ctrl+A, Ctrl+C).
@@ -230,6 +231,14 @@ Repetir 4 veces usando la función clonar de AWS:
 En **EC2 → Instances**, copia la **Public IPv4 address** de cada máquina (o usa la IP elástica para el master).  
 *(Usar `http://`, no `https://`)*:
 
+> ⚠️ **En Kubernetes los puertos son 30000, 30001 y 30002.** Los puertos `8081` y `5000` **no existen aquí** (son del Taller de Cloud Computing): si los usas, el navegador da `ERR_CONNECTION_TIMED_OUT`.
+
+| Puerto | Componente | EC2 cuya IP usar |
+| :-- | :-- | :-- |
+| `30000` | Frontend | `k8s-node-frontend` |
+| `30001` | Backend 1 (Spring Boot) | `k8s-node-backend` (o la IP elástica de `k8s-master`) |
+| `30002` | Backend 2 (Flask) | `k8s-node-backendAnalitico` |
+
 | ✔ | Componente | URL de Acceso |
 | :-: | :-- | :-- |
 | ☐ | **Frontend Web** | `http://<IP de k8s-node-frontend>:30000` |
@@ -448,6 +457,8 @@ R=$(aws rds describe-db-instances --query "DBInstances[?DBInstanceIdentifier=='a
 | `Esperando ...:1433` | La RDS no tiene asignado `evi-rds-sg`: RDS → la BD → **Modify** → Security group `evi-rds-sg` → **Apply immediately**. |
 | `Esperando ...:27017` o `:6443` | Falta la regla interna del Paso 2: **All traffic** con origen `sg-...` de `evi-ec2-sg`. |
 | `Login failed for user 'admin'` | En RDS (Connectivity & security) figura Secrets Manager: **Modify** → desmarcar Secrets Manager (Self managed). Colocar clave `AgroPacayales2026!` → **Apply immediately**. |
+| Navegador: `ERR_CONNECTION_TIMED_OUT` | 1) Usar los puertos **30000/30001/30002** (no 8081 ni 5000). 2) Revisar que la IP sea la **Public IPv4 actual** de la EC2 correcta (cambia al reiniciar el lab). 3) `evi-ec2-sg` debe tener **30000-30002** con `0.0.0.0/0`. 4) En el System log del master debe decir `DESPLIEGUE COMPLETO`. |
+| Swagger muestra "Petstore" (pet, store, user) | Usar `/swagger-ui.html`, no `/webjars/swagger-ui/index.html`. |
 | Error rojo "CIDR block, a security group ID..." | En Source escribiste el nombre: borra la etiqueta y **elige el `sg-...` de la lista**. |
 | SSMS: *timeout* / *network-related error* | RDS no está **Available**, Public access no es **Yes**, o falta MSSQL **Anywhere-IPv4** en `evi-rds-sg`. |
 | SSMS: *certificate chain not trusted* | Marcar casilla ☑️ **Trust server certificate**. |

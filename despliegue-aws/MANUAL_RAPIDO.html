@@ -395,7 +395,8 @@
     <div class="content-body">
       <h1>Manual Rápido Clic por Clic — AgroPacayales en AWS (Desde Cero)</h1>
 <blockquote>
-<p><strong>Unidad Didáctica:</strong> Taller de Cloud Computing — Evaluación Intermedia (20/20)<br />
+<p><strong>Despliegue:</strong> Orquestador <strong>Kubernetes (K3s)</strong> sobre EC2 — Evaluación Intermedia<br />
+⚠️ Este manual es <strong>solo para orquestadores</strong>. El del Taller de Cloud Computing (S3, puertos 8081/5000) está en <a href="../despliegue-taller-cloud/MANUAL_TALLER_CLOUD.md"><code>../despliegue-taller-cloud/</code></a>.<br />
 <strong>Proyecto:</strong> AgroPacayales S.A.C. (Equipo T05)<br />
 Consola de AWS en <strong>inglés</strong>. Orden: <strong>Grupos de seguridad → RDS → EC2 → IP Elástica → BDs → Demo en Vivo</strong>.<br />
 Tener abierto <a href="user-data-universal.sh"><code>user-data-universal.sh</code></a> para copiar (Ctrl+A, Ctrl+C).</p>
@@ -730,6 +731,35 @@ Tener abierto <a href="user-data-universal.sh"><code>user-data-universal.sh</cod
 <h2>9. Abrir la Aplicación ⏱ min 22</h2>
 <p>En <strong>EC2 → Instances</strong>, copia la <strong>Public IPv4 address</strong> de cada máquina (o usa la IP elástica para el master).<br />
 <em>(Usar <code>http://</code>, no <code>https://</code>)</em>:</p>
+<blockquote>
+<p>⚠️ <strong>En Kubernetes los puertos son 30000, 30001 y 30002.</strong> Los puertos <code>8081</code> y <code>5000</code> <strong>no existen aquí</strong> (son del Taller de Cloud Computing): si los usas, el navegador da <code>ERR_CONNECTION_TIMED_OUT</code>.</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Puerto</th>
+<th style="text-align: left;">Componente</th>
+<th style="text-align: left;">EC2 cuya IP usar</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>30000</code></td>
+<td style="text-align: left;">Frontend</td>
+<td style="text-align: left;"><code>k8s-node-frontend</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>30001</code></td>
+<td style="text-align: left;">Backend 1 (Spring Boot)</td>
+<td style="text-align: left;"><code>k8s-node-backend</code> (o la IP elástica de <code>k8s-master</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>30002</code></td>
+<td style="text-align: left;">Backend 2 (Flask)</td>
+<td style="text-align: left;"><code>k8s-node-backendAnalitico</code></td>
+</tr>
+</tbody>
+</table>
 <table>
 <thead>
 <tr>
@@ -1008,6 +1038,14 @@ kubectl get pods -n agropacayales-namespace
 <tr>
 <td style="text-align: left;"><code>Login failed for user 'admin'</code></td>
 <td style="text-align: left;">En RDS (Connectivity &amp; security) figura Secrets Manager: <strong>Modify</strong> → desmarcar Secrets Manager (Self managed). Colocar clave <code>AgroPacayales2026!</code> → <strong>Apply immediately</strong>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Navegador: <code>ERR_CONNECTION_TIMED_OUT</code></td>
+<td style="text-align: left;">1) Usar los puertos <strong>30000/30001/30002</strong> (no 8081 ni 5000). 2) Revisar que la IP sea la <strong>Public IPv4 actual</strong> de la EC2 correcta (cambia al reiniciar el lab). 3) <code>evi-ec2-sg</code> debe tener <strong>30000-30002</strong> con <code>0.0.0.0/0</code>. 4) En el System log del master debe decir <code>DESPLIEGUE COMPLETO</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Swagger muestra "Petstore" (pet, store, user)</td>
+<td style="text-align: left;">Usar <code>/swagger-ui.html</code>, no <code>/webjars/swagger-ui/index.html</code>.</td>
 </tr>
 <tr>
 <td style="text-align: left;">Error rojo "CIDR block, a security group ID..."</td>
