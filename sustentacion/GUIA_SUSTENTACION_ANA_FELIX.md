@@ -71,6 +71,16 @@ db.runCommand({collMod:"users", validator:v});
 ```
 ✅ Probado: antes `importados: 0 / 12` → después `importados: 12 / 12`. (No toca código: solo amplía la regla de la base.)
 
+### 2.5 Usuarios para iniciar sesión (web y app móvil)
+
+| Correo | Contraseña | Rol | Cuándo existe |
+| :-- | :-- | :-- | :-- |
+| `ana@agro.com` | `Password123!` | ADMIN | Siempre (carga inicial) |
+| `elena.flores@agropacayales.com` | `Pass123!` | ADMIN | Después de importar `csv/usuarios.csv` |
+| `carlos.mendoza@agropacayales.com` | `Pass123!` | ADMIN | Después de importar `csv/usuarios.csv` |
+
+> Si dice *"Correo o contraseña incorrectos"* con un usuario del CSV, es porque **no se importó**: revisa que `POST /api/usuarios/importar/csv` responda `importados: 12` (en MongoDB antiguos, primero el comando de la sección 2.4).
+
 ---
 
 ## 3. Rutas de Ana Félix (para la demo)

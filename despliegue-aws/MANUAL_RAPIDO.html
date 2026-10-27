@@ -1077,7 +1077,47 @@ kubectl get pods -n agropacayales-namespace
 <pre class="codehilite"><code class="language-bash">mongosh &quot;mongodb://admin:Mongo12345@localhost:27017/agropacayales_db?authSource=admin&quot; --quiet --eval 'const v=db.getCollectionInfos({name:&quot;users&quot;})[0].options.validator; v.$jsonSchema.properties.fecha_nacimiento.bsonType=[&quot;string&quot;,&quot;date&quot;]; v.$jsonSchema.properties.fecha_contratacion.bsonType=[&quot;string&quot;,&quot;date&quot;]; printjson(db.runCommand({collMod:&quot;users&quot;, validator:v}))'
 </code></pre>
 
-<h1>Manual Rápido Clic por Clic — AgroPacayales en AWS (Desde Cero)</h1>
+<p><strong>Actualizar el Backend 1 en un despliegue YA levantado</strong> (después de publicar una imagen nueva; en despliegues nuevos no hace falta). En <code>k8s-master</code>:</p>
+<pre class="codehilite"><code class="language-bash">kubectl -n agropacayales-namespace patch deploy backend-transaccional -p '{&quot;spec&quot;:{&quot;template&quot;:{&quot;spec&quot;:{&quot;containers&quot;:[{&quot;name&quot;:&quot;backend-transaccional&quot;,&quot;imagePullPolicy&quot;:&quot;Always&quot;}]}}}}' &amp;&amp; kubectl -n agropacayales-namespace rollout restart deploy/backend-transaccional &amp;&amp; kubectl -n agropacayales-namespace rollout status deploy/backend-transaccional
+</code></pre>
+
+<p><strong>Login de la app móvil / web con usuarios del CSV</strong> (<code>Correo o contraseña incorrectos</code>): el usuario <strong>no existe</strong> si la importación de <code>usuarios.csv</code> falló (en MongoDB anteriores al 27/10/2026 fallaba por las fechas). Solución: ejecutar el comando de fechas de arriba ⬆️ → volver a importar <code>usuarios.csv</code> (<code>POST /api/usuarios/importar/csv</code>, debe decir <code>importados: 12</code>) → iniciar sesión.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Usuario para iniciar sesión</th>
+<th style="text-align: left;">Contraseña</th>
+<th style="text-align: left;">Rol</th>
+<th style="text-align: left;">Origen</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>ana@agro.com</code></td>
+<td style="text-align: left;"><code>Password123!</code></td>
+<td style="text-align: left;">ADMIN</td>
+<td style="text-align: left;">Carga inicial (siempre existe)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>elena.flores@agropacayales.com</code></td>
+<td style="text-align: left;"><code>Pass123!</code></td>
+<td style="text-align: left;">ADMIN</td>
+<td style="text-align: left;"><code>usuarios.csv</code> (después de importar)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>carlos.mendoza@agropacayales.com</code></td>
+<td style="text-align: left;"><code>Pass123!</code></td>
+<td style="text-align: left;">ADMIN</td>
+<td style="text-align: left;"><code>usuarios.csv</code> (después de importar)</td>
+</tr>
+<tr>
+<td style="text-align: left;"># Manual Rápido Clic por Clic — AgroPacayales en AWS (Desde Cero)</td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+</tr>
+</tbody>
+</table>
 <blockquote>
 <p><strong>Despliegue:</strong> Orquestador <strong>Kubernetes (K3s)</strong> sobre EC2 — Evaluación Intermedia<br />
 ⚠️ Este manual es <strong>solo para orquestadores</strong>. El del Taller de Cloud Computing (S3, puertos 8081/5000) está en <a href="../despliegue-taller-cloud/MANUAL_TALLER_CLOUD.md"><code>../despliegue-taller-cloud/</code></a>.<br />

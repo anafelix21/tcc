@@ -470,6 +470,19 @@ R=$(aws rds describe-db-instances --query "DBInstances[?DBInstanceIdentifier=='a
 ```bash
 mongosh "mongodb://admin:Mongo12345@localhost:27017/agropacayales_db?authSource=admin" --quiet --eval 'const v=db.getCollectionInfos({name:"users"})[0].options.validator; v.$jsonSchema.properties.fecha_nacimiento.bsonType=["string","date"]; v.$jsonSchema.properties.fecha_contratacion.bsonType=["string","date"]; printjson(db.runCommand({collMod:"users", validator:v}))'
 ```
+
+**Actualizar el Backend 1 en un despliegue YA levantado** (después de publicar una imagen nueva; en despliegues nuevos no hace falta). En `k8s-master`:
+```bash
+kubectl -n agropacayales-namespace patch deploy backend-transaccional -p '{"spec":{"template":{"spec":{"containers":[{"name":"backend-transaccional","imagePullPolicy":"Always"}]}}}}' && kubectl -n agropacayales-namespace rollout restart deploy/backend-transaccional && kubectl -n agropacayales-namespace rollout status deploy/backend-transaccional
+```
+
+**Login de la app móvil / web con usuarios del CSV** (`Correo o contraseña incorrectos`): el usuario **no existe** si la importación de `usuarios.csv` falló (en MongoDB anteriores al 27/10/2026 fallaba por las fechas). Solución: ejecutar el comando de fechas de arriba ⬆️ → volver a importar `usuarios.csv` (`POST /api/usuarios/importar/csv`, debe decir `importados: 12`) → iniciar sesión.
+
+| Usuario para iniciar sesión | Contraseña | Rol | Origen |
+| :-- | :-- | :-- | :-- |
+| `ana@agro.com` | `Password123!` | ADMIN | Carga inicial (siempre existe) |
+| `elena.flores@agropacayales.com` | `Pass123!` | ADMIN | `usuarios.csv` (después de importar) |
+| `carlos.mendoza@agropacayales.com` | `Pass123!` | ADMIN | `usuarios.csv` (después de importar) |
 # Manual Rápido Clic por Clic — AgroPacayales en AWS (Desde Cero)
 
 > **Despliegue:** Orquestador **Kubernetes (K3s)** sobre EC2 — Evaluación Intermedia  

@@ -28,7 +28,7 @@ public class Insumo {
     private String id;
 
     @NotBlank(message = "El nombre del insumo no puede estar vacío.")
-    @Size(max = 100, message = "El nombre del insumo no puede superar los 100 caracteres.")
+    @Size(min = 3, max = 100, message = "El nombre del insumo debe tener entre 3 y 100 caracteres.")
     @Field("nombre")
     private String nombre;
 

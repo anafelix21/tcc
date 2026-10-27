@@ -123,7 +123,8 @@ public final class ArchivoUtil {
                     return persistFn.apply(entidad)
                             .map(ok -> 1)
                             .onErrorResume(e -> {
-                                errores.add("Fila " + n + ": " + e.getMessage());
+                                errores.add("Fila " + n + ": " + (MongoValidacionUtil.esValidacionMongo(e)
+                                        ? MongoValidacionUtil.traducir(e) : e.getMessage()));
                                 return Mono.just(0);
                             });
                 })
