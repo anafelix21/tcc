@@ -327,7 +327,7 @@ PUB_B2=$(ec2_field '*nalitico*' PublicIpAddress)
 cat > /home/ubuntu/URLS.txt <<EOF
 ==================== AGROPACAYALES - DESPLIEGUE TERMINADO ====================
 Frontend web ............ http://$PUB_FE:30000
-Backend 1 Swagger ....... http://$PUB_B1:30001/webjars/swagger-ui/index.html
+Backend 1 Swagger ....... http://$PUB_B1:30001/swagger-ui.html
 Backend 2 (Postman/Docs)  http://$PUB_B2:30002/apidocs/
 Backend 2 health ........ http://$PUB_B2:30002/health
 

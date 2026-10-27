@@ -233,7 +233,7 @@ En **EC2 → Instances**, copia la **Public IPv4 address** de cada máquina (o u
 | ✔ | Componente | URL de Acceso |
 | :-: | :-- | :-- |
 | ☐ | **Frontend Web** | `http://<IP de k8s-node-frontend>:30000` |
-| ☐ | **Backend 1 — Swagger UI** | `http://<IP_ELASTICA_O_IP_NODE_BACKEND>:30001/webjars/swagger-ui/index.html` |
+| ☐ | **Backend 1 — Swagger UI** | `http://<IP_ELASTICA_O_IP_NODE_BACKEND>:30001/swagger-ui.html` |
 | ☐ | **Backend 1 — OpenAPI JSON** | `http://<IP>:30001/api-docs` (importar en Postman) |
 | ☐ | **Backend 2 — Swagger Docs** | `http://<IP de k8s-node-backendAnalitico>:30002/apidocs/` |
 | ☐ | **Backend 2 — Health Check** | `http://<IP de k8s-node-backendAnalitico>:30002/health` |
@@ -321,7 +321,7 @@ kubectl get pods -n agropacayales-namespace
 
 ## 📋 12. Catálogo de Payloads JSON para CRUD de Maestros (Swagger UI)
 
-Abre Swagger UI en tu navegador: **`http://<IP_BACKEND1>:30001/webjars/swagger-ui/index.html`**
+Abre Swagger UI en tu navegador: **`http://<IP_BACKEND1>:30001/swagger-ui.html`**
 
 ### 12.1. Insumos Agrícolas (MongoDB: `supplies`)
 * **Endpoint:** `POST /api/insumos` (Try it out → Pegar y Execute):

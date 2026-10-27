@@ -177,7 +177,7 @@ Las 5 EC2 llevan **el mismo** user data, [`user-data-universal.sh`](user-data-un
 | Qué | URL |
 | :-- | :-- |
 | Frontend web | `http://<IP de k8s-node-frontend>:30000` |
-| Backend 1 — Swagger | `http://<IP de k8s-node-backend>:30001/webjars/swagger-ui/index.html` |
+| Backend 1 — Swagger | `http://<IP de k8s-node-backend>:30001/swagger-ui.html` |
 | Backend 1 — OpenAPI (importar en Postman) | `http://<IP de k8s-node-backend>:30001/api-docs` |
 | Backend 2 — Swagger | `http://<IP de k8s-node-backendAnalitico>:30002/apidocs/` |
 | Backend 2 — health | `http://<IP de k8s-node-backendAnalitico>:30002/health` |
