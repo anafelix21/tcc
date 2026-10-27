@@ -97,7 +97,7 @@ Debe quedar:
 - [ ] Templates: **Free tier** (si no sale, **Dev/Test**)
 
 **Settings**
-- [ ] DB instance identifier: `agropacayales-rds-sqlserver`
+- [ ] DB instance identifier: `cc-taller-rds-sqlserver`
 - [ ] Master username: `admin`
 - [ ] Credentials management: **Self managed** ⚠️ **NO** "Managed in AWS Secrets Manager" (si no, sale `Login failed for user 'admin'`)
 - [ ] Master password: `AgroPacayales2026!`
@@ -174,7 +174,7 @@ Debe quedar en **EC2 → Instances**:
 | :-: | :-- | :-- |
 | 1 | `Docker listo e imágenes descargadas` | Backends listos para arrancar |
 | 2 | `Esperando que RDS SQL Server termine de crearse...` | Normal: se repite hasta que la RDS esté lista |
-| 3 | `MongoDB: 172.31.x.x \| RDS: agropacayales-rds-sqlserver...` | Encontró las 2 bases de datos |
+| 3 | `MongoDB: 172.31.x.x \| RDS: cc-taller-rds-sqlserver...` | Encontró las 2 bases de datos |
 | 4 | `SQL SERVER POBLADO` | Tablas y +800 registros en RDS |
 | 5 | `Backends levantados en Docker` | Backend 1 y Backend 2 corriendo |
 | 6 | `FRONTEND PUBLICADO EN S3` + URLs | Frontend en el bucket S3 |
@@ -206,7 +206,7 @@ Debe quedar en **EC2 → Instances**:
 | :-: | :-- | :-- |
 | ☐ | **Amazon VPC** | **VPC → Your VPCs** (default) y **EC2 → Security Groups** → `cc-ec2-sg`, `cc-rds-sg` |
 | ☐ | **Amazon EC2** | **EC2 → Instances** → `cc-mongodb` (BD 2) y `cc-backends` (BE 1 y BE 2) |
-| ☐ | **Amazon RDS** | **RDS → Databases** → `agropacayales-rds-sqlserver` (BD 1, Available) |
+| ☐ | **Amazon RDS** | **RDS → Databases** → `cc-taller-rds-sqlserver` (BD 1, Available) |
 | ☐ | **Amazon S3** | **S3 → Buckets** → `agropacayales-frontend-...` → **Objects** (index.html, assets) y **Properties → Static website hosting** |
 
 ---
@@ -214,7 +214,7 @@ Debe quedar en **EC2 → Instances**:
 ## 10. Entrar a las bases desde tu PC
 
 **SQL Server Management Studio (SSMS)**
-- [ ] **RDS → Databases →** `agropacayales-rds-sqlserver` → **Connectivity & security** → copiar **Endpoint**
+- [ ] **RDS → Databases →** `cc-taller-rds-sqlserver` → **Connectivity & security** → copiar **Endpoint**
 - [ ] SSMS → **Connect to Server**:
   - Server name: `<Endpoint>,1433` (con coma)
   - Authentication: **SQL Server Authentication**
@@ -238,7 +238,7 @@ mongodb://admin:Mongo12345@IP_PUBLICA:27017/agropacayales_db?authSource=admin
 - [ ] Copiar y pegar **todo** este comando (es una sola línea):
 
 ```bash
-cat ~/URLS.txt; R=$(aws rds describe-db-instances --query "DBInstances[?starts_with(Engine,'sqlserver')]|[0].Endpoint.Address" --output text); echo "== RDS: $R"; nc -zv -w5 "$R" 1433 && sudo /opt/mssql-tools18/bin/sqlcmd -C -S "$R,1433" -U admin -P 'AgroPacayales2026!' -d agropacayales_db -Q "SET NOCOUNT ON; SELECT COUNT(*) AS tablas FROM sys.tables"; echo "== BACKENDS"; sudo docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'; curl -s -o /dev/null -w "backend1 insumos: %{http_code}\n" localhost:8081/api/insumos; curl -s -o /dev/null -w "backend2 health: %{http_code}\n" localhost:5000/health; curl -s localhost:5000/status/database; echo; echo "== AVANCE"; sudo grep AGRO /var/log/agropacayales.log | tail -3
+cat ~/URLS.txt; R=$(aws rds describe-db-instances --query "DBInstances[?starts_with(DBInstanceIdentifier,'cc-')]|[0].Endpoint.Address" --output text); echo "== RDS: $R"; nc -zv -w5 "$R" 1433 && sudo /opt/mssql-tools18/bin/sqlcmd -C -S "$R,1433" -U admin -P 'AgroPacayales2026!' -d agropacayales_db -Q "SET NOCOUNT ON; SELECT COUNT(*) AS tablas FROM sys.tables"; echo "== BACKENDS"; sudo docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'; curl -s -o /dev/null -w "backend1 insumos: %{http_code}\n" localhost:8081/api/insumos; curl -s -o /dev/null -w "backend2 health: %{http_code}\n" localhost:5000/health; curl -s localhost:5000/status/database; echo; echo "== AVANCE"; sudo grep AGRO /var/log/agropacayales.log | tail -3
 ```
 
 Cómo leer lo que sale:
