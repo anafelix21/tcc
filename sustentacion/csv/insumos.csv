@@ -1,0 +1,16 @@
+nombre,descripcion,precio,stock,unidadMedida,tipoInsumo,proveedor,presentacion
+Urea,Fertilizante nitrogenado para crecimiento,85.50,150,kg,FERTILIZANTE,Fertisur,Saco 50kg
+Glifosato,Herbicida sistemico post-emergencia,120.00,80,L,HERBICIDA,Bayer,Galon 4L
+Sulfato de Cobre,Fungicida organico contra hongos,45.20,200,kg,FUNGICIDA,Quimicos Peru,Saco 25kg
+Abono Organico Compuesto,Abono natural compostado,25.00,500,kg,FERTILIZANTE,EcoAbono,Saco 50kg
+NPK 20-20-20,Fertilizante completo balanceado,95.00,120,kg,FERTILIZANTE,Agroquimica SA,Saco 50kg
+Cipermetrina,Insecticida piretroide para plagas,75.00,60,L,PESTICIDA,Bayer,Frasco 1L
+Mancozeb,Fungicida preventivo de amplio espectro,55.00,90,kg,FUNGICIDA,Syngenta,Bolsa 1kg
+Semilla Maiz Hibrido,Semilla certificada de alto rendimiento,280.00,40,bolsa,SEMILLA,SemillasElite,Bolsa 25kg
+Semilla Papa Canchan,Semilla seleccionada resistente a rancha,150.00,30,saco,SEMILLA,INIA,Saco 50kg
+Nitrato de Amonio,Fertilizante nitrogenado de rapida absorcion,70.00,180,kg,FERTILIZANTE,Fertisur,Saco 50kg
+Imidacloprid,Insecticida sistemico para suelo,130.00,45,kg,PESTICIDA,Bayer,Bolsa 1kg
+Oxicloruro de Cobre,Fungicida de contacto para frutales,48.00,110,kg,FUNGICIDA,Quimicos Peru,Bolsa 1kg
+Fosfato Diamonico DAP,Fertilizante fosforado para siembra,105.00,200,kg,FERTILIZANTE,Agroquimica SA,Saco 50kg
+Semilla Esparrago UC-157,Semilla hibrida de exportacion,320.00,25,unidad,SEMILLA,HortaSeed,Sobre 1000 semillas
+Clorpirifos,Insecticida organofosforado de amplio espectro,65.00,70,L,PESTICIDA,Dow AgroSciences,Frasco 1L

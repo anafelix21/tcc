@@ -1,0 +1,13 @@
+nombre,apellido,correo,password,rol,fechaNacimiento,fechaContratacion
+Carlos,Mendoza,carlos.mendoza@agropacayales.com,Pass123!,ADMIN,1988-03-12,2022-01-10
+Lucia,Quispe,lucia.quispe@agropacayales.com,Pass123!,SUPERVISOR,1992-07-25,2022-03-15
+Miguel,Ramos,miguel.ramos@agropacayales.com,Pass123!,OPERARIO,1995-11-02,2023-02-01
+Rosa,Huaman,rosa.huaman@agropacayales.com,Pass123!,OPERARIO,1990-05-18,2023-04-20
+Jorge,Torres,jorge.torres@agropacayales.com,Pass123!,SUPERVISOR,1985-09-30,2021-08-05
+Elena,Flores,elena.flores@agropacayales.com,Pass123!,ADMIN,1993-01-14,2022-06-11
+Pedro,Salazar,pedro.salazar@agropacayales.com,Pass123!,OPERARIO,1998-12-09,2024-01-08
+Marta,Cruz,marta.cruz@agropacayales.com,Pass123!,OPERARIO,1991-04-22,2023-09-17
+Luis,Vargas,luis.vargas@agropacayales.com,Pass123!,SUPERVISOR,1987-08-03,2021-11-29
+Ana,Rojas,ana.rojas@agropacayales.com,Pass123!,OPERARIO,1996-02-27,2024-03-04
+Diego,Paredes,diego.paredes@agropacayales.com,Pass123!,OPERARIO,1994-06-15,2023-07-12
+Sofia,Leon,sofia.leon@agropacayales.com,Pass123!,ADMIN,1989-10-08,2022-09-26

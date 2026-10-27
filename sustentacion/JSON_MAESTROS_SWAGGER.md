@@ -2,7 +2,9 @@
 
 Para el criterio de **Talleres de Software Empresarial** (registrar, editar, eliminar, restaurar, importar y exportar el maestro CRUD en MongoDB).
 
-✅ **Todos estos JSON se probaron contra el backend real** (imagen Docker del Backend 1 + MongoDB 8): registrar → editar → eliminar → restaurar → importar → exportar funcionó en los **3 maestros**.
+✅ **Todos estos JSON se probaron contra el backend real** (imagen Docker del Backend 1 + MongoDB 8 cargado con `init_mongodb_completo.js`, **con los mismos validadores `$jsonSchema` que en AWS**): registrar → editar → eliminar → restaurar → importar → exportar funcionó en los **3 maestros**.
+
+> ⚠️ **Antes de la demo de Usuarios** ejecutar el arreglo del validador de fechas de la [guía, sección 2.4](GUIA_SUSTENTACION_ANA_FELIX.md#24-%EF%B8%8F-arreglo-obligatorio-en-mongodb-1-sola-vez-despu%C3%A9s-de-desplegar). Sin eso, todo usuario con fechas falla con `Document failed validation`.
 
 | Maestro | Responsable | Ruta base | Campos (mín. 12) |
 | :-- | :-- | :-- | :-- |
@@ -43,12 +45,12 @@ El **`id`** también lo genera el sistema con un código legible: `PARC-GEN-747`
 
 | # | Campo | Tipo | Obligatorio | Regla |
 | :-: | :-- | :-- | :-: | :-- |
-| 1 | `nombre` | texto | ✅ | máx. 100 |
+| 1 | `nombre` | texto | ✅ | máx. 100 · no se repite |
 | 2 | `ubicacion` | texto | | máx. 200 |
-| 3 | `areaHectareas` | decimal | | mín. 0.1 |
-| 4 | `tipoSuelo` | texto | | máx. 80 |
+| 3 | `areaHectareas` | decimal | ✅ | mín. 0.1 |
+| 4 | `tipoSuelo` | texto | ✅ | **solo:** `Franco`, `Franco Arenoso`, `Arenoso`, `Franco Limoso`, `Arcilloso` |
 | 5 | `responsable` | texto | | máx. 100 |
-| 6 | `estadoRiego` | texto | | máx. 50 |
+| 6 | `estadoRiego` | texto | ✅ | **solo:** `Completo`, `En Proceso`, `Pendiente` |
 | 7 | `fechaUltimaSiembra` | fecha `AAAA-MM-DD` | | |
 | 8 | `produccionEstimada` | texto | | máx. 100 |
 | 9 | `cultivoActual` | texto | | máx. 100 |
@@ -68,7 +70,7 @@ El **`id`** también lo genera el sistema con un código legible: `PARC-GEN-747`
   "areaHectareas": 8.5,
   "tipoSuelo": "Franco",
   "responsable": "Ana Félix",
-  "estadoRiego": "Completo (Goteo)",
+  "estadoRiego": "Completo",
   "fechaUltimaSiembra": "2026-08-15",
   "produccionEstimada": "25 toneladas",
   "cultivoActual": "Palta",
@@ -80,6 +82,8 @@ El **`id`** también lo genera el sistema con un código legible: `PARC-GEN-747`
 ```
 ➡️ Responde con el `id` (ej. `PARC-GEN-747`), `estado: true` y `createdAt`.
 
+> En MongoDB se guarda en `snake_case` en la colección **`plots`** (`area_hectareas`, `estado_riego`, `created_at`…): el backend lo convierte con `@Field`.
+
 ### ✏️ Editar — `PUT /api/parcelas/{id}`
 ```json
 {
@@ -88,7 +92,7 @@ El **`id`** también lo genera el sistema con un código legible: `PARC-GEN-747`
   "areaHectareas": 8.5,
   "tipoSuelo": "Franco",
   "responsable": "Ana Félix",
-  "estadoRiego": "Parcial (Aspersión)",
+  "estadoRiego": "En Proceso",
   "fechaUltimaSiembra": "2026-08-15",
   "produccionEstimada": "30 toneladas",
   "cultivoActual": "Mandarina",
@@ -107,7 +111,8 @@ Sin body. ➡️ `estado: false` y `deletedAt` con fecha y hora. Verla en `GET /
 Sin body. ➡️ `estado: true` y `restoredAt` con fecha y hora.
 
 ### 📥 Importar — `POST /api/parcelas/importar/csv`
-- En Swagger: **Try it out** → campo **`file`** → **Choose File** → `ASE251S4_T05-be/csv/parcelas.csv` → **Execute**.
+- En Swagger: **Try it out** → campo **`file`** → **Choose File** → [`sustentacion/csv/parcelas.csv`](csv/parcelas.csv) → **Execute**.
+- ⚠️ Usar **este CSV corregido**: el original `ASE251S4_T05-be/csv/parcelas.csv` tiene 2 filas con `Limoso` y `Arcillo Limoso`, que el validador rechaza (importaba 13 de 15).
 - Excel: `POST /api/parcelas/importar/excel` con un `.xlsx` de las mismas columnas.
 
 Columnas del CSV:
@@ -180,7 +185,7 @@ En Swagger aparece **Download file** para descargarlo.
 `PATCH /api/insumos/{id}/eliminar` · `PATCH /api/insumos/{id}/restaurar` (sin body).
 
 ### 📥 Importar — `POST /api/insumos/importar/csv` (campo `file`)
-Archivo: `ASE251S4_T05-be/csv/insumos.csv`
+Archivo: [`sustentacion/csv/insumos.csv`](csv/insumos.csv) (igual al del backend)
 ```
 nombre,descripcion,precio,stock,unidadMedida,tipoInsumo,proveedor,presentacion
 ```
@@ -200,10 +205,10 @@ nombre,descripcion,precio,stock,unidadMedida,tipoInsumo,proveedor,presentacion
 | 1 | `nombre` | texto | ✅ | máx. 100 |
 | 2 | `apellido` | texto | ✅ | máx. 100 |
 | 3 | `correo` | email | ✅ | formato válido · **no se repite** |
-| 4 | `password` | texto | | |
-| 5 | `rol` | texto | | máx. 20 · `ADMIN`, `SUPERVISOR`, `AGRONOMO`, `OPERARIO` |
-| 6 | `fechaNacimiento` | fecha `AAAA-MM-DD` | | |
-| 7 | `fechaContratacion` | fecha `AAAA-MM-DD` | | |
+| 4 | `password` | texto | ✅ | (lo exige el validador de MongoDB) |
+| 5 | `rol` | texto | ✅ | **solo:** `ADMIN`, `SUPERVISOR`, `OPERARIO`, `TECNICO`, `AGRONOMO` |
+| 6 | `fechaNacimiento` | fecha `AAAA-MM-DD` | | ⚠️ ver arreglo de fechas |
+| 7 | `fechaContratacion` | fecha `AAAA-MM-DD` | | ⚠️ ver arreglo de fechas |
 | 8 | `estado` | sí/no | auto | |
 | 9–12 | `createdAt` · `updatedAt` · `deletedAt` · `restoredAt` | fecha y hora | auto | auditoría |
 | 13 | `id` | texto | auto | ej. `USR-SUP-306` |
@@ -213,21 +218,21 @@ nombre,descripcion,precio,stock,unidadMedida,tipoInsumo,proveedor,presentacion
 {
   "nombre": "Lucía",
   "apellido": "Ramos Torres",
-  "correo": "lucia.ramos@agropacayales.com",
+  "correo": "lucia.ramos.demo@agropacayales.com",
   "password": "Agro2026!",
   "rol": "SUPERVISOR",
   "fechaNacimiento": "1995-04-18",
   "fechaContratacion": "2024-03-01"
 }
 ```
-⚠️ Si ya registraste este correo, cámbialo (`lucia.ramos2@...`): el correo no se puede repetir.
+⚠️ Si ya registraste este correo, cámbialo (`lucia.ramos2@...`): el correo no se puede repetir. Si no hiciste el arreglo de fechas, quita `fechaNacimiento` y `fechaContratacion` del JSON y el registro funciona igual.
 
 ### ✏️ Editar — `PUT /api/usuarios/{id}`
 ```json
 {
   "nombre": "Lucía",
   "apellido": "Ramos Quispe",
-  "correo": "lucia.ramos@agropacayales.com",
+  "correo": "lucia.ramos.demo@agropacayales.com",
   "password": "Agro2026!",
   "rol": "AGRONOMO",
   "fechaNacimiento": "1995-04-18",
@@ -239,7 +244,7 @@ nombre,descripcion,precio,stock,unidadMedida,tipoInsumo,proveedor,presentacion
 `PATCH /api/usuarios/{id}/eliminar` · `PATCH /api/usuarios/{id}/restaurar` (sin body).
 
 ### 📥 Importar — `POST /api/usuarios/importar/csv` (campo `file`)
-Archivo: `ASE251S4_T05-be/csv/usuarios.csv`
+Archivo: [`sustentacion/csv/usuarios.csv`](csv/usuarios.csv) (igual al del backend) · ⚠️ requiere el arreglo de fechas (sección 2.4 de la guía)
 ```
 nombre,apellido,correo,password,rol,fechaNacimiento,fechaContratacion
 ```
@@ -255,6 +260,8 @@ nombre,apellido,correo,password,rol,fechaNacimiento,fechaContratacion
 | Prueba | JSON | Respuesta real (400) |
 | :-- | :-- | :-- |
 | Parcela sin nombre | `{ "nombre": "", "areaHectareas": 5 }` | `"nombre": "El nombre de la parcela es obligatorio."` |
+| Parcela con riego inválido (lo rechaza **MongoDB**) | el JSON de registrar con `"estadoRiego": "Regular"` | `Document failed validation` → `estado_riego`: *value was not found in enum* |
+| Importar el mismo CSV dos veces | `POST /api/parcelas/importar/csv` | `fallidos` con *"Ya existe…"*: no se aceptan duplicados |
 | Insumo con unidad inválida | `{ "nombre": "Prueba", "precio": 10, "stock": 5, "unidadMedida": "caja", "tipoInsumo": "FERTILIZANTE" }` | `La unidad de medida 'caja' no es válida. Unidades aceptadas: kg, g, L, ml, unidad, bolsa, saco, bidon, tonelada` |
 | Usuario con correo inválido | `{ "nombre": "X", "apellido": "Y", "correo": "no-es-correo" }` | `"correo": "El correo electrónico debe tener un formato válido."` |
 | Buscar un id que no existe | `GET /api/parcelas/NOEXISTE` | **404** no encontrado |
