@@ -1,11 +1,26 @@
-# 🚀 MANUAL DEFINITIVO DE DESPLIEGUE: 4 SERVICIOS AWS
+# 🚀 MANUAL DEFINITIVO DE DESPLIEGUE: 4 SERVICIOS AWS (DESDE CERO)
 ## Unidad Didáctica: Taller de Cloud Computing — Evaluación Intermedia (20/20)
 ### Proyecto: AgroPacayales S.A.C. (Equipo T05)
-*Guía unificada, probada en vivo y blindada contra reinicios de AWS Academy (Voclabs).*
+*Guía paso a paso para desplegar en una cuenta de AWS nueva desde cero. Incluye qué valores debes anotar y reemplazar.*
 
 ---
 
-## 🎯 1. Matriz de Cumplimiento de Rúbrica Oficial (20/20)
+## 📋 1. Hoja de Datos de tu Despliegue (Anota tus valores aquí)
+
+A medida que vayas creando los recursos en tu cuenta de AWS, **anota estos 6 datos**. Los usarás para conectarte y para configurar los archivos sin equivocarte:
+
+| # | Dato a Anotar | ¿En qué paso se genera? | Ejemplo de Valor | Tu Valor Real (Rellena aquí) |
+|---|---|---|---|---|
+| **1** | **Endpoint de Amazon RDS** | Paso 2 (al crear RDS SQL Server) | `agropacayales-rds.c4rhnptakjkc.us-east-1.rds.amazonaws.com` | `________________________________` |
+| **2** | **Contraseña de RDS** | Paso 2 (la que definas al crear RDS) | `SQLServer12345` | `________________________________` |
+| **3** | **IP Privada de `ec2-mongodb`** | Paso 3 (en la consola EC2) | `10.0.5.187` | `________________________________` |
+| **4** | **IP Pública de `ec2-mongodb`** | Paso 3 (para MongoDB Compass) | `98.20.208.209` | `________________________________` |
+| **5** | **IP Elástica de `k8s-master`** | Paso 4 (al asignar Elastic IP) | `100.55.148.151` | `________________________________` |
+| **6** | **Nombre de tu Bucket S3** | Paso 5 (debe ser único en el mundo) | `agropacayales-frontend-juan` | `________________________________` |
+
+---
+
+## 🎯 2. Matriz de Cumplimiento de Rúbrica Oficial (20/20)
 
 | Criterio de la Rúbrica | Componente Aprovisionado | Servicio AWS Empleado | Categoría Oficial AWS | Justificación para la Evaluación |
 | :--- | :--- | :--- | :--- | :--- |
@@ -14,43 +29,11 @@
 | **Criterio 3: Frontend Web empleando 1 servicio diferente a los anteriores** | **Frontend Web:** React 19 + TypeScript + Vite SPA | **Amazon S3** (Static Website) | *Storage* (Almacenamiento de Objetos) | Hosting desacoplado, estático y serverless en S3, completamente diferente a cómputo y bases de datos. |
 | **Criterio 4: Mínimo 4 servicios diferentes de AWS en total** | **Infraestructura de Red y Conectividad** | **Amazon VPC** | *Networking & Content Delivery* | Red privada virtual (`10.0.0.0/16`) creada desde cero con subredes públicas, Internet Gateway y Security Groups para interconectar todo. |
 
-> 💡 **Nota de Sustentación:** En la evaluación cuentas con **4 servicios oficiales nativos de AWS**:  
-> 1. **Amazon VPC** (Networking) | 2. **Amazon EC2** (Compute) | 3. **Amazon RDS** (Database) | 4. **Amazon S3** (Storage).  
-> Además, demuestras el frontend en **Amazon S3** (para la rúbrica) y el frontend en **K3s** (para la auto-reparación de Kubernetes ante el jurado).
-
----
-
-## 📌 2. Matriz Rápida de Conexiones y URLs Permanentes
-
-| Componente | Servicio AWS | Puerto / Tipo | URL Pública / Endpoint | Credenciales / Propósito |
-| :--- | :--- | :--- | :--- | :--- |
-| **Red Privada** | **Amazon VPC** | Red `10.0.0.0/16` | Consola VPC (`agropacayales-vpc`) | 2 subredes públicas + Internet Gateway |
-| **IP Fija Master** | **Amazon EC2** | IP Elástica | `100.55.148.151` *(o tu Elastic IP)* | IP permanente: ¡nunca cambia al reiniciar! |
-| **Frontend Web (S3)** | **Amazon S3** | 80 (HTTP) | `http://<bucket-name>.s3-website-us-east-1.amazonaws.com` | **Frontend oficial en 4to servicio AWS** |
-| **Frontend Web (K3s)**| **Amazon EC2** | 30000 (NodePort) | `http://<IP_ELASTICA>:30000` | Acceso directo vía clúster Kubernetes |
-| **Backend 1 (Transaccional)** | **Amazon EC2** | 30001 (NodePort) | `http://<IP_ELASTICA>:30001/swagger-ui.html` | Swagger UI interactivo Spring Boot |
-| **Backend 2 (Analítico)** | **Amazon EC2** | 30002 (NodePort) | `http://<IP_ELASTICA>:30002/docs` \| `/health` | OpenAPI / Flasgger interactivo Python |
-| **BD Relacional** | **Amazon RDS** | 1433 (TCP) | `<endpoint-rds>.amazonaws.com:1433` | Usuario: `admin` \| Pass: `SQLServer12345` |
-| **BD NoSQL** | **Amazon EC2** | 27017 (TCP) | `<IP_PRIVADA_MONGO>:27017` | Usuario: `admin` \| Pass: `Mongo12345` |
-| **App Móvil (Expo)** | React Native | Local / Web | `http://localhost:8081` | Conectado a `http://<IP_ELASTICA>:30001` |
-
----
-
-## 🔒 3. El Secreto de la Persistencia: IP Elástica (Elastic IP)
-
-Por defecto, en AWS EC2 **cada vez que apagas y prendes una máquina, la IP pública cambia**, lo que rompe las URLs del Frontend en S3 y de la App Móvil.
-
-Para que **NUNCA MÁS cambie la IP al reiniciar**:
-1. En la consola de AWS, ve a **EC2** → menú izquierdo: **Elastic IPs** (Direcciones IP elásticas).
-2. Haz clic en **Allocate Elastic IP address** (Asignar dirección IP elástica) → Clic en **Allocate**.
-3. Selecciona la IP recién creada → **Actions** (Acciones) → **Associate Elastic IP address** (Asociar dirección IP elástica).
-4. En **Instance** (Instancia): Selecciona tu **`k8s-master`**.
-5. Haz clic en **Associate**.
-6. ¡Listo! Esa IP pública queda permanentemente atada a tu Master. Puedes apagar y prender tu máquina 100 veces y siempre conservará la misma IP.
-
 ---
 
 ## 🌐 PASO 1: Servicio AWS #1 — Amazon VPC (Creación en 2 min)
+
+Este paso no requiere reemplazar nada; los nombres son estándar para todo el equipo:
 
 ### 1.1. Crear la VPC con el Asistente "VPC y más"
 1. En la consola de AWS, busca **VPC** → Clic en **Crear VPC** (*Create VPC*).
@@ -87,108 +70,147 @@ Para que **NUNCA MÁS cambie la IP al reiniciar**:
 
 ---
 
-## 🗄️ PASO 2: Servicio AWS #2 — Amazon RDS SQL Server (Configuración y Scripts)
+## 🗄️ PASO 2: Servicio AWS #2 — Amazon RDS SQL Server (PaaS Relacional)
 
 ### 2.1. Crear la Base de Datos en Amazon RDS
 1. Consola AWS → **RDS** → **Create database** (Creación estándar).
 2. **Motor:** `Microsoft SQL Server` → **Edición:** `SQL Server Express Edition`.
 3. **Identificador:** `agropacayales-rds`.
-4. **Master username:** `admin` | **Master password:** `SQLServer12345`.
-5. **Clase de instancia:** 👉 **`db.t3.micro`** (1 vCPU, 1 GB RAM). *(¡No uses otra para evitar el bloqueo de Voclabs!)*.
-6. **Almacenamiento:** `20 GiB` | ❌ **DESMARCA:** "Habilitar el escalado automático del almacenamiento".
-7. **Conectividad:**
+4. **Master username:** `admin`.
+5. **Master password:** `SQLServer12345` *(o la que elijas, anótala en el Dato #2)*.
+6. **Clase de instancia:** 👉 **`db.t3.micro`** (1 vCPU, 1 GB RAM). *(¡No uses otra para evitar el bloqueo de Voclabs!)*.
+7. **Almacenamiento:** `20 GiB` | ❌ **DESMARCA:** "Habilitar el escalado automático del almacenamiento".
+8. **Conectividad:**
    * **VPC:** `agropacayales-vpc`.
    * **Acceso público:** `Yes` *(para conectarte desde Azure Data Studio/SSMS en tu PC)*.
    * **Security Group:** Selecciona **`agropacayales-sg`** (y retira el default).
-8. **Monitoreo (CRÍTICO para evitar error de permisos IAM `iam:CreateRole`):**
+9. **Monitoreo (CRÍTICO para evitar error de permisos IAM `iam:CreateRole`):**
    * ❌ **DESMARCA:** "Habilitar el monitoreo mejorado" (*Enhanced Monitoring*).
-9. **Configuración adicional:**
-   * ❌ **DESMARCA:** "Habilitar Performance Insights".
-   * Copias de seguridad: Retención en `0` días.
-10. Clic en **Create database**. Cuando esté en estado **Available**, copia el **Endpoint** (ej: `agropacayales-rds.c4rhnptakjkc.us-east-1.rds.amazonaws.com`).
+10. **Configuración adicional:**
+    * ❌ **DESMARCA:** "Habilitar Performance Insights".
+    * Copias de seguridad: Retención en `0` días.
+11. Clic en **Create database**.
+12. 👉 **ANOTA EL DATO #1:** Cuando esté en estado **Available**, copia el **Endpoint** (ej: `agropacayales-rds.c4rhnptakjkc.us-east-1.rds.amazonaws.com`).
 
-### 2.2. Cómo conectarse y ejecutar el Script de SQL Server
+### 2.2. Conectarse y ejecutar el Script SQL
 1. Abre en tu PC **Azure Data Studio** o **SQL Server Management Studio (SSMS)**.
 2. Parámetros de conexión:
-   * **Servidor / Server:** `<TU_ENDPOINT_RDS>,1433`
+   * **Servidor / Server:** `<TU_ENDPOINT_DE_RDS>,1433`  *(reemplaza por tu Dato #1)*
    * **Autenticación:** SQL Server Authentication
    * **Usuario:** `admin`
-   * **Contraseña:** `SQLServer12345`
+   * **Contraseña:** `SQLServer12345` *(reemplaza por tu Dato #2)*
 3. Abre el archivo del proyecto [`scripts/init_sqlserver_completo.sql`](file:///e:/Nueva%20carpeta%20%288%29/tcc/scripts/init_sqlserver_completo.sql).
 4. Haz clic en **Run / Ejecutar**.  
-   *(Crea automáticamente la base de datos `agropacayales_db` y las 7 tablas con más de 800 filas de prueba: `cultivos`, `harvest`, `actividad_cultivo`, etc.)*.
+   *(El script crea automáticamente la base de datos `agropacayales_db` y las 7 tablas con más de 800 registros de prueba)*.
 
 ---
 
-## 🍃 PASO 3: Servicio AWS #3 — Amazon EC2 MongoDB (Instalación, Compass y Script)
+## 🍃 PASO 3: Servicio AWS #3 — Amazon EC2 MongoDB (NoSQL Dedicado)
 
 ### 3.1. Lanzar la Instancia `ec2-mongodb`
 1. Consola AWS → **EC2** → **Launch Instance**:
    * **Nombre:** `ec2-mongodb` | **AMI:** Ubuntu 24.04 LTS | **Tipo:** `t3.small` o `t3.micro`.
-   * **Network Settings:** VPC `agropacayales-vpc`, Subred pública, Security Group `agropacayales-sg`.
-2. Lanza la instancia y anota su **IP privada** (ej: `10.0.5.187`) y su **IP pública** (ej: `98.20.208.209`).
+   * **Key pair:** Selecciona tu archivo `.pem`.
+   * **Network Settings** (Editar):
+     * **VPC:** `agropacayales-vpc`.
+     * **Subred:** Cualquiera de las 2 públicas.
+     * **Auto-assign public IP:** Habilitado.
+     * **Security Group:** `agropacayales-sg`.
+2. Lanza la instancia.
+3. 👉 **ANOTA EL DATO #3:** Copia su **IP privada** (ej: `10.0.5.187`).
+4. 👉 **ANOTA EL DATO #4:** Copia su **IP pública** (ej: `98.20.208.209`).
 
 ### 3.2. Instalación en 1 Línea con Parche de Kernel
-Conéctate por SSH a `ec2-mongodb`:
+Conéctate por SSH a `ec2-mongodb` desde tu PC:
 ```bash
-ssh -i "tu-llave.pem" ubuntu@<IP_PUBLICA_EC2_MONGO>
+ssh -i "tu-llave.pem" ubuntu@<TU_IP_PUBLICA_EC2_MONGO>
 ```
+*(Reemplaza `<TU_IP_PUBLICA_EC2_MONGO>` por tu Dato #4)*.
+
 Copia y pega este bloque completo:
 ```bash
-# Instalar MongoDB 8.0 en Ubuntu 24.04
+# 1. Instalar paquetes de MongoDB 8.0 en Ubuntu 24.04
 sudo apt update && sudo apt install -y gnupg curl
 curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg --dearmor --yes
 echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-8.0.list
 sudo apt update && sudo apt install -y mongodb-org
 
-# Parche de kernel rseq=1 y enlace a 0.0.0.0
+# 2. Aplicar parche de kernel rseq=1 y habilitar acceso público 0.0.0.0
 sudo mkdir -p /etc/systemd/system/mongod.service.d
 printf '[Service]\nEnvironment="GLIBC_TUNABLES=glibc.pthread.rseq=1"\n' | sudo tee /etc/systemd/system/mongod.service.d/rseq.conf
 sudo sed -i 's/bindIp: 127.0.0.1/bindIp: 0.0.0.0/' /etc/mongod.conf
 
-# Iniciar servicio y crear admin
+# 3. Iniciar el servicio y crear usuario admin
 sudo systemctl daemon-reload && sudo systemctl enable --now mongod
 sleep 3
 mongosh --eval 'db.getSiblingDB("admin").createUser({user:"admin",pwd:"Mongo12345",roles:["root"]})'
 ```
 
-### 3.3. Cómo ejecutar el Script de Inicialización de MongoDB en 1 segundo
+### 3.3. Ejecutar el Script de Inicialización de MongoDB en 1 segundo
 Ahí mismo en la terminal de `ec2-mongodb`, ejecuta:
 ```bash
 curl -sSL https://raw.githubusercontent.com/anafelix21/tcc/main/scripts/init_mongodb_completo.js | mongosh "mongodb://admin:Mongo12345@localhost:27017/?authSource=admin"
 ```
-*(Inicializa `agropacayales_db` con las colecciones `supplies`, `plots`, `users` y `field_records` con documentos en español y esquemas validados)*.
+*(Crea las colecciones `supplies`, `plots`, `users` y `field_records` con esquemas validados y datos)*.
 
 ### 3.4. Conexión desde MongoDB Compass (en tu PC)
 1. Abre **MongoDB Compass**.
-2. Cadena de conexión:
+2. En la barra de conexión pega:
    ```text
-   mongodb://admin:Mongo12345@<IP_PUBLICA_EC2_MONGO>:27017/?authSource=admin
+   mongodb://admin:Mongo12345@<TU_IP_PUBLICA_EC2_MONGO>:27017/?authSource=admin
    ```
-3. Clic en **Connect**. Verás la base de datos `agropacayales_db` con todas las colecciones.
-> 💡 **Nota sobre el error de Compass (`useConnectionInfo hook`):** Si al abrir una colección sale una advertencia roja en Compass, es un fallo visual de su interfaz React. Solo cierra la pestaña en la `x` o presiona `Ctrl + R` para recargar.
+   *(Reemplaza `<TU_IP_PUBLICA_EC2_MONGO>` por tu Dato #4)*.
+3. Clic en **Connect**. Verás la base de datos `agropacayales_db`.
+> 💡 *Si sale un aviso rojo en Compass (`useConnectionInfo hook`), es un bug visual de Compass: solo cierra la pestaña con la `x` o presiona `Ctrl + R`*.
 
 ---
 
-## ⚙️ PASO 4: Clúster K3s y Despliegue de Microservicios (El Manifiesto Definitivo)
+## ⚙️ PASO 4: Clúster K3s, IP Elástica y Despliegue de Microservicios
 
-### 4.1. Instalar K3s en `k8s-master`
-Lanza la instancia `k8s-master` (`t3.medium` o `t3.small`) en `agropacayales-vpc` con `agropacayales-sg`. Conéctate por SSH:
+### 4.1. Lanzar la Instancia `k8s-master`
+1. Consola AWS → **EC2** → **Launch Instance**:
+   * **Nombre:** `k8s-master` | **AMI:** Ubuntu 24.04 LTS | **Tipo:** `t3.medium` o `t3.small`.
+   * **Network Settings:** VPC `agropacayales-vpc`, Subred pública, Security Group `agropacayales-sg`.
+2. Lanza la instancia.
+
+### 4.2. Asignar la IP Elástica (Para que NUNCA cambie al apagar AWS)
+1. En **EC2** → menú izquierdo: **Elastic IPs** → **Allocate Elastic IP address** → **Allocate**.
+2. Selecciona la IP → **Actions** → **Associate Elastic IP address**.
+3. En **Instance**: Elige tu **`k8s-master`** → Clic en **Associate**.
+4. 👉 **ANOTA EL DATO #5:** Copia esa **IP Elástica** (ej: `100.55.148.151`).
+
+### 4.3. Instalar K3s en `k8s-master`
+Conéctate por SSH a tu master desde tu PC:
 ```bash
-ssh -i "tu-llave.pem" ubuntu@<IP_ELASTICA_MASTER>
+ssh -i "tu-llave.pem" ubuntu@<TU_IP_ELASTICA_MASTER>
 ```
-Ejecuta para instalar K3s y configurar `kubectl`:
+*(Reemplaza `<TU_IP_ELASTICA_MASTER>` por tu Dato #5)*.
+
+Copia y pega para instalar K3s y `kubectl`:
 ```bash
 curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--token agropacayales-token-2026 --write-kubeconfig-mode 644" sh -
 mkdir -p ~/.kube && sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config && sudo chown -R ubuntu:ubuntu ~/.kube
 sudo ln -sf /usr/local/bin/k3s /usr/bin/kubectl
 ```
 
-### 4.2. Aplicar el Manifiesto Unificado Definitivo
-Copia y pega este bloque completo en la terminal de tu master (reemplaza si cambiaste la IP privada de MongoDB):
+---
+
+### 4.4. Generación Automática del Manifiesto `agropacayales.yml`
+
+Para evitar errores escribiendo a mano, **solo cambia las 3 variables de arriba con tus datos anotados** y pega todo el bloque en la terminal de tu master:
 
 ```bash
-cat << 'EOF' > ~/agropacayales.yml
+# ==============================================================================
+# REEMPLAZA ESTAS 3 VARIABLES CON TUS DATOS ANOTADOS:
+# ==============================================================================
+MI_RDS_ENDPOINT="agropacayales-rds.c4rhnptakjkc.us-east-1.rds.amazonaws.com"  # <- Tu Dato #1
+MI_MONGO_IP="10.0.5.187"                                                      # <- Tu Dato #3 (IP Privada)
+MI_RDS_PASS="SQLServer12345"                                                  # <- Tu Dato #2
+
+# ==============================================================================
+# EJECUTA ESTE BLOQUE COMPLETO (Genera agropacayales.yml y lo aplica):
+# ==============================================================================
+cat << EOF > ~/agropacayales.yml
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -203,13 +225,13 @@ data:
   SERVER_PORT: "8081"
   SPRING_PROFILES_ACTIVE: "cloud"
   MONGO_DATABASE: "agropacayales_db"
-  SQL_HOST: "agropacayales-rds.c4rhnptakjkc.us-east-1.rds.amazonaws.com"
-  SQL_SERVER: "agropacayales-rds.c4rhnptakjkc.us-east-1.rds.amazonaws.com"
+  SQL_HOST: "${MI_RDS_ENDPOINT}"
+  SQL_SERVER: "${MI_RDS_ENDPOINT}"
   SQL_PORT: "1433"
   SQL_DATABASE: "agropacayales_db"
   SQL_USERNAME: "admin"
   SQL_USER: "admin"
-  R2DBC_URL: "r2dbc:sqlserver://agropacayales-rds.c4rhnptakjkc.us-east-1.rds.amazonaws.com:1433/agropacayales_db?sendStringParametersAsUnicode=false"
+  R2DBC_URL: "r2dbc:sqlserver://${MI_RDS_ENDPOINT}:1433/agropacayales_db?sendStringParametersAsUnicode=false"
   ANALYTICS_URL: "http://backend2-service:5000"
 ---
 apiVersion: v1
@@ -219,9 +241,9 @@ metadata:
   namespace: agropacayales-namespace
 type: Opaque
 stringData:
-  MONGO_URI: "mongodb://admin:Mongo12345@10.0.5.187:27017/agropacayales_db?authSource=admin"
-  SQL_PASSWORD: "SQLServer12345"
-  SQL_SERVER_PASSWORD: "SQLServer12345"
+  MONGO_URI: "mongodb://admin:Mongo12345@${MI_MONGO_IP}:27017/agropacayales_db?authSource=admin"
+  SQL_PASSWORD: "${MI_RDS_PASS}"
+  SQL_SERVER_PASSWORD: "${MI_RDS_PASS}"
   SQL_USERNAME: "admin"
 ---
 apiVersion: apps/v1
@@ -346,7 +368,7 @@ EOF
 kubectl apply -f ~/agropacayales.yml
 ```
 
-### 4.3. Verificar que los 3 Pods estén en `Running 1/1`
+### 4.5. Verificar que los 3 Pods estén en `Running 1/1`
 ```bash
 kubectl get pods -n agropacayales-namespace
 ```
@@ -356,16 +378,16 @@ kubectl get pods -n agropacayales-namespace
 
 ## 🪣 PASO 5: Servicio AWS #4 — Amazon S3 (Frontend Web Serverless)
 
-### 5.1. Compilación Automática para S3
-En tu PC, abre una terminal en la raíz del proyecto y corre:
+### 5.1. Compilar el Frontend apuntando a tu IP Elástica
+En tu computadora, abre la terminal en la carpeta raíz del proyecto (`e:\...\tcc`) y corre:
 ```cmd
 build-s3.bat <TU_IP_ELASTICA_MASTER>
 ```
-*(Ejemplo: `build-s3.bat 100.55.148.151`). Genera la carpeta optimizada `ASE251S3_T05-fe\dist`.*
+*(Reemplaza `<TU_IP_ELASTICA_MASTER>` por tu Dato #5, ej: `build-s3.bat 100.55.148.151`). Esto compila y genera la carpeta `ASE251S3_T05-fe\dist`.*
 
 ### 5.2. Crear Bucket S3 y Habilitar Static Website Hosting
 1. En AWS busca **S3** → **Create bucket**:
-   * **Nombre:** `agropacayales-frontend-t05` *(debe ser único)*.
+   * **Nombre:** `agropacayales-frontend-<tu-nombre>` *(debe ser único en todo AWS; anótalo en el Dato #6)*.
    * **Block Public Access:** **Desmarca** *"Block all public access"* y confirma la advertencia.
    * Clic en **Create bucket**.
 2. **Static website hosting:** Entra a tu bucket → pestaña **Properties** → baja hasta **Static website hosting** → **Edit**:
@@ -382,12 +404,12 @@ build-s3.bat <TU_IP_ELASTICA_MASTER>
                "Effect": "Allow",
                "Principal": "*",
                "Action": "s3:GetObject",
-               "Resource": "arn:aws:s3:::agropacayales-frontend-t05/*"
+               "Resource": "arn:aws:s3:::<NOMBRE_DE_TU_BUCKET>/*"
            }
        ]
    }
    ```
-   *(Cambia `agropacayales-frontend-t05` por el nombre real de tu bucket y haz clic en **Save changes**. Ignora cualquier aviso cosmético de access-analyzer)*.
+   *(Reemplaza `<NOMBRE_DE_TU_BUCKET>` por tu Dato #6 y haz clic en **Save changes**. Ignora cualquier aviso cosmético de access-analyzer)*.
 
 ### 5.3. Subir los Archivos al Bucket
 1. En tu bucket, entra a la pestaña **Objects** (Objetos) → **Upload** (Cargar).
@@ -396,15 +418,15 @@ build-s3.bat <TU_IP_ELASTICA_MASTER>
    * Carpeta `assets`
    * Carpeta `images`
    * `favicon.svg`, `icono.png`, `icons.svg`
-3. Clic en **Upload**.
+3. Clic en el botón naranja **Upload**.
 4. ¡Listo! Abre tu web en:  
-   👉 `http://agropacayales-frontend-t05.s3-website-us-east-1.amazonaws.com`
+   👉 `http://<NOMBRE_DE_TU_BUCKET>.s3-website-us-east-1.amazonaws.com`
 
 ---
 
 ## 📋 PASO 6: Catálogo de Payloads JSON para CRUD de Maestros (Swagger UI)
 
-Accede a Swagger UI en: **`http://<IP_ELASTICA>:30001/swagger-ui.html`**.
+Accede a Swagger UI en: **`http://<TU_IP_ELASTICA_MASTER>:30001/swagger-ui.html`**.
 
 ### 6.1. Insumos Agrícolas (MongoDB: Colección `supplies`)
 Ruta Base: `/api/insumos`
@@ -569,8 +591,8 @@ Al defender ante el jurado o docente, muestra los 4 servicios en este orden cron
   ```
   *(Señala que los 3 pods están en `Running 1/1`)*.
 * Abre en vivo ambos Swagger interactivos:
-  * **Backend 1:** `http://<IP_ELASTICA>:30001/swagger-ui.html` → Ejecuta `GET /api/cultivos` y `GET /api/parcelas`.
-  * **Backend 2:** `http://<IP_ELASTICA>:30002/docs` \| `/health` → Ejecuta `GET /health` mostrando que ambas bases de datos están `UP`.
+  * **Backend 1:** `http://<TU_IP_ELASTICA>:30001/swagger-ui.html` → Ejecuta `GET /api/cultivos` y `GET /api/parcelas`.
+  * **Backend 2:** `http://<TU_IP_ELASTICA>:30002/docs` \| `/health` → Ejecuta `GET /health` mostrando que ambas bases de datos están `UP`.
 
 ### 4. Evidencia del Frontend Web en Amazon S3
 * Muestra el bucket en **Amazon S3** con *Static website hosting* activo.
@@ -594,10 +616,10 @@ kubectl get pods -n agropacayales-namespace
 
 | Síntoma / Error | Causa Probable | Solución Inmediata |
 | :--- | :--- | :--- |
-| **`Failed to obtain R2DBC Connection`** | Las variables del Secret no coinciden con `SQL_PASSWORD` o el puerto 1433 está bloqueado. | Aplica el Secret del paso 4.2 con `SQL_PASSWORD="SQLServer12345"` y revisa el Security Group de RDS. |
-| **`Backend 2 no responde en 30002`** | El servicio de K8s apuntaba al puerto 8000 en vez de 5000. | Usa el manifiesto del paso 4.2 que ya mapea `targetPort: 5000`. |
-| **Pods en estado `Pending`** | Falta etiqueta de rol o hay 1 sola máquina master. | Quita el filtro de nodo aplicando el manifiesto unificado del paso 4.2. |
+| **`Failed to obtain R2DBC Connection`** | Las variables del Secret no coinciden con `SQL_PASSWORD` o el puerto 1433 está bloqueado. | Aplica el bloque del paso 4.4 definiendo `MI_RDS_ENDPOINT` y `MI_RDS_PASS`. Revisa que el SG de RDS permita el puerto 1433. |
+| **`Backend 2 no responde en 30002`** | El servicio de K8s apuntaba al puerto 8000 en vez de 5000. | Usa el manifiesto del paso 4.4 que ya mapea `targetPort: 5000`. |
+| **Pods en estado `Pending`** | Falta etiqueta de rol o hay 1 sola máquina master. | Quita el filtro de nodo aplicando el manifiesto unificado del paso 4.4. |
 | **`access-analyzer:ValidatePolicy` en S3** | Falta de permisos IAM del linter de AWS Academy en Voclabs. | Es una advertencia cosmética. Asegúrate de tener *Block Public Access* en *Off* y haz clic en *Save changes*. |
 | **`useConnectionInfo hook` en Compass** | Glitch visual de renderizado en pestañas viejas de Compass. | Cierra la pestaña con la `x`, haz clic en otra colección o presiona `Ctrl + R`. |
 | **`ECONNREFUSED` en MongoDB** | `bindIp` sigue en `127.0.0.1` o falta el parche de kernel `rseq=1`. | Ejecuta el bloque del paso 3.2 que aplica el parche y reinicia `mongod`. |
-| **La IP pública cambia al apagar AWS** | Las instancias EC2 reciben IP dinámica por defecto. | Asocia una **IP Elástica (Elastic IP)** a `k8s-master` siguiendo el paso 3. |
+| **La IP pública cambia al apagar AWS** | Las instancias EC2 reciben IP dinámica por defecto. | Asocia una **IP Elástica (Elastic IP)** a `k8s-master` siguiendo el paso 4.2. |
