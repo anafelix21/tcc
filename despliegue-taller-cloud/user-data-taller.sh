@@ -94,12 +94,12 @@ done
 log "Docker listo e imágenes descargadas"
 
 # 1) Descubrir MongoDB y RDS (sin escribir IPs a mano)
-until MONGO_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=*mongo*" Name=instance-state-name,Values=running \
+until MONGO_IP=$(aws ec2 describe-instances --filters "Name=tag:Name,Values=cc-mongodb" Name=instance-state-name,Values=running \
         --query "Reservations[].Instances[].PrivateIpAddress" --output text | awk '{print $1}') && [ -n "$MONGO_IP" ]; do
-  log "Buscando EC2 de MongoDB..."; sleep 15
+  log "Buscando EC2 cc-mongodb..."; sleep 15
 done
 until RDS_HOST=$(aws rds describe-db-instances \
-        --query "DBInstances[?starts_with(Engine,'sqlserver') && Endpoint.Address] | [0].Endpoint.Address" --output text 2>/dev/null) \
+        --query "DBInstances[?starts_with(Engine,'sqlserver') && starts_with(DBInstanceIdentifier,'cc-') && Endpoint.Address] | [0].Endpoint.Address" --output text 2>/dev/null) \
       && [ -n "$RDS_HOST" ] && [ "$RDS_HOST" != None ]; do
   log "Esperando que RDS SQL Server termine de crearse (10-15 min)..."; sleep 30
 done
