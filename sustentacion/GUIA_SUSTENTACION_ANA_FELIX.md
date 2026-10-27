@@ -100,6 +100,8 @@ Prefijo: `/api/v1/analytics/cosechas`
 
 ## 3. JSON para la demo en Swagger
 
+> 📎 Los JSON de **los 3 maestros** (Parcelas, Insumos, Usuarios), probados contra el backend real, están en [`JSON_MAESTROS_SWAGGER.md`](JSON_MAESTROS_SWAGGER.md).
+
 **Registrar parcela** (`POST /api/parcelas`):
 ```json
 {
