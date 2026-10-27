@@ -139,9 +139,9 @@ curl -fsSL https://packages.microsoft.com/config/ubuntu/24.04/prod.list -o /etc/
 apt-get update -y && ACCEPT_EULA=Y apt-get install -y mssql-tools18 unixodbc
 
 # 1) Descubrir MongoDB y RDS (sin escribir IPs a mano)
-MONGO_IP=$(wait_ec2_field '*mongo*' PrivateIpAddress)
+MONGO_IP=$(wait_ec2_field 'ec2-mongo*' PrivateIpAddress)
 until RDS_HOST=$(aws rds describe-db-instances \
-        --query "DBInstances[?starts_with(Engine,'sqlserver') && Endpoint.Address] | [0].Endpoint.Address" --output text 2>/dev/null) \
+        --query "DBInstances[?starts_with(Engine,'sqlserver') && !starts_with(DBInstanceIdentifier,'cc-') && Endpoint.Address] | [0].Endpoint.Address" --output text 2>/dev/null) \
       && [ -n "$RDS_HOST" ] && [ "$RDS_HOST" != None ]; do
   log "Esperando que RDS SQL Server termine de crearse (10-15 min)..."; sleep 30
 done
