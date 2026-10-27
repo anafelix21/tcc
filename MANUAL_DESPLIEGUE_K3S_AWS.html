@@ -150,427 +150,211 @@
 </head>
 <body>
 <div class="container">
-<h1>Manual Maestro y Definitivo de Despliegue, Operación y Sustentación: AgroPacayales S.A.C.</h1>
-<p><strong>Proyecto:</strong> AgroPacayales S.A.C. — Plataforma Integral de Gestión y Monitoreo Agrícola (FMS)<br />
-<strong>Arquitectura:</strong> Microservicios y Cómputo Políglota sobre Kubernetes K3s (Amazon Web Services)<br />
-<strong>Persistencia Políglota:</strong> MongoDB 8.0 (NoSQL Documental) + Amazon RDS SQL Server 2022 Express (R2DBC Relacional)<br />
-<strong>Backends:</strong> Spring Boot 3.4 WebFlux (Reactivo Asíncrono - <code>:30001</code>) + Python 3.11 Flask &amp; Pandas (Analítica - <code>:30002</code>)<br />
-<strong>Frontend Web:</strong> React 19 + TypeScript + Vite + Nginx Reverse Proxy (<code>:30000</code>)<br />
-<strong>Cliente Móvil:</strong> Expo React Native SDK 54 (Híbrido iOS/Android/Web con Marco Smartphone)<br />
-<strong>Usuario Docker Hub:</strong> <code>hugo454</code> | <strong>Tag Oficial:</strong> <code>:2.0</code> | <strong>Namespace K8s:</strong> <code>agropacayales-namespace</code>  </p>
+<h1>Manual Práctico de Despliegue en AWS K3s — AgroPacayales S.A.C.</h1>
+<p><strong>Proyecto:</strong> AgroPacayales S.A.C.<br />
+<strong>Objetivo:</strong> Guía práctica y directa para desplegar la infraestructura completa en AWS en 20 minutos usando <strong>User Data</strong> (automatizado) y <strong>Kubernetes K3s</strong>, incluyendo las pruebas y demostraciones para la sustentación.<br />
+<strong>Tag Oficial Docker Hub:</strong> <code>hugo454/agropacayales-*:2.0</code><br />
+<strong>Namespace Kubernetes:</strong> <code>agropacayales-namespace</code>  </p>
 <hr />
-<blockquote>
-<p>[!IMPORTANT]<br />
-<strong>GUÍA OFICIAL PARA LA SUSTENTACIÓN TÉCNICA:</strong><br />
-Este documento constituye la <strong>única fuente de verdad</strong> del proyecto. Ha sido diseñado para que el equipo pueda desplegar la infraestructura en AWS de manera <strong>100% automatizada mediante User Data</strong> (sin necesidad de configurar cada máquina por SSH), realizar pruebas completas con Swagger y MongoDB, operar la app móvil y ejecutar la <strong>Batería de Demostraciones en Vivo de Kubernetes</strong> ante el jurado evaluador.</p>
-</blockquote>
-<hr />
-<h2>Índice General</h2>
-<ol>
-<li><a href="#1-fundamentos-arquitectónicos-y-distribución-del-proyecto">Fundamentos Arquitectónicos y Distribución del Proyecto</a><br />
-   - 1.1. <a href="#11-distribución-del-equipo-y-módulos-maestros">Distribución del Equipo y Módulos Maestros</a><br />
-   - 1.2. <a href="#12-justificaciones-teóricas-de-arquitectura-preguntas-de-jurado">Justificaciones Teóricas de Arquitectura (Preguntas de Jurado)</a><br />
-   - 1.3. <a href="#13-topología-de-red-y-arquitectura-de-cómputo-en-aws">Topología de Red y Arquitectura de Cómputo en AWS</a><br />
-   - 1.4. <a href="#14-matriz-maestra-de-parámetros-puertos-y-credenciales">Matriz Maestra de Parámetros, Puertos y Credenciales</a></li>
-<li><a href="#2-aprovisionamiento-automatizado-en-aws-con-user-data-cero-ssh-manual">Aprovisionamiento Automatizado en AWS con User Data (Cero SSH Manual)</a><br />
-   - 2.1. <a href="#21-qué-es-el-user-data-y-por-qué-automatiza-todo-el-despliegue">¿Qué es el User Data y por qué automatiza todo el despliegue?</a><br />
-   - 2.2. <a href="#22-paso-1-amazon-rds-microsoft-sql-server-2022">Paso 1: Amazon RDS Microsoft SQL Server 2022</a><br />
-   - 2.3. <a href="#23-paso-2-matriz-de-reglas-de-seguridad-security-groups-de-aws">Paso 2: Matriz de Reglas de Seguridad (Security Groups de AWS)</a><br />
-   - 2.4. <a href="#24-paso-3-servidor-mongodb-80-script-user-data-autoinstalable">Paso 3: Servidor MongoDB 8.0 (Script User Data Autoinstalable)</a><br />
-   - 2.5. <a href="#25-paso-4-servidor-k3s-master-script-user-data-autoinstalable">Paso 4: Servidor K3s Master (Script User Data Autoinstalable)</a><br />
-   - 2.6. <a href="#26-paso-5-workers-k3s-con-auto-etiquetado-scripts-user-data-para-los-3-nodos">Paso 5: Workers K3s con Auto-Etiquetado (Scripts User Data para los 3 Nodos)</a><br />
-   - 2.7. <a href="#27-método-alternativo-comandos-manuales-por-ssh-si-no-usas-user-data">Método Alternativo: Comandos Manuales por SSH (Si no usas User Data)</a></li>
-<li><a href="#3-empaquetado-de-contenedores-docker-hub-versión-oficial-20">Empaquetado de Contenedores Docker Hub (Versión Oficial 2.0)</a><br />
-   - 3.1. <a href="#31-imágenes-oficiales-y-nginx-reverse-proxy">Imágenes Oficiales y Nginx Reverse Proxy</a><br />
-   - 3.2. <a href="#32-scripts-de-automatización-local-bat">Scripts de Automatización Local (.bat)</a></li>
-<li><a href="#4-manifiesto-maestro-de-kubernetes-y-despliegue-en-k3s">Manifiesto Maestro de Kubernetes y Despliegue en K3s</a><br />
-   - 4.1. <a href="#41-manifiesto-completo-todo-en-uno-agropacayales-k8s-all-in-oneyml">Manifiesto Completo Todo-en-Uno (<code>agropacayales-k8s-all-in-one.yml</code>)</a><br />
-   - 4.2. <a href="#42-comandos-de-despliegue-y-verificación-en-el-master">Comandos de Despliegue y Verificación en el Master</a></li>
-<li><a href="#5-guía-exhaustiva-de-pruebas-en-swagger-ui-backend-1---spring-boot">Guía Exhaustiva de Pruebas en Swagger UI (Backend 1 - Spring Boot)</a><br />
-   - 5.1. <a href="#51-acceso-al-portal-interactivo-swagger-ui">Acceso al Portal Interactivo Swagger UI</a><br />
-   - 5.2. <a href="#52-módulo-de-parcelas-apiparcelas--mongodb-plots">Módulo de Parcelas (<code>/api/parcelas</code> — MongoDB <code>plots</code>)</a><br />
-   - 5.3. <a href="#53-módulo-de-insumos-agrícolas-apiinsumos--mongodb-supplies">Módulo de Insumos Agrícolas (<code>/api/insumos</code> — MongoDB <code>supplies</code>)</a><br />
-   - 5.4. <a href="#54-módulo-de-usuarios-y-personal-apiusuarios--mongodb-users">Módulo de Usuarios y Personal (<code>/api/usuarios</code> — MongoDB <code>users</code>)</a><br />
-   - 5.5. <a href="#55-módulo-de-fichas-de-campo-apifichas-campo--mongodb-field_records">Módulo de Fichas de Campo (<code>/api/fichas-campo</code> — MongoDB <code>field_records</code>)</a><br />
-   - 5.6. <a href="#56-módulo-de-cosechas-apiharvest--sql-server">Módulo de Cosechas (<code>/api/harvest</code> — SQL Server)</a><br />
-   - 5.7. <a href="#57-módulo-de-actividades-de-cultivo-apiactividades-cultivos--sql-server">Módulo de Actividades de Cultivo (<code>/api/actividades-cultivos</code> — SQL Server)</a><br />
-   - 5.8. <a href="#58-módulo-de-asignaciones-de-personal-apiasignaciones-trabajadores">Módulo de Asignaciones de Personal (<code>/api/asignaciones-trabajadores</code>)</a></li>
-<li><a href="#6-operaciones-crud-directas-en-consola-mongodb-mongosh">Operaciones CRUD Directas en Consola MongoDB (<code>mongosh</code>)</a><br />
-   - 6.1. <a href="#61-conexión-y-regla-de-oro-por-qué-en-mongo-es-_id-y-en-el-json-es-id">Conexión y Regla de Oro: ¿Por qué en Mongo es <code>_id</code> y en el JSON es <code>id</code>?</a><br />
-   - 6.2. <a href="#62-crud-completo-colección-plots-parcelas">CRUD Completo: Colección <code>plots</code> (Parcelas)</a><br />
-   - 6.3. <a href="#63-crud-completo-colección-supplies-insumos">CRUD Completo: Colección <code>supplies</code> (Insumos)</a><br />
-   - 6.4. <a href="#64-crud-completo-colección-users-usuarios">CRUD Completo: Colección <code>users</code> (Usuarios)</a><br />
-   - 6.5. <a href="#65-crud-completo-colección-field_records-fichas-de-campo">CRUD Completo: Colección <code>field_records</code> (Fichas de Campo)</a></li>
-<li><a href="#7-validación-y-endpoints-de-backend-2-python-flask-analítico">Validación y Endpoints de Backend 2 (Python Flask Analítico)</a></li>
-<li><a href="#8-despliegue-y-operación-de-la-aplicación-móvil-expo-react-native">Despliegue y Operación de la Aplicación Móvil (Expo React Native)</a><br />
-   - 8.1. <a href="#81-configuración-de-variables-de-entorno-env">Configuración de Variables de Entorno (<code>.env</code>)</a><br />
-   - 8.2. <a href="#82-ejecución-y-modos-de-prueba-web-frame-expo-go-en-smartphone-emulador">Ejecución y Modos de Prueba (Web Frame, Expo Go en Smartphone, Emulador)</a><br />
-   - 8.3. <a href="#83-flujo-diario-del-operario-en-1-clic">Flujo Diario del Operario en 1 Clic</a><br />
-   - 8.4. <a href="#84-diagnóstico-y-solución-de-errores-comunes-en-móvil">Diagnóstico y Solución de Errores Comunes en Móvil</a></li>
-<li><a href="#9-batería-de-demostraciones-en-vivo-de-kubernetes-para-la-sustentación">Batería de Demostraciones en Vivo de Kubernetes para la Sustentación</a><br />
-   - 9.1. <a href="#91-demo-1-auto-recuperación-y-resiliencia-self-healing-en-2-segundos">DEMO 1: Auto-Recuperación y Resiliencia (Self-Healing en 2 segundos)</a><br />
-   - 9.2. <a href="#92-demo-2-escalabilidad-horizontal-en-caliente-hpa--pod-replica-scaling">DEMO 2: Escalabilidad Horizontal en Caliente (HPA / Pod Replica Scaling)</a><br />
-   - 9.3. <a href="#93-demo-3-despliegue-continuo-sin-caídas-zero-downtime-rolling-update">DEMO 3: Despliegue Continuo Sin Caídas (Zero-Downtime Rolling Update)</a><br />
-   - 9.4. <a href="#94-demo-4-asignación-física-de-cargas-nodeselector--aislamiento-multi-nodo">DEMO 4: Asignación Física de Cargas (NodeSelector &amp; Aislamiento Multi-Nodo)</a><br />
-   - 9.5. <a href="#95-demo-5-service-discovery-y-dns-interno-de-kubernetes-coredns">DEMO 5: Service Discovery y DNS Interno de Kubernetes (CoreDNS)</a><br />
-   - 9.6. <a href="#96-demo-6-seguridad-y-desacoplamiento-configmaps--secrets-en-base64">DEMO 6: Seguridad y Desacoplamiento (ConfigMaps &amp; Secrets en Base64)</a><br />
-   - 9.7. <a href="#97-demo-7-trazabilidad-y-logs-en-streaming-en-tiempo-real">DEMO 7: Trazabilidad y Logs en Streaming en Tiempo Real</a><br />
-   - 9.8. <a href="#98-demo-8-simulación-de-caída-de-un-servidor-worker-en-aws">DEMO 8: Simulación de Caída de un Servidor Worker en AWS</a><br />
-   - 9.9. <a href="#99-demo-9-cheat-sheet-de-emergencia-y-rescate-rápido">DEMO 9: Cheat Sheet de Emergencia y Rescate Rápido</a></li>
-</ol>
-<hr />
-<h2>1. Fundamentos Arquitectónicos y Distribución del Proyecto</h2>
-<h3>1.1. Distribución del Equipo y Módulos Maestros</h3>
-<p>El Frontend ha sido completamente construido sobre <strong>React 19 + TypeScript + Vite</strong> utilizando <strong>Feature-Based Architecture</strong>, con la paleta de diseño oficial <strong>AgroPacayales Enterprise</strong> (Deep Earth Brown <code>#1A110B</code>, Sand Warm <code>#FDFBF9</code>, Terracotta <code>#C28D66</code> y Vibrant Emerald <code>#10B981</code>).</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Integrante</th>
-<th style="text-align: left;">Código</th>
-<th style="text-align: left;">Módulo Maestro Asignado</th>
-<th style="text-align: left;">Ruta Web</th>
-<th style="text-align: left;">Backend 1 (Spring)</th>
-<th style="text-align: left;">Colección Mongo</th>
-<th style="text-align: left;">Tabla SQL Server</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><strong>Hugo Fernández</strong></td>
-<td style="text-align: left;"><code>#07</code></td>
-<td style="text-align: left;"><strong>Insumos Agrícolas</strong></td>
-<td style="text-align: left;"><code>/insumos</code></td>
-<td style="text-align: left;"><code>/api/insumos</code></td>
-<td style="text-align: left;"><code>supplies</code> (200 registros)</td>
-<td style="text-align: left;"><code>movimiento_insumo</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Ana Félix</strong></td>
-<td style="text-align: left;"><code>#05</code></td>
-<td style="text-align: left;"><strong>Parcelas de Cultivo</strong></td>
-<td style="text-align: left;"><code>/parcelas</code></td>
-<td style="text-align: left;"><code>/api/parcelas</code></td>
-<td style="text-align: left;"><code>plots</code> (160 registros)</td>
-<td style="text-align: left;"><code>cultivos</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Axel Huapaya</strong></td>
-<td style="text-align: left;"><code>#10</code></td>
-<td style="text-align: left;"><strong>Usuarios y Personal</strong></td>
-<td style="text-align: left;"><code>/usuarios</code></td>
-<td style="text-align: left;"><code>/api/usuarios</code></td>
-<td style="text-align: left;"><code>users</code> (150 registros)</td>
-<td style="text-align: left;"><code>asignacion_cabecera</code></td>
-</tr>
-</tbody>
-</table>
-<h4>Funcionalidades Clave del Sistema:</h4>
-<ol>
-<li><strong>Inspección Técnica ("Ojito"):</strong> Presente en todas las tablas (<code>/insumos</code>, <code>/parcelas</code>, <code>/usuarios</code>, <code>/actividades</code>, <code>/cultivos</code>, <code>/cosechas</code>, <code>/fichas-campo</code>, <code>/asignaciones</code>). Despliega modales técnicos con detalle de registros hijos (insumos aplicados, operarios asignados, coordenadas).</li>
-<li><strong>Centro de Inteligencia Analítica (<code>/dashboard</code>):</strong> Conecta con el Backend 2 (Flask + Pandas) y expone los 18 indicadores analíticos PIT organizados por pestañas ejecutivas.</li>
-<li><strong>Monitor Fenológico &amp; Cuaderno Técnico de Campo:</strong> Componente visual interactivo que traduce los días transcurridos desde la siembra real y las evaluaciones de las visitas técnicas del agrónomo en una línea de tiempo biológica viva, sin requerir sensores de hardware.</li>
-<li><strong>Paginación Dinámica:</strong> Selector de 10, 25, 50, 100, 200 y 500 registros para auditar el 100% de la base de datos sin truncar información.</li>
-</ol>
-<hr />
-<h3>1.2. Justificaciones Teóricas de Arquitectura (Preguntas de Jurado)</h3>
-<h4>Pregunta 1: ¿Por qué Persistencia Políglota (MongoDB + SQL Server)?</h4>
-<ul>
-<li><strong>MongoDB 8.0 (NoSQL Documental — <code>plots</code>, <code>supplies</code>, <code>users</code>, <code>field_records</code>):</strong></li>
-<li><strong>Flexibilidad Edafológica:</strong> Cada lote agrícola presenta variables dispares (análisis de textura, pH, materia orgánica) y sistemas de riego heterogéneos (caudales en L/h, emisores por pulso, válvulas de sector). En tablas relacionales exigiría decenas de tablas intermedias con <code>JOINs</code> innecesarios.</li>
-<li><strong>Subdocumentos Embebidos y Lectura Atómica:</strong> Al consultar una parcela o una ficha de campo, el cliente web o móvil obtiene en <strong>un solo viaje de red (Single Round-Trip)</strong> la información agronómica, las condiciones de suelo y el sistema de riego sin saturar el canal de comunicación.</li>
-<li><strong>Amazon RDS SQL Server 2022 (Relacional ACID — <code>harvests</code>, <code>activities</code>, <code>crops</code>, <code>plot_assignments</code>):</strong></li>
-<li><strong>Integridad Transaccional y Financiera:</strong> Las cosechas implican pesajes, mermas y balances contables. Las labores de campo conllevan deducción de inventario y costos devengados. Un motor relacional garantiza consistencia estricta (<strong>ACID</strong>) para que ninguna cosecha o labor quede huérfana o con balances contables descuadrados.</li>
-</ul>
-<h4>Pregunta 2: ¿Por qué Spring Boot WebFlux Reactivo Asíncrono?</h4>
-<ul>
-<li><strong>Arquitectura Basada en Event Loop (Netty):</strong> A diferencia de Spring MVC tradicional que utiliza un hilo por petición (<em>Thread-per-Request</em> sobre Tomcat, donde 200 peticiones consumen 200 MB de stack), <strong>Spring WebFlux opera sobre un bucle de eventos no bloqueante</strong>.</li>
-<li><strong>Consumo Mínimo de Recursos:</strong> Toda la JVM de Spring WebFlux corre con un consumo estable de <strong>~250 MB de RAM</strong>, permitiendo que miles de operarios y usuarios web consulten datos concurrentemente sin degradación.</li>
-<li><strong>Tipos de Retorno Reactivos:</strong></li>
-<li><code>Mono&lt;T&gt;</code>: Retorna 0 o 1 elemento de forma asíncrona (usado en búsquedas por ID, guardado o actualización).</li>
-<li><code>Flux&lt;T&gt;</code>: Emite una secuencia de 0 a N elementos como flujo continuo no bloqueante (usado en listados y catálogos).</li>
-</ul>
-<h4>Pregunta 3: ¿Por qué NodePorts 30000-30002 y no LoadBalancer externo?</h4>
-<ol>
-<li><strong>Eficiencia de Costos en la Nube:</strong> Un recurso <code>LoadBalancer</code> en AWS aprovisiona un Classic / Network Load Balancer que genera un costo fijo por hora ($0.0225/hora + LCU). Con <strong>NodePort</strong>, se aprovecha la infraestructura nativa de K3s sin costos ocultos.</li>
-<li><strong>K3s Kube-Proxy &amp; Service Routing:</strong> K3s abre el puerto (<code>30000</code>, <code>30001</code>, <code>30002</code>) en <strong>todas las interfaces de red de todos los nodos del clúster</strong>. Cualquier solicitud enviada a la IP pública de cualquier nodo es redirigida internamente por iptables/IPVS hacia el pod correspondiente, garantizando alta disponibilidad.</li>
-</ol>
-<hr />
-<h3>1.3. Topología de Red y Arquitectura de Cómputo en AWS</h3>
-<pre class="codehilite"><code>                            USUARIO EXTERNO / DOCENTE / EVALUADOR
-                                             |
-          +----------------------------------+----------------------------------+
-          |                                  |                                  |
-          v                                  v                                  v
-http://IP_PUB_NODE:30000          http://IP_PUB_NODE:30001          http://IP_PUB_NODE:30002
- (Frontend React + Nginx)         (Swagger UI Spring Boot)          (OpenAPI Docs Flask)
-                                                                                ^
-                                                                                |
-                                                             App Móvil (Expo React Native)
-
-+---------------------------------------------------------------------------------------+
-|                           VPC AWS (172.31.0.0/16) — us-east-1                         |
-|                                                                                       |
-|  [k8s-master] --------------------+ (Join Token: agropacayales-token-2026)            |
-|  Control Plane K3s (t3.small)     |                                                   |
-|  IP Privada: 172.31.X.X           |                                                   |
-|                                   |                                                   |
-|  [k8s-node-frontend] &lt;------------+ DNS interno Kubernetes:                           |
-|  Worker 1: role=frontend          | proxy_pass http://backend-transaccional:8081      |
-|  Nginx + React SPA (:80)          | proxy_pass http://backend-analitico:5000          |
-|                                   |                                                   |
-|  [k8s-node-backend] &lt;-------------+ Eventos HTTP asíncronos:                          |
-|  Worker 2: role=backend1          | POST http://backend-analitico:5000/api/v1/...     |
-|  Spring WebFlux (:8081)           |                                                   |
-|                                   |                                                   |
-|  [k8s-node-backendAnalitico] &lt;----+                                                   |
-|  Worker 3: role=backend2          |                                                   |
-|  Python Flask Gunicorn (:5000)    |                                                   |
-|                                   |                                                   |
-|                  +----------------+----------------+                                  |
-|                  |                                 |                                  |
-|                  v (Puerto 1433)                   v (Puerto 27017)                   |
-|         [Amazon RDS SQL Server]            [ec2-mongodb]                              |
-|         db.t3.micro (Express)              EC2 Dedicado (Ubuntu 24.04)                |
-|         Base: agropacayales_db             Base: agropacayales_db                     |
-+---------------------------------------------------------------------------------------+
+<h2>📌 Resumen Rápido de Arquitectura y Puertos</h2>
+<pre class="codehilite"><code>                                    CLIENTES
+                                       │
+            ┌──────────────────────────┼──────────────────────────┐
+            ▼                          ▼                          ▼
+   http://&lt;IP_AWS&gt;:30000      http://&lt;IP_AWS&gt;:30001      http://&lt;IP_AWS&gt;:30002
+    (Frontend Web React)      (Swagger Spring Boot)      (OpenAPI Flask Analítico)
+                                       ▲
+                                       │ (Vía NodePort 30001)
+                             App Móvil (Expo React Native)
 </code></pre>
 
-<hr />
-<h3>1.4. Matriz Maestra de Parámetros, Puertos y Credenciales</h3>
 <table>
 <thead>
 <tr>
 <th style="text-align: left;">Componente</th>
-<th style="text-align: left;">Parámetro</th>
-<th style="text-align: left;">Valor de Configuración Oficial</th>
-<th style="text-align: left;">Dónde se Aplica</th>
+<th style="text-align: left;">Tipo de Servidor</th>
+<th style="text-align: left;">Puerto Externo (NodePort)</th>
+<th style="text-align: left;">Rol / Etiqueta</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><strong>Docker Hub</strong></td>
-<td style="text-align: left;">Repositorio / Tag</td>
-<td style="text-align: left;"><code>hugo454/agropacayales-*:2.0</code></td>
-<td style="text-align: left;">Deployments Kubernetes</td>
+<td style="text-align: left;"><strong><code>k8s-master</code></strong></td>
+<td style="text-align: left;">EC2 <code>t3.small</code> (Ubuntu 24.04)</td>
+<td style="text-align: left;">— (API interna <code>6443</code>)</td>
+<td style="text-align: left;">Control Plane Master</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>Namespace K8s</strong></td>
-<td style="text-align: left;">Nombre</td>
-<td style="text-align: left;"><code>agropacayales-namespace</code></td>
-<td style="text-align: left;">Todos los manifiestos</td>
+<td style="text-align: left;"><strong><code>k8s-node-frontend</code></strong></td>
+<td style="text-align: left;">EC2 <code>t3.small</code> (Ubuntu 24.04)</td>
+<td style="text-align: left;"><strong><code>30000</code></strong></td>
+<td style="text-align: left;"><code>role=frontend</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>RDS SQL Server</strong></td>
-<td style="text-align: left;">Motor / Clase</td>
-<td style="text-align: left;">SQL Server 2022 Express / <code>db.t3.micro</code></td>
-<td style="text-align: left;">Consola RDS AWS</td>
+<td style="text-align: left;"><strong><code>k8s-node-backend</code></strong></td>
+<td style="text-align: left;">EC2 <code>t3.medium</code> (Ubuntu 24.04)</td>
+<td style="text-align: left;"><strong><code>30001</code></strong></td>
+<td style="text-align: left;"><code>role=backend1</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>RDS SQL Server</strong></td>
-<td style="text-align: left;">Base de Datos</td>
-<td style="text-align: left;"><code>agropacayales_db</code></td>
-<td style="text-align: left;">ConfigMap / SSMS</td>
+<td style="text-align: left;"><strong><code>k8s-node-backendAnalitico</code></strong></td>
+<td style="text-align: left;">EC2 <code>t3.small</code> (Ubuntu 24.04)</td>
+<td style="text-align: left;"><strong><code>30002</code></strong></td>
+<td style="text-align: left;"><code>role=backend2</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>RDS SQL Server</strong></td>
-<td style="text-align: left;">Usuario / Clave</td>
-<td style="text-align: left;"><code>admin</code> / <code>AgroPacayales2026!</code></td>
-<td style="text-align: left;">Secret K8s / SSMS</td>
+<td style="text-align: left;"><strong><code>ec2-mongodb</code></strong></td>
+<td style="text-align: left;">EC2 <code>t3.small</code> (Ubuntu 24.04)</td>
+<td style="text-align: left;"><strong><code>27017</code></strong> (Mongo)</td>
+<td style="text-align: left;">Base NoSQL Documental</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>MongoDB EC2</strong></td>
-<td style="text-align: left;">Puerto / Base</td>
-<td style="text-align: left;"><code>27017</code> / <code>agropacayales_db</code></td>
-<td style="text-align: left;">Secret K8s / URI conexión</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>MongoDB EC2</strong></td>
-<td style="text-align: left;">Usuario / Clave</td>
-<td style="text-align: left;"><code>admin</code> / <code>Mongo12345</code></td>
-<td style="text-align: left;">Secret K8s / <code>mongosh</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>K3s Cluster</strong></td>
-<td style="text-align: left;">Token de Conexión</td>
-<td style="text-align: left;"><code>agropacayales-token-2026</code></td>
-<td style="text-align: left;">Join de Workers a Master</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>NodePort Front</strong></td>
-<td style="text-align: left;">Puerto Externo</td>
-<td style="text-align: left;"><code>30000</code></td>
-<td style="text-align: left;">Browser / Frontend SPA</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>NodePort Back 1</strong></td>
-<td style="text-align: left;">Puerto Externo</td>
-<td style="text-align: left;"><code>30001</code></td>
-<td style="text-align: left;">Swagger / App Móvil</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>NodePort Back 2</strong></td>
-<td style="text-align: left;">Puerto Externo</td>
-<td style="text-align: left;"><code>30002</code></td>
-<td style="text-align: left;">OpenAPI / App Móvil</td>
+<td style="text-align: left;"><strong><code>RDS SQL Server</code></strong></td>
+<td style="text-align: left;">RDS <code>db.t3.micro</code> (Express)</td>
+<td style="text-align: left;"><strong><code>1433</code></strong> (SQL)</td>
+<td style="text-align: left;">Base Relacional ACID</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2>2. Aprovisionamiento Automatizado en AWS con User Data (Cero SSH Manual)</h2>
-<h3>2.1. ¿Qué es el User Data y por qué automatiza todo el despliegue?</h3>
-<p>En AWS EC2, <strong>User Data</strong> (<code>cloud-init</code>) es una funcionalidad que permite ejecutar un script Bash con privilegios de <code>root</code> automáticamente durante el primer encendido de la máquina.<br />
-- <strong>¿Por qué es superior?</strong><br />
-  1. <strong>Ahorro masivo de tiempo:</strong> No tienes que conectarte por SSH a 4 terminales diferentes a escribir comandos.<br />
-  2. <strong>Cero errores humanos:</strong> Elimina el riesgo de equivocarse escribiendo una ruta o contraseña.<br />
-  3. <strong>Demostración de madurez DevOps:</strong> El jurado valora enormemente el aprovisionamiento automatizado tipo <em>Infrastructure as Code</em>.</p>
-<blockquote>
-<p><strong>¿Dónde se coloca en AWS?</strong><br />
-Al momento de lanzar cada instancia EC2, ve a la sección inferior:<br />
-<strong>Detalles avanzados (Advanced Details)</strong> ➔ baja hasta el último cuadro: <strong>Datos del usuario (User data)</strong> ➔ <strong>Pega el script correspondiente</strong>.</p>
-</blockquote>
-<hr />
-<h3>2.2. Paso 1: Amazon RDS Microsoft SQL Server 2022</h3>
-<blockquote>
-<p>[!TIP]<br />
-Inicia este paso primero porque AWS toma ~12 minutos en aprovisionar la instancia RDS.</p>
-</blockquote>
-<ol>
-<li>En la consola de AWS (Región: <code>us-east-1</code>), ve a <strong>RDS</strong> ➔ <strong>Bases de datos</strong> ➔ botón naranja <strong>Crear base de datos</strong>.</li>
-<li><strong>Parámetros exactos:</strong><br />
-   - <strong>Método de creación:</strong> Creación estándar.<br />
-   - <strong>Motor:</strong> Microsoft SQL Server ➔ Edición: <strong>SQL Server Express Edition</strong>.<br />
-   - <strong>Versión:</strong> SQL Server 2022 (16.00.xxxx).<br />
-   - <strong>Identificador de base de datos:</strong> <code>agropacayales-sqlserver</code>.<br />
-   - <strong>Usuario maestro:</strong> <code>admin</code>.<br />
-   - <strong>Contraseña maestra:</strong> <code>AgroPacayales2026!</code>.<br />
-   - <strong>Clase de instancia:</strong> <code>db.t3.micro</code> (1 vCPU, 1 GB RAM).<br />
-   - <strong>Almacenamiento:</strong> General Purpose SSD (gp2), 20 GiB (desactivar auto-escalado).<br />
-   - <strong>Conectividad:</strong> VPC por defecto, Acceso público: <strong>Sí</strong> (para conectarte desde SSMS), Grupo de seguridad: Crear nuevo <code>rds-sg</code> con puerto <code>1433</code>.</li>
-<li>Una vez en estado <strong>Disponible</strong>, copia el <strong>Endpoint de conexión</strong> (ej: <code>agropacayales-sqlserver.c3...us-east-1.rds.amazonaws.com</code>).</li>
-<li>Conéctate desde SQL Server Management Studio (SSMS) con usuario <code>admin</code> y ejecuta:<br />
-<code>sql
-   CREATE DATABASE agropacayales_db;
-   GO</code></li>
-</ol>
-<hr />
-<h3>2.3. Paso 2: Matriz de Reglas de Seguridad (Security Groups de AWS)</h3>
-<p>En la consola de AWS EC2 ➔ <strong>Security Groups</strong> ➔ <strong>Reglas de entrada (Inbound Rules)</strong>:</p>
+<h2>🔐 Matriz de Credenciales Oficiales</h2>
 <table>
 <thead>
 <tr>
-<th style="text-align: left;">Security Group</th>
-<th style="text-align: left;">Tipo de Tráfico</th>
+<th style="text-align: left;">Servicio</th>
+<th style="text-align: left;">Usuario</th>
+<th style="text-align: left;">Contraseña</th>
+<th style="text-align: left;">Base de Datos</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Amazon RDS SQL Server</strong></td>
+<td style="text-align: left;"><code>admin</code></td>
+<td style="text-align: left;"><code>AgroPacayales2026!</code></td>
+<td style="text-align: left;"><code>agropacayales_db</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>MongoDB EC2</strong></td>
+<td style="text-align: left;"><code>admin</code></td>
+<td style="text-align: left;"><code>Mongo12345</code></td>
+<td style="text-align: left;"><code>agropacayales_db</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Token K3s Clúster</strong></td>
+<td style="text-align: left;">—</td>
+<td style="text-align: left;"><code>agropacayales-token-2026</code></td>
+<td style="text-align: left;">(Para unir workers)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>🛡️ Reglas de Seguridad (Security Group en AWS)</h2>
+<p>Crea un Security Group llamado <strong><code>agropacayales-sg</code></strong> y asígnalo a todas tus instancias EC2 con las siguientes reglas de entrada:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Tipo</th>
+<th style="text-align: left;">Protocolo</th>
 <th style="text-align: left;">Rango de Puertos</th>
-<th style="text-align: left;">Origen (CIDR)</th>
+<th style="text-align: left;">Origen</th>
 <th style="text-align: left;">Propósito</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><strong><code>k8s-cluster-sg</code></strong></td>
-<td style="text-align: left;">SSH</td>
+<td style="text-align: left;"><strong>SSH</strong></td>
+<td style="text-align: left;">TCP</td>
 <td style="text-align: left;"><code>22</code></td>
 <td style="text-align: left;"><code>0.0.0.0/0</code></td>
-<td style="text-align: left;">Conexión terminal remota</td>
+<td style="text-align: left;">Conexión terminal</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong><code>k8s-cluster-sg</code></strong></td>
-<td style="text-align: left;">Kubernetes API</td>
+<td style="text-align: left;"><strong>Kubernetes API</strong></td>
+<td style="text-align: left;">TCP</td>
 <td style="text-align: left;"><code>6443</code></td>
 <td style="text-align: left;"><code>172.31.0.0/16</code></td>
-<td style="text-align: left;">Comunicación K3s Master ➔ Workers</td>
+<td style="text-align: left;">Comunicación Master ➔ Workers</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong><code>k8s-cluster-sg</code></strong></td>
-<td style="text-align: left;">Custom TCP</td>
+<td style="text-align: left;"><strong>Custom TCP (NodePorts)</strong></td>
+<td style="text-align: left;">TCP</td>
 <td style="text-align: left;"><code>30000 - 30002</code></td>
 <td style="text-align: left;"><code>0.0.0.0/0</code></td>
-<td style="text-align: left;"><strong>NodePorts para Web, Back 1 y Back 2</strong></td>
+<td style="text-align: left;"><strong>Acceso público Web, Back1, Back2</strong></td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong><code>k8s-cluster-sg</code></strong></td>
-<td style="text-align: left;">Flannel Overlay</td>
-<td style="text-align: left;"><code>8472</code> (UDP)</td>
-<td style="text-align: left;"><code>172.31.0.0/16</code></td>
-<td style="text-align: left;">Red interna de pods entre nodos</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong><code>k8s-cluster-sg</code></strong></td>
-<td style="text-align: left;">Kubelet Metrics</td>
-<td style="text-align: left;"><code>10250</code></td>
-<td style="text-align: left;"><code>172.31.0.0/16</code></td>
-<td style="text-align: left;">Monitoreo y logs de pods</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong><code>mongodb-sg</code></strong></td>
-<td style="text-align: left;">MongoDB</td>
+<td style="text-align: left;"><strong>MongoDB</strong></td>
+<td style="text-align: left;">TCP</td>
 <td style="text-align: left;"><code>27017</code></td>
 <td style="text-align: left;"><code>0.0.0.0/0</code></td>
-<td style="text-align: left;">Conexión desde Backend 1 y mongosh</td>
+<td style="text-align: left;">Conexión backend y mongosh</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong><code>rds-sg</code></strong></td>
-<td style="text-align: left;">MS SQL Server</td>
+<td style="text-align: left;"><strong>MS SQL Server</strong></td>
+<td style="text-align: left;">TCP</td>
 <td style="text-align: left;"><code>1433</code></td>
 <td style="text-align: left;"><code>0.0.0.0/0</code></td>
-<td style="text-align: left;">Conexión desde Spring Boot R2DBC</td>
+<td style="text-align: left;">Conexión backend y SSMS</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Flannel Overlay</strong></td>
+<td style="text-align: left;">UDP</td>
+<td style="text-align: left;"><code>8472</code></td>
+<td style="text-align: left;"><code>172.31.0.0/16</code></td>
+<td style="text-align: left;">Red interna de pods de K3s</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h3>2.4. Paso 3: Servidor MongoDB 8.0 (Script User Data Autoinstalable)</h3>
-<p>Al lanzar la instancia <code>ec2-mongodb-agropacayales</code> (<code>t3.small</code>, Ubuntu 24.04 LTS, SG: <code>mongodb-sg</code>):<br />
-Pega este script en <strong>Datos del usuario (User data)</strong>. La máquina arrancará con MongoDB 8.0 instalado, configurado con <code>bindIp: 0.0.0.0</code>, autenticación activada y los usuarios <code>admin</code> creados:</p>
+<h1>GUÍA DE DESPLIEGUE PASO A PASO</h1>
+<hr />
+<h2>PASO 1: Crear Amazon RDS SQL Server (Hacer Primero)</h2>
+<p><em>(Toma ~12 minutos en crearse; inícialo primero)</em></p>
+<ol>
+<li>En la consola de AWS (Región: <code>us-east-1</code>), ve a <strong>RDS</strong> ➔ <strong>Crear base de datos</strong>.</li>
+<li>Parámetros:<br />
+   - <strong>Creación estándar</strong> ➔ <strong>Microsoft SQL Server</strong> ➔ <strong>SQL Server Express</strong>.<br />
+   - <strong>Identificador:</strong> <code>agropacayales-sqlserver</code>.<br />
+   - <strong>Usuario maestro:</strong> <code>admin</code>.<br />
+   - <strong>Contraseña:</strong> <code>AgroPacayales2026!</code>.<br />
+   - <strong>Instancia:</strong> <code>db.t3.micro</code> | <strong>Almacenamiento:</strong> 20 GiB gp2 (desactivar auto-escalado).<br />
+   - <strong>Acceso público:</strong> <strong>Sí</strong> | <strong>Security Group:</strong> <code>agropacayales-sg</code>.</li>
+<li>Una vez en estado <strong>Disponible</strong>, copia el <strong>Endpoint</strong> (ej: <code>agropacayales-sqlserver.xxxx.us-east-1.rds.amazonaws.com</code>).</li>
+<li>Abre SSMS (SQL Server Management Studio) en tu laptop, conéctate con <code>admin</code> y ejecuta:<br />
+<code>sql
+   CREATE DATABASE agropacayales_db;
+   GO</code></li>
+</ol>
+<hr />
+<h2>PASO 2: Servidor MongoDB en EC2 (Automatizado con User Data)</h2>
+<ol>
+<li>En AWS EC2, lanza una instancia:<br />
+   - <strong>Nombre:</strong> <code>ec2-mongodb</code><br />
+   - <strong>AMI:</strong> Ubuntu Server 24.04 LTS (64-bit x86) | <strong>Tipo:</strong> <code>t3.small</code><br />
+   - <strong>Security Group:</strong> <code>agropacayales-sg</code> | <strong>Disco:</strong> 15 GiB gp3</li>
+<li>Ve al final a <strong>Detalles avanzados</strong> ➔ <strong>Datos del usuario (User data)</strong> y pega este script:</li>
+</ol>
 <pre class="codehilite"><code class="language-bash">#!/bin/bash
 set -e
 exec &gt; /var/log/user-data.log 2&gt;&amp;1
 
-echo &quot;Iniciando aprovisionamiento automatizado de MongoDB 8.0...&quot;
+apt-get update -y &amp;&amp; apt-get install -y gnupg curl
+curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg --dearmor --yes
+echo &quot;deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse&quot; | tee /etc/apt/sources.list.d/mongodb-org-8.0.list
 
-# 1. Dependencias y llave GPG oficial
-apt-get update -y
-apt-get install -y gnupg curl
+apt-get update -y &amp;&amp; apt-get install -y mongodb-org
+systemctl start mongod &amp;&amp; systemctl enable mongod
 
-curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | \
-  gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg --dearmor --yes
+until mongosh --eval &quot;db.adminCommand('ping')&quot; &gt; /dev/null 2&gt;&amp;1; do sleep 2; done
 
-echo &quot;deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse&quot; | \
-  tee /etc/apt/sources.list.d/mongodb-org-8.0.list
-
-apt-get update -y
-apt-get install -y mongodb-org
-
-# 2. Iniciar servicio sin autenticacion para crear credenciales iniciales
-systemctl start mongod
-systemctl enable mongod
-
-until mongosh --eval &quot;db.adminCommand('ping')&quot; &gt; /dev/null 2&gt;&amp;1; do
-  sleep 2
-done
-
-# 3. Crear usuario administrador del cluster
 mongosh admin --eval '
-db.createUser({
-  user: &quot;admin&quot;,
-  pwd: &quot;Mongo12345&quot;,
-  roles: [
-    { role: &quot;userAdminAnyDatabase&quot;, db: &quot;admin&quot; },
-    { role: &quot;readWriteAnyDatabase&quot;, db: &quot;admin&quot; },
-    { role: &quot;dbAdminAnyDatabase&quot;, db: &quot;admin&quot; }
-  ]
-});
+db.createUser({ user: &quot;admin&quot;, pwd: &quot;Mongo12345&quot;, roles: [&quot;userAdminAnyDatabase&quot;, &quot;readWriteAnyDatabase&quot;, &quot;dbAdminAnyDatabase&quot;] });
 '
-
-# 4. Crear usuario de la base de datos de aplicacion
 mongosh agropacayales_db --eval '
-db.createUser({
-  user: &quot;admin&quot;,
-  pwd: &quot;Mongo12345&quot;,
-  roles: [{ role: &quot;readWrite&quot;, db: &quot;agropacayales_db&quot; }]
-});
+db.createUser({ user: &quot;admin&quot;, pwd: &quot;Mongo12345&quot;, roles: [{ role: &quot;readWrite&quot;, db: &quot;agropacayales_db&quot; }] });
 '
 
-# 5. Habilitar bindIp 0.0.0.0 y seguridad en /etc/mongod.conf
 cat &lt;&lt; 'EOF' &gt; /etc/mongod.conf
 storage:
   dbPath: /var/lib/mongodb
@@ -581,55 +365,52 @@ systemLog:
 net:
   port: 27017
   bindIp: 0.0.0.0
-processManagement:
-  timeZoneInfo: /usr/share/zoneinfo
 security:
   authorization: enabled
 EOF
 
-# 6. Reiniciar servicio
 systemctl restart mongod
-echo &quot;MongoDB 8.0 instalado y securizado con exito.&quot;
+echo &quot;MongoDB 8.0 listo.&quot;
 </code></pre>
 
+<ol start="3">
+<li>Lanza la instancia y copia su <strong>IP Privada</strong> (ej: <code>172.31.30.50</code>).</li>
+</ol>
 <hr />
-<h3>2.5. Paso 4: Servidor K3s Master (Script User Data Autoinstalable)</h3>
-<p>Al lanzar la instancia <code>k8s-master</code> (<code>t3.small</code>, Ubuntu 24.04 LTS, SG: <code>k8s-cluster-sg</code>):<br />
-Pega este script en <strong>Datos del usuario (User data)</strong>. La máquina arrancará con K3s Server listo, token configurado (<code>agropacayales-token-2026</code>), permisos de <code>kubectl</code> listos para el usuario <code>ubuntu</code> y alias configurados:</p>
+<h2>PASO 3: Clúster K3s en AWS (Automatizado con User Data)</h2>
+<h3>3.1. Lanzar el Nodo Master (<code>k8s-master</code>)</h3>
+<ul>
+<li>EC2 <code>t3.small</code> | Ubuntu 24.04 | SG: <code>agropacayales-sg</code>.</li>
+<li>En <strong>Datos del usuario (User data)</strong> pega:</li>
+</ul>
 <pre class="codehilite"><code class="language-bash">#!/bin/bash
 set -e
 exec &gt; /var/log/user-data.log 2&gt;&amp;1
 
-echo &quot;Iniciando instalacion automatizada de K3s Control Plane Master...&quot;
-
-# 1. Instalar K3s Server con token fijo
 curl -sfL https://get.k3s.io | K3S_TOKEN=&quot;agropacayales-token-2026&quot; sh -s - server \
   --disable traefik \
   --disable servicelb \
   --node-name k8s-master \
   --write-kubeconfig-mode 644
 
-# 2. Configurar kubeconfig para el usuario ubuntu
 mkdir -p /home/ubuntu/.kube
 cp /etc/rancher/k3s/k3s.yaml /home/ubuntu/.kube/config
 chown -R ubuntu:ubuntu /home/ubuntu/.kube
 
-# 3. Aliases y autocompletado
 echo &quot;export KUBECONFIG=/home/ubuntu/.kube/config&quot; &gt;&gt; /home/ubuntu/.bashrc
 echo &quot;alias k=kubectl&quot; &gt;&gt; /home/ubuntu/.bashrc
-echo &quot;complete -F __start_kubectl k&quot; &gt;&gt; /home/ubuntu/.bashrc
-
-echo &quot;K3s Master listo para recibir workers.&quot;
 </code></pre>
 
+<ul>
+<li>Lanza la instancia y copia su <strong>IP Privada</strong> (ejemplo: <code>172.31.21.112</code>).</li>
+</ul>
 <hr />
-<h3>2.6. Paso 5: Workers K3s con Auto-Etiquetado (Scripts User Data para los 3 Nodos)</h3>
+<h3>3.2. Lanzar los 3 Nodos Workers (en paralelo)</h3>
 <blockquote>
-<p>[!IMPORTANT]<br />
-<strong>REEMPLAZO OBLIGATORIO:</strong> En los 3 scripts de abajo, reemplaza <code>&lt;IP_PRIVADA_MASTER&gt;</code> por la IP interna de tu nodo Master (ejemplo: <code>172.31.21.112</code>).<br />
-<strong>VENTAJA EXTRAORDINARIA:</strong> Gracias a la bandera <code>--node-label</code>, ¡los workers se unen al clúster <strong>ya etiquetados con su rol correspondiente</strong> automáticamente sin que tengas que ejecutar <code>kubectl label node</code>!</p>
+<p><strong>Importante:</strong> Reemplaza <code>&lt;IP_PRIVADA_MASTER&gt;</code> por la IP privada real de tu Master en los 3 scripts antes de lanzarlos.</p>
 </blockquote>
-<h4>A) User Data para Worker 1: Frontend (<code>k8s-node-frontend</code> — <code>t3.small</code>)</h4>
+<h4>Worker 1: Frontend (<code>k8s-node-frontend</code> — <code>t3.small</code>)</h4>
+<p>User Data:</p>
 <pre class="codehilite"><code class="language-bash">#!/bin/bash
 set -e
 exec &gt; /var/log/user-data.log 2&gt;&amp;1
@@ -640,7 +421,8 @@ curl -sfL https://get.k3s.io | K3S_URL=https://&lt;IP_PRIVADA_MASTER&gt;:6443 \
   --node-label role=frontend
 </code></pre>
 
-<h4>B) User Data para Worker 2: Backend 1 WebFlux (<code>k8s-node-backend</code> — <code>t3.medium</code>)</h4>
+<h4>Worker 2: Backend 1 WebFlux (<code>k8s-node-backend</code> — <code>t3.medium</code>)</h4>
+<p>User Data:</p>
 <pre class="codehilite"><code class="language-bash">#!/bin/bash
 set -e
 exec &gt; /var/log/user-data.log 2&gt;&amp;1
@@ -651,7 +433,8 @@ curl -sfL https://get.k3s.io | K3S_URL=https://&lt;IP_PRIVADA_MASTER&gt;:6443 \
   --node-label role=backend1
 </code></pre>
 
-<h4>C) User Data para Worker 3: Backend 2 Analítico (<code>k8s-node-backendAnalitico</code> — <code>t3.small</code>)</h4>
+<h4>Worker 3: Backend 2 Analítico (<code>k8s-node-backendAnalitico</code> — <code>t3.small</code>)</h4>
+<p>User Data:</p>
 <pre class="codehilite"><code class="language-bash">#!/bin/bash
 set -e
 exec &gt; /var/log/user-data.log 2&gt;&amp;1
@@ -663,928 +446,145 @@ curl -sfL https://get.k3s.io | K3S_URL=https://&lt;IP_PRIVADA_MASTER&gt;:6443 \
 </code></pre>
 
 <hr />
-<h3>2.7. Método Alternativo: Comandos Manuales por SSH (Si no usas User Data)</h3>
-<p>Si por alguna razón decides no usar User Data y prefieres ingresar por SSH:</p>
-<h4>En el Master:</h4>
-<pre class="codehilite"><code class="language-bash">curl -sfL https://get.k3s.io | K3S_TOKEN=&quot;agropacayales-token-2026&quot; sh -s - server \
-  --disable traefik \
-  --disable servicelb \
-  --node-name k8s-master
-mkdir -p ~/.kube &amp;&amp; sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config &amp;&amp; sudo chown $(id -u):$(id -g) ~/.kube/config
-echo &quot;export KUBECONFIG=~/.kube/config&quot; &gt;&gt; ~/.bashrc &amp;&amp; source ~/.bashrc
+<h3>3.3. Verificar los Nodos en el Master</h3>
+<p>Conéctate por SSH al Master y ejecuta:</p>
+<pre class="codehilite"><code class="language-bash">kubectl get nodes --show-labels
 </code></pre>
 
-<h4>En cada Worker:</h4>
-<pre class="codehilite"><code class="language-bash">curl -sfL https://get.k3s.io | K3S_URL=https://&lt;IP_PRIVADA_MASTER&gt;:6443 K3S_TOKEN=&quot;agropacayales-token-2026&quot; sh -
-</code></pre>
-
-<h4>Etiquetar desde el Master:</h4>
-<pre class="codehilite"><code class="language-bash">kubectl label nodes &lt;NOMBRE_NODO_FRONTEND&gt; role=frontend --overwrite
-kubectl label nodes &lt;NOMBRE_NODO_BACKEND1&gt; role=backend1 --overwrite
-kubectl label nodes &lt;NOMBRE_NODO_BACKEND2&gt; role=backend2 --overwrite
+<p><strong>Resultado esperado (los 4 en <code>Ready</code> con sus roles asignados):</strong></p>
+<pre class="codehilite"><code>NAME                       STATUS   ROLES                  VERSION        LABELS
+k8s-master                 Ready    control-plane,master   v1.31...       ...
+k8s-node-frontend          Ready    &lt;none&gt;                 v1.31...       role=frontend
+k8s-node-backend           Ready    &lt;none&gt;                 v1.31...       role=backend1
+k8s-node-backendAnalitico  Ready    &lt;none&gt;                 v1.31...       role=backend2
 </code></pre>
 
 <hr />
-<h2>3. Empaquetado de Contenedores Docker Hub (Versión Oficial 2.0)</h2>
-<h3>3.1. Imágenes Oficiales y Nginx Reverse Proxy</h3>
-<p>Todas las imágenes se encuentran subidas y verificadas en Docker Hub:<br />
-- <code>hugo454/agropacayales-frontend:2.0</code> (y <code>:latest</code>)<br />
-- <code>hugo454/agropacayales-backend1:2.0</code> (y <code>:latest</code>)<br />
-- <code>hugo454/agropacayales-backend-analitico:2.0</code> (y <code>:latest</code>)</p>
-<h4>Nginx Reverse Proxy del Frontend (<code>ASE251S3_T05-fe/nginx.conf</code>):</h4>
-<pre class="codehilite"><code class="language-nginx">server {
-    listen 80;
-    server_name localhost;
-
-    location / {
-        root /usr/share/nginx/html;
-        index index.html index.htm;
-        try_files $uri $uri/ /index.html;
-    }
-
-    # Proxy inverso transparente hacia Backend 1 (Spring Boot WebFlux)
-    location /api/ {
-        proxy_pass http://backend-transaccional:8081/api/;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-    }
-
-    # Proxy inverso transparente hacia Backend 2 (Flask Analítico)
-    location /analytics/ {
-        proxy_pass http://backend-analitico:5000/api/v1/analytics/;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-    }
-}
-</code></pre>
-
-<hr />
-<h3>3.2. Scripts de Automatización Local (.bat)</h3>
-<p>Ubicados en la raíz del repositorio para compilar y subir si realizas cambios locales:</p>
-<h4><code>build-all-images.bat</code>:</h4>
-<pre class="codehilite"><code class="language-cmd">@echo off
-cd /d &quot;e:\Nueva carpeta (8)\tcc\ASE251S3_T05-fe&quot;
-docker build -t hugo454/agropacayales-frontend:2.0 -t hugo454/agropacayales-frontend:latest .
-
-cd /d &quot;e:\Nueva carpeta (8)\tcc\ASE251S4_T05-be&quot;
-docker build -t hugo454/agropacayales-backend1:2.0 -t hugo454/agropacayales-backend1:latest .
-
-cd /d &quot;e:\Nueva carpeta (8)\tcc\ASE251S4_T05-be-analitico&quot;
-docker build -t hugo454/agropacayales-backend-analitico:2.0 -t hugo454/agropacayales-backend-analitico:latest .
-</code></pre>
-
-<h4><code>push-images-2.0.bat</code>:</h4>
-<pre class="codehilite"><code class="language-cmd">@echo off
-docker push hugo454/agropacayales-frontend:2.0
-docker push hugo454/agropacayales-frontend:latest
-docker push hugo454/agropacayales-backend1:2.0
-docker push hugo454/agropacayales-backend1:latest
-docker push hugo454/agropacayales-backend-analitico:2.0
-docker push hugo454/agropacayales-backend-analitico:latest
-</code></pre>
-
-<hr />
-<h2>4. Manifiesto Maestro de Kubernetes y Despliegue en K3s</h2>
-<h3>4.1. Manifiesto Completo Todo-en-Uno (<code>agropacayales-k8s-all-in-one.yml</code>)</h3>
-<p>Disponible en el repositorio en <code>k8s-manifests/agropacayales-k8s-all-in-one.yml</code> o para copiar y pegar:</p>
-<pre class="codehilite"><code class="language-yaml"># ==============================================================================
-# AGROPACAYALES S.A.C. — MANIFIESTO MAESTRO KUBERNETES K3S (AWS)
-# ==============================================================================
-
-# 1. NAMESPACE AISLADO
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: agropacayales-namespace
----
-# 2. CONFIGMAP (Configuración no sensible)
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: agropacayales-configmap
-  namespace: agropacayales-namespace
-data:
-  # Backend 1 Transaccional
-  SERVER_PORT: &quot;8081&quot;
-  SPRING_PROFILES_ACTIVE: &quot;cloud&quot;
-  MONGO_DATABASE: &quot;agropacayales_db&quot;
-  SQL_HOST: &quot;ENDPOINT_DE_TU_RDS_AQUI&quot;
-  SQL_PORT: &quot;1433&quot;
-  SQL_DATABASE: &quot;agropacayales_db&quot;
-  SQL_USERNAME: &quot;admin&quot;
-  ANALYTICS_URL: &quot;http://backend-analitico:5000&quot;
-  ANALYTICS_EVENTS_ENABLED: &quot;true&quot;
-
-  # Backend 2 Analítico
-  FLASK_PORT: &quot;5000&quot;
-  MONGO_DB_NAME: &quot;agropacayales_db&quot;
-  SQL_SERVER: &quot;ENDPOINT_DE_TU_RDS_AQUI&quot;
-  SQL_USER: &quot;admin&quot;
----
-# 3. SECRET (Credenciales en Base64 o StringData seguro)
-apiVersion: v1
-kind: Secret
-metadata:
-  name: agropacayales-secret
-  namespace: agropacayales-namespace
-type: Opaque
-stringData:
-  MONGO_URI: &quot;mongodb://admin:Mongo12345@IP_PRIVADA_DE_MONGO_AQUI:27017/agropacayales_db?authSource=admin&quot;
-  SQL_PASSWORD: &quot;AgroPacayales2026!&quot;
----
-# 4. BACKEND 1 TRANSACCIONAL (Spring Boot 3.4 WebFlux)
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: backend-transaccional
-  namespace: agropacayales-namespace
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: backend-transaccional
-  template:
-    metadata:
-      labels:
-        app: backend-transaccional
-    spec:
-      nodeSelector:
-        role: backend1
-      containers:
-      - name: backend-transaccional
-        image: hugo454/agropacayales-backend1:2.0
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 8081
-        envFrom:
-        - configMapRef:
-            name: agropacayales-configmap
-        - secretRef:
-            name: agropacayales-secret
-        resources:
-          requests:
-            memory: &quot;256Mi&quot;
-            cpu: &quot;200m&quot;
-          limits:
-            memory: &quot;768Mi&quot;
-            cpu: &quot;1000m&quot;
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: backend-transaccional
-  namespace: agropacayales-namespace
-spec:
-  type: NodePort
-  selector:
-    app: backend-transaccional
-  ports:
-  - port: 8081
-    targetPort: 8081
-    nodePort: 30001
----
-# 5. BACKEND 2 ANALÍTICO (Python 3.11 Flask &amp; Pandas)
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: backend-analitico
-  namespace: agropacayales-namespace
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: backend-analitico
-  template:
-    metadata:
-      labels:
-        app: backend-analitico
-    spec:
-      nodeSelector:
-        role: backend2
-      containers:
-      - name: backend-analitico
-        image: hugo454/agropacayales-backend-analitico:2.0
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 5000
-        envFrom:
-        - configMapRef:
-            name: agropacayales-configmap
-        - secretRef:
-            name: agropacayales-secret
-        resources:
-          requests:
-            memory: &quot;128Mi&quot;
-            cpu: &quot;150m&quot;
-          limits:
-            memory: &quot;512Mi&quot;
-            cpu: &quot;800m&quot;
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: backend-analitico
-  namespace: agropacayales-namespace
-spec:
-  type: NodePort
-  selector:
-    app: backend-analitico
-  ports:
-  - port: 5000
-    targetPort: 5000
-    nodePort: 30002
----
-# 6. FRONTEND WEB (React 19 + TypeScript + Nginx)
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: frontend
-  namespace: agropacayales-namespace
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: frontend
-  template:
-    metadata:
-      labels:
-        app: frontend
-    spec:
-      nodeSelector:
-        role: frontend
-      containers:
-      - name: frontend
-        image: hugo454/agropacayales-frontend:2.0
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 80
-        resources:
-          requests:
-            memory: &quot;64Mi&quot;
-            cpu: &quot;50m&quot;
-          limits:
-            memory: &quot;256Mi&quot;
-            cpu: &quot;300m&quot;
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend-service
-  namespace: agropacayales-namespace
-spec:
-  type: NodePort
-  selector:
-    app: frontend
-  ports:
-  - port: 80
-    targetPort: 80
-    nodePort: 30000
-</code></pre>
-
-<hr />
-<h3>4.2. Comandos de Despliegue y Verificación en el Master</h3>
-<p>En el nodo Master:</p>
-<pre class="codehilite"><code class="language-bash"># 1. Aplicar el manifiesto completo
-kubectl apply -f k8s-manifests/agropacayales-k8s-all-in-one.yml
-
-# 2. Monitorear los pods en tiempo real
-kubectl get pods -n agropacayales-namespace -o wide -w
-
-# 3. Validar servicios NodePort activos
-kubectl get svc -n agropacayales-namespace
-</code></pre>
-
-<hr />
-<h2>5. Guía Exhaustiva de Pruebas en Swagger UI (Backend 1 - Spring Boot)</h2>
-<h3>5.1. Acceso al Portal Interactivo Swagger UI</h3>
-<ul>
-<li><strong>URL de Swagger:</strong><br />
-<code>text
-  http://&lt;IP_PUBLICA_AWS&gt;:30001/webjars/swagger-ui/index.html</code></li>
-</ul>
-<hr />
-<h3>5.2. Módulo de Parcelas (<code>/api/parcelas</code> — MongoDB <code>plots</code>)</h3>
-<h4>A) <code>POST /api/parcelas</code> — Crear Parcela</h4>
-<pre class="codehilite"><code class="language-json">{
-  &quot;id&quot;: &quot;PARC-NOR-999&quot;,
-  &quot;nombre&quot;: &quot;Sector Norte - Lote Experimental 999&quot;,
-  &quot;ubicacion&quot;: &quot;Fundo AgroPacayales, Km 118 Panamericana Sur&quot;,
-  &quot;areaHectareas&quot;: 8.50,
-  &quot;hectareas&quot;: 8.50,
-  &quot;tipoSuelo&quot;: &quot;Franco Arenoso&quot;,
-  &quot;responsable&quot;: &quot;Ing. Carlos Mendoza&quot;,
-  &quot;estadoRiego&quot;: &quot;En Proceso&quot;,
-  &quot;cultivoActual&quot;: &quot;Palta Hass Exportación&quot;,
-  &quot;produccionEstimada&quot;: &quot;45 toneladas&quot;,
-  &quot;fechaUltimaSiembra&quot;: &quot;2026-03-15&quot;,
-  &quot;observaciones&quot;: &quot;Lote acondicionado para validación de riego por pulso y micronutrientes.&quot;,
-  &quot;enUso&quot;: true,
-  &quot;estado&quot;: true,
-  &quot;condicionesEdaficas&quot;: {
-    &quot;textura&quot;: &quot;Franco Arenoso&quot;,
-    &quot;phPromedio&quot;: 6.8,
-    &quot;materiaOrganicaPct&quot;: 2.45
-  },
-  &quot;sistemaRiego&quot;: {
-    &quot;tipo&quot;: &quot;Goteo&quot;,
-    &quot;caudalLph&quot;: 1.75,
-    &quot;sectorValvula&quot;: &quot;VALV-EXP-01&quot;
-  }
-}
-</code></pre>
-
-<h4>B) <code>PUT /api/parcelas/{id}</code> — Actualizar Parcela (<code>PARC-NOR-999</code>)</h4>
-<pre class="codehilite"><code class="language-json">{
-  &quot;id&quot;: &quot;PARC-NOR-999&quot;,
-  &quot;nombre&quot;: &quot;Sector Norte - Lote Experimental 999 (Actualizado)&quot;,
-  &quot;ubicacion&quot;: &quot;Fundo AgroPacayales, Km 118 Panamericana Sur&quot;,
-  &quot;areaHectareas&quot;: 8.50,
-  &quot;hectareas&quot;: 8.50,
-  &quot;tipoSuelo&quot;: &quot;Franco Arenoso&quot;,
-  &quot;responsable&quot;: &quot;Ing. Carlos Mendoza&quot;,
-  &quot;estadoRiego&quot;: &quot;Optimizado&quot;,
-  &quot;cultivoActual&quot;: &quot;Palta Hass Exportación&quot;,
-  &quot;produccionEstimada&quot;: &quot;50 toneladas&quot;,
-  &quot;fechaUltimaSiembra&quot;: &quot;2026-03-15&quot;,
-  &quot;observaciones&quot;: &quot;Monitoreo completado satisfactoriamente.&quot;,
-  &quot;enUso&quot;: true,
-  &quot;estado&quot;: true
-}
-</code></pre>
-
-<h4>C) <code>GET /api/parcelas</code> y <code>DELETE /api/parcelas/{id}</code></h4>
-<ul>
-<li><code>GET /api/parcelas</code>: Retorna el flujo reactivo JSON (<code>Flux&lt;Parcela&gt;</code>).</li>
-<li><code>DELETE /api/parcelas/PARC-NOR-999</code>: Elimina la parcela de la base de datos.</li>
-</ul>
-<hr />
-<h3>5.3. Módulo de Insumos Agrícolas (<code>/api/insumos</code> — MongoDB <code>supplies</code>)</h3>
-<h4>A) <code>POST /api/insumos</code> — Crear Insumo</h4>
-<pre class="codehilite"><code class="language-json">{
-  &quot;id&quot;: &quot;INS-FERT-999&quot;,
-  &quot;nombre&quot;: &quot;Bioestimulante Radicular RaizMax Pro&quot;,
-  &quot;categoria&quot;: &quot;Fertilizantes&quot;,
-  &quot;unidadMedida&quot;: &quot;Litros&quot;,
-  &quot;stock&quot;: 150.0,
-  &quot;stockMinimo&quot;: 20.0,
-  &quot;precioUnitario&quot;: 48.50,
-  &quot;proveedor&quot;: &quot;Agroquímica del Pacífico S.A.&quot;,
-  &quot;descripcion&quot;: &quot;Concentrado soluble rico en ácidos húmicos y fósforo asimilable.&quot;,
-  &quot;estado&quot;: true,
-  &quot;propiedadesQuimicas&quot;: {
-    &quot;composicion&quot;: &quot;Ácidos fúlvicos 15%, Fósforo P2O5 30%&quot;,
-    &quot;phSolucion&quot;: 6.2,
-    &quot;densidadGml&quot;: 1.25
-  }
-}
-</code></pre>
-
-<h4>B) <code>PUT /api/insumos/{id}</code> — Actualizar Stock (<code>INS-FERT-999</code>)</h4>
-<pre class="codehilite"><code class="language-json">{
-  &quot;id&quot;: &quot;INS-FERT-999&quot;,
-  &quot;nombre&quot;: &quot;Bioestimulante Radicular RaizMax Pro&quot;,
-  &quot;categoria&quot;: &quot;Fertilizantes&quot;,
-  &quot;unidadMedida&quot;: &quot;Litros&quot;,
-  &quot;stock&quot;: 135.0,
-  &quot;stockMinimo&quot;: 20.0,
-  &quot;precioUnitario&quot;: 48.50,
-  &quot;proveedor&quot;: &quot;Agroquímica del Pacífico S.A.&quot;,
-  &quot;descripcion&quot;: &quot;Stock actualizado tras labor de fertirriego en Lote 999.&quot;,
-  &quot;estado&quot;: true
-}
-</code></pre>
-
-<hr />
-<h3>5.4. Módulo de Usuarios y Personal (<code>/api/usuarios</code> — MongoDB <code>users</code>)</h3>
-<h4>A) <code>POST /api/usuarios</code> — Registrar Personal</h4>
-<pre class="codehilite"><code class="language-json">{
-  &quot;id&quot;: &quot;USR-TEC-999&quot;,
-  &quot;username&quot;: &quot;cmendoza&quot;,
-  &quot;email&quot;: &quot;carlos.mendoza@agropacayales.com&quot;,
-  &quot;nombre&quot;: &quot;Carlos&quot;,
-  &quot;apellido&quot;: &quot;Mendoza Huamán&quot;,
-  &quot;rol&quot;: &quot;AGRONOMO&quot;,
-  &quot;dni&quot;: &quot;45879632&quot;,
-  &quot;telefono&quot;: &quot;+51 987654321&quot;,
-  &quot;activo&quot;: true,
-  &quot;certificaciones&quot;: [
-    &quot;Manejo Integrado de Plagas SENASA&quot;,
-    &quot;Certificación GlobalG.A.P. V5&quot;
-  ]
-}
-</code></pre>
-
-<hr />
-<h3>5.5. Módulo de Fichas de Campo (<code>/api/fichas-campo</code> — MongoDB <code>field_records</code>)</h3>
-<h4>A) <code>POST /api/fichas-campo</code> — Registrar Evaluación Fitosanitaria</h4>
-<pre class="codehilite"><code class="language-json">{
-  &quot;codigoFicha&quot;: &quot;FICHA-EVAL-2026-999&quot;,
-  &quot;nombreCultivo&quot;: &quot;Palta Hass&quot;,
-  &quot;idParcela&quot;: &quot;PARC-NOR-999&quot;,
-  &quot;etapaFenologica&quot;: &quot;Floración&quot;,
-  &quot;estadoCultivo&quot;: &quot;Excelente&quot;,
-  &quot;condicionClima&quot;: &quot;Soleado&quot;,
-  &quot;temperaturaAmb&quot;: 24.5,
-  &quot;humedadRelativa&quot;: 68.0,
-  &quot;necesitaRiego&quot;: false,
-  &quot;necesitaFumigacion&quot;: false,
-  &quot;diagnostico&quot;: &quot;Se observa brotación floral uniforme y óptimo anclaje radicular. Sin presencia de patógenos.&quot;,
-  &quot;responsableTecnico&quot;: &quot;Ing. Carlos Mendoza&quot;,
-  &quot;fechaRegistro&quot;: &quot;2026-10-26&quot;
-}
-</code></pre>
-
-<hr />
-<h3>5.6. Módulo de Cosechas (<code>/api/harvest</code> — SQL Server)</h3>
-<h4>A) <code>POST /api/harvest</code> — Registrar Cosecha</h4>
-<pre class="codehilite"><code class="language-json">{
-  &quot;idCultivo&quot;: 1,
-  &quot;fechaCosecha&quot;: &quot;2026-10-26&quot;,
-  &quot;kilosTotales&quot;: 8500.50,
-  &quot;kilosPrimera&quot;: 7200.00,
-  &quot;kilosSegunda&quot;: 1100.50,
-  &quot;kilosMerma&quot;: 200.00,
-  &quot;responsable&quot;: &quot;Ing. Carlos Mendoza&quot;,
-  &quot;observaciones&quot;: &quot;Cosecha de lote piloto con destino exportación a Rotterdam.&quot;
-}
-</code></pre>
-
-<hr />
-<h3>5.7. Módulo de Actividades de Cultivo (<code>/api/actividades-cultivos</code> — SQL Server)</h3>
-<h4>A) <code>POST /api/actividades-cultivos</code> — Programar Labor</h4>
-<pre class="codehilite"><code class="language-json">{
-  &quot;idCultivo&quot;: 1,
-  &quot;idTipoLabor&quot;: 2,
-  &quot;descripcion&quot;: &quot;Fertirriego por goteo con Bioestimulante RaizMax&quot;,
-  &quot;fechaProgramada&quot;: &quot;2026-10-27&quot;,
-  &quot;responsable&quot;: &quot;Axel Huapaya&quot;,
-  &quot;estado&quot;: &quot;PENDIENTE&quot;,
-  &quot;insumosUtilizados&quot;: [
-    {
-      &quot;idInsumo&quot;: &quot;INS-FERT-999&quot;,
-      &quot;cantidadRequerida&quot;: 15.0
-    }
-  ]
-}
-</code></pre>
-
-<h4>B) <code>PATCH /api/actividades-cultivos/{id}/finalizar</code> — Culminar Labor</h4>
-<ul>
-<li>Este endpoint cambia el estado a <code>COMPLETADO</code> en SQL Server y rebaja automáticamente el stock del insumo en MongoDB.</li>
-</ul>
-<hr />
-<h3>5.8. Módulo de Asignaciones de Personal (<code>/api/asignaciones-trabajadores</code>)</h3>
-<h4>A) <code>POST /api/asignaciones-trabajadores</code> — Asignar Cuadrilla</h4>
-<pre class="codehilite"><code class="language-json">{
-  &quot;idParcela&quot;: &quot;PARC-NOR-999&quot;,
-  &quot;idActividad&quot;: 1,
-  &quot;fechaAsignacion&quot;: &quot;2026-10-27&quot;,
-  &quot;jornalHoras&quot;: 8,
-  &quot;trabajadoresIds&quot;: [&quot;USR-TEC-999&quot;, &quot;USR-OPE-001&quot;]
-}
-</code></pre>
-
-<hr />
-<h2>6. Operaciones CRUD Directas en Consola MongoDB (<code>mongosh</code>)</h2>
-<h3>6.1. Conexión y Regla de Oro: ¿Por qué en Mongo es <code>_id</code> y en el JSON es <code>id</code>?</h3>
-<p>Conéctate por SSH a la máquina de MongoDB y abre la consola interactiva:</p>
-<pre class="codehilite"><code class="language-bash">mongosh &quot;mongodb://admin:Mongo12345@localhost:27017/agropacayales_db?authSource=admin&quot;
-</code></pre>
-
-<blockquote>
-<p>[!CAUTION]<br />
-<strong>REGLA DE ORO DE CONSULTAS EN MONGODB:</strong><br />
-- En MongoDB, la clave primaria inmutable es <strong><code>_id</code></strong>.<br />
-- En la clase Java de Spring Boot (<code>Parcela.java</code>), el atributo está anotado con <code>@Id private String id;</code>.<br />
-- Spring Data MongoDB mapea el campo <code>_id</code> de la base de datos hacia la propiedad <code>id</code> del JSON.<br />
-- <strong>Por tanto:</strong> Si buscas en la consola <code>mongosh</code>, debes consultar por <strong><code>_id</code></strong>:<br />
-<code>javascript
-  db.plots.find({ _id: "PARC-NOR-999" }) // CORRECTO (devuelve el documento)
-  db.plots.find({ id: "PARC-NOR-999" })  // INCORRECTO (devuelve vacío)</code></p>
-</blockquote>
-<hr />
-<h3>6.2. CRUD Completo: Colección <code>plots</code> (Parcelas)</h3>
-<pre class="codehilite"><code class="language-javascript">// 1. CREATE (Insertar nueva parcela)
-db.plots.insertOne({
-  _id: &quot;PARC-NOR-999&quot;,
-  nombre: &quot;Sector Norte - Lote Experimental 999&quot;,
-  ubicacion: &quot;Fundo AgroPacayales, Km 118&quot;,
-  areaHectareas: 8.50,
-  hectareas: 8.50,
-  tipoSuelo: &quot;Franco Arenoso&quot;,
-  responsable: &quot;Ing. Carlos Mendoza&quot;,
-  cultivoActual: &quot;Palta Hass Exportación&quot;,
-  estadoRiego: &quot;En Proceso&quot;,
-  enUso: true,
-  estado: true,
-  condicionesEdaficas: { textura: &quot;Franco Arenoso&quot;, phPromedio: 6.8, materiaOrganicaPct: 2.45 },
-  sistemaRiego: { tipo: &quot;Goteo&quot;, caudalLph: 1.75, sectorValvula: &quot;VALV-EXP-01&quot; },
-  createdAt: new Date()
-})
-
-// 2. READ (Listar y Filtrar)
-db.plots.find({ estado: true })
-db.plots.find({ _id: &quot;PARC-NOR-999&quot; })
-
-// 3. UPDATE (Actualizar estado de riego y observaciones)
-db.plots.updateOne(
-  { _id: &quot;PARC-NOR-999&quot; },
-  {
-    $set: {
-      estadoRiego: &quot;Optimizado&quot;,
-      observaciones: &quot;Actualizado desde consola mongosh en demostración técnica&quot;,
-      updatedAt: new Date()
-    }
-  }
-)
-
-// 4. DELETE (Eliminación física)
-db.plots.deleteOne({ _id: &quot;PARC-NOR-999&quot; })
-</code></pre>
-
-<hr />
-<h3>6.3. CRUD Completo: Colección <code>supplies</code> (Insumos)</h3>
-<pre class="codehilite"><code class="language-javascript">// 1. CREATE
-db.supplies.insertOne({
-  _id: &quot;INS-FERT-999&quot;,
-  nombre: &quot;Bioestimulante Radicular RaizMax Pro&quot;,
-  categoria: &quot;Fertilizantes&quot;,
-  unidadMedida: &quot;Litros&quot;,
-  stock: 150.0,
-  stockMinimo: 20.0,
-  precioUnitario: 48.50,
-  proveedor: &quot;Agroquímica del Pacífico S.A.&quot;,
-  estado: true,
-  createdAt: new Date()
-})
-
-// 2. READ (Alerta de Stock Crítico)
-db.supplies.find({ $expr: { $lte: [&quot;$stock&quot;, &quot;$stockMinimo&quot;] } })
-
-// 3. UPDATE (Decrementar stock de forma atómica con $inc)
-db.supplies.updateOne(
-  { _id: &quot;INS-FERT-999&quot; },
-  { $inc: { stock: -15.0 } }
-)
-
-// 4. DELETE
-db.supplies.deleteOne({ _id: &quot;INS-FERT-999&quot; })
-</code></pre>
-
-<hr />
-<h3>6.4. CRUD Completo: Colección <code>users</code> (Usuarios)</h3>
-<pre class="codehilite"><code class="language-javascript">// 1. CREATE
-db.users.insertOne({
-  _id: &quot;USR-TEC-999&quot;,
-  username: &quot;cmendoza&quot;,
-  email: &quot;carlos.mendoza@agropacayales.com&quot;,
-  nombre: &quot;Carlos&quot;,
-  apellido: &quot;Mendoza Huamán&quot;,
-  rol: &quot;AGRONOMO&quot;,
-  dni: &quot;45879632&quot;,
-  activo: true,
-  createdAt: new Date()
-})
-
-// 2. READ
-db.users.find({ rol: &quot;AGRONOMO&quot;, activo: true })
-
-// 3. UPDATE
-db.users.updateOne(
-  { _id: &quot;USR-TEC-999&quot; },
-  { $set: { telefono: &quot;+51 987654321&quot;, updatedAt: new Date() } }
-)
-
-// 4. DELETE
-db.users.deleteOne({ _id: &quot;USR-TEC-999&quot; })
-</code></pre>
-
-<hr />
-<h3>6.5. CRUD Completo: Colección <code>field_records</code> (Fichas de Campo)</h3>
-<pre class="codehilite"><code class="language-javascript">// 1. CREATE
-db.field_records.insertOne({
-  codigoFicha: &quot;FICHA-EVAL-2026-999&quot;,
-  nombreCultivo: &quot;Palta Hass&quot;,
-  idParcela: &quot;PARC-NOR-999&quot;,
-  etapaFenologica: &quot;Floración&quot;,
-  estadoCultivo: &quot;Excelente&quot;,
-  temperaturaAmb: 24.5,
-  humedadRelativa: 68.0,
-  necesitaRiego: false,
-  necesitaFumigacion: false,
-  diagnostico: &quot;Evaluación presencial satisfactoria.&quot;,
-  responsableTecnico: &quot;Ing. Carlos Mendoza&quot;,
-  fechaRegistro: new Date()
-})
-
-// 2. READ (Obtener última evaluación para el monitor fenológico)
-db.field_records.find({ nombreCultivo: &quot;Palta Hass&quot; }).sort({ fechaRegistro: -1 }).limit(1)
-</code></pre>
-
-<hr />
-<h2>7. Validación y Endpoints de Backend 2 (Python Flask Analítico)</h2>
-<p>El Backend 2 ejecuta algoritmos en Pandas y NumPy sobre los datos transaccionales para generar 18 indicadores clave expuestos en el <strong>NodePort 30002</strong>:</p>
-<ul>
-<li><strong>Documentación OpenAPI:</strong><br />
-<code>text
-  http://&lt;IP_PUBLICA_AWS&gt;:30002/api/v1/analytics/docs/</code></li>
-</ul>
-<h4>Comandos de prueba con <code>curl</code>:</h4>
-<pre class="codehilite"><code class="language-bash"># 1. Métricas de Rendimiento por Cultivo (ID 1)
-curl -s http://&lt;IP_PUBLICA_AWS&gt;:30002/api/v1/analytics/cultivo/1/metrics | jq .
-
-# 2. Resumen General Ejecutivo (Tarjetas del Dashboard)
-curl -s http://&lt;IP_PUBLICA_AWS&gt;:30002/api/v1/analytics/general/cards | jq .
-
-# 3. Estructura de Costos Operativos Acumulados
-curl -s http://&lt;IP_PUBLICA_AWS&gt;:30002/api/v1/analytics/general/distribucion-costos | jq .
-
-# 4. Tendencia de Producción y Cosecha Mensual
-curl -s http://&lt;IP_PUBLICA_AWS&gt;:30002/api/v1/analytics/general/produccion-mensual | jq .
-</code></pre>
-
-<hr />
-<h2>8. Despliegue y Operación de la Aplicación Móvil (Expo React Native)</h2>
-<h3>8.1. Configuración de Variables de Entorno (<code>.env</code>)</h3>
-<p>Abre el archivo:<br />
-<code>e:\Nueva carpeta (8)\tcc\ASE251S4_T05-mobile\.env</code></p>
-<p>Coloca la IP pública actual de tu servidor AWS:</p>
-<pre class="codehilite"><code class="language-env">EXPO_PUBLIC_API_URL=http://&lt;IP_PUBLICA_AWS&gt;:30001/api
-EXPO_PUBLIC_ANALYTICS_URL=http://&lt;IP_PUBLICA_AWS&gt;:30002/api/v1/analytics
-</code></pre>
-
-<blockquote>
-<p>[!WARNING]<br />
-<strong>PASO CRÍTICO TRAS EDITAR EL <code>.env</code>:</strong><br />
-Expo compila las variables de entorno en el arranque. Si modificas el archivo <code>.env</code>, debes <strong>detener la terminal (<code>Ctrl + C</code>)</strong> y reiniciar con limpieza de caché:<br />
-<code>powershell
-npx expo start -c</code></p>
-</blockquote>
-<hr />
-<h3>8.2. Ejecución y Modos de Prueba (Web Frame, Expo Go en Smartphone, Emulador)</h3>
-<h4>MODO 1: En tu Laptop con Simulador de Smartphone de Lujo 🌟 <em>(Recomendado para Sustentación)</em></h4>
+<h2>PASO 4: Desplegar las Aplicaciones en Kubernetes</h2>
 <ol>
-<li>En la terminal de Expo, presiona la tecla <strong><code>w</code></strong>.</li>
-<li>Se abrirá automáticamente Google Chrome en <code>http://localhost:8081</code>.</li>
-<li>Verás la app móvil enmarcada en un <strong>smartphone de alta gama centrado</strong> (<code>max-width: 520px</code>), con laterales en tono Deep Earth Brown (<code>#1A110B</code>), bisel superior con bocina y cámara frontal. Puedes interactuar fluidamente con el mouse simulando toques táctiles.</li>
-</ol>
-<h4>MODO 2: En tu Celular Físico (Android o iPhone)</h4>
-<ol>
-<li>Instala la app gratuita <strong>Expo Go</strong> desde Google Play Store o App Store.</li>
-<li>Escanea el código QR de la terminal:<br />
-   - En Android: Abre Expo Go y toca <strong>"Scan QR Code"</strong>.<br />
-   - En iPhone: Abre la cámara nativa de iOS y toca el enlace de Expo.</li>
-<li>La aplicación se abrirá en tu teléfono al 100% de la pantalla nativa. Como apunta a la IP pública de AWS (<code>:30001</code>), funciona con Wi-Fi o con datos móviles 4G/5G.</li>
-</ol>
-<hr />
-<h3>8.3. Flujo Diario del Operario en 1 Clic</h3>
-<ol>
-<li><strong>Acceso Rápido a "+ Nueva Ficha de Campo":</strong> En la cabecera de la pantalla de inicio, un botón verde esmeralda permite abrir el formulario fitosanitario (<code>/fichas-campo/formulario</code>) y guardar directo en MongoDB.</li>
-<li><strong>Ciclo de Tareas Táctil en 1 Clic (<code>/mis-labores</code>):</strong><br />
-   $$\mathbf{[Pendiente]} \;\longrightarrow\; \mathbf{[En\; Proceso]} \;\longrightarrow\; \mathbf{[Completado]}$$<br />
-   - Al tocar <strong><code>[En Proceso]</code></strong>: La labor se destaca en amarillo ámbar para el operario.<br />
-   - Al tocar <strong><code>[Completado]</code></strong>: Se muestra un diálogo de confirmación, se invoca <code>PATCH /api/actividades-cultivos/{id}/finalizar</code>, la tarea cambia a verde con check de éxito y en MongoDB se descuenta automáticamente el stock del insumo utilizado.</li>
-</ol>
-<hr />
-<h3>8.4. Diagnóstico y Solución de Errores Comunes en Móvil</h3>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Síntoma / Error</th>
-<th style="text-align: left;">Causa Probable</th>
-<th style="text-align: left;">Solución Inmediata</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><strong>"No se pudo conectar con el servidor (:30001)"</strong></td>
-<td style="text-align: left;">Security Group de AWS cerrado o IP pública cambió tras reiniciar la máquina EC2.</td>
-<td style="text-align: left;">Actualiza la IP pública en <code>.env</code>, verifica el puerto <code>30001</code> en Security Groups y reinicia con <code>npx expo start -c</code>.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>"Modifiqué el <code>.env</code> pero sigue llamando a la IP vieja"</strong></td>
-<td style="text-align: left;">Caché activa en Metro Bundler.</td>
-<td style="text-align: left;">Detén con <code>Ctrl + C</code> y ejecuta obligatoriamente <code>npx expo start -c</code>.</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>"Network request failed" en el celular</strong></td>
-<td style="text-align: left;">Pusiste <code>localhost</code> en el <code>.env</code> en vez de la IP pública de AWS.</td>
-<td style="text-align: left;">Reemplaza <code>localhost</code> por la IP pública de AWS en <code>.env</code>.</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2>9. Batería de Demostraciones en Vivo de Kubernetes para la Sustentación</h2>
-<p>Esta sección está diseñada con los comandos exactos y las justificaciones teóricas para cada una de las pruebas que los jurados y evaluadores suelen solicitar en vivo.</p>
-<hr />
-<h3>9.1. DEMO 1: Auto-Recuperación y Resiliencia (Self-Healing en 2 segundos)</h3>
-<blockquote>
-<p><strong>Qué pide el jurado:</strong> <em>"Mata el pod del frontend o del backend a ver si el sistema se cae o si Kubernetes lo recupera."</em></p>
-</blockquote>
-<h4>Comando a ejecutar en vivo:</h4>
-<pre class="codehilite"><code class="language-bash"># 1. En una terminal, deja observando los pods en tiempo real:
-kubectl get pods -n agropacayales-namespace -w
-
-# 2. En otra terminal, elimina intencionalmente el pod del backend:
-kubectl delete pod -l app=backend-transaccional -n agropacayales-namespace
-</code></pre>
-
-<h4>Qué observarás en la pantalla:</h4>
-<p>El pod anterior entra en estado <code>Terminating</code>, e <strong>instantáneamente (en menos de 1 segundo)</strong> Kubernetes crea un nuevo pod con otro identificador en estado <code>Pending</code> ➔ <code>ContainerCreating</code> ➔ <code>Running</code>.</p>
-<h4>Qué explicar al jurado:</h4>
-<blockquote>
-<p><em>"El controlador de ReplicaSet de Kubernetes vigila continuamente la brecha entre el estado deseado (replicas: 1) y el estado real del clúster. Al detectar la muerte del pod, el bucle de reconciliación programa automáticamente un pod de reemplazo en el nodo asignado sin que el usuario experimente indisponibilidad del servicio."</em></p>
-</blockquote>
-<hr />
-<h3>9.2. DEMO 2: Escalabilidad Horizontal en Caliente (HPA / Pod Replica Scaling)</h3>
-<blockquote>
-<p><strong>Qué pide el jurado:</strong> <em>"Imaginen que estamos en plena campaña de cosecha y entran 5,000 operarios a registrar datos. Escalemos el backend para soportar la carga."</em></p>
-</blockquote>
-<h4>Comando a ejecutar en vivo:</h4>
-<pre class="codehilite"><code class="language-bash"># 1. Escalar el backend de 1 a 3 réplicas en caliente:
-kubectl scale deployment backend-transaccional --replicas=3 -n agropacayales-namespace
-
-# 2. Verificar que ahora hay 3 pods corriendo en paralelo:
-kubectl get pods -n agropacayales-namespace -o wide
-</code></pre>
-
-<h4>Qué observarás:</h4>
-<p>Verás aparecer <code>backend-transaccional-xxxx-1</code>, <code>backend-transaccional-xxxx-2</code> y <code>backend-transaccional-xxxx-3</code>, todos en estado <code>Running</code>.</p>
-<h4>Qué explicar al jurado:</h4>
-<blockquote>
-<p><em>"El Service <code>backend-transaccional</code> en el puerto <code>8081</code> actúa como un balanceador de carga interno L4 (iptables/IPVS). Las peticiones provenientes del Frontend o de la App Móvil se distribuyen mediante Round-Robin entre los 3 pods reactivos, triplicando la capacidad de atención en milisegundos."</em></p>
-</blockquote>
-<h4>Comando para volver a 1 réplica al culminar la prueba:</h4>
-<pre class="codehilite"><code class="language-bash">kubectl scale deployment backend-transaccional --replicas=1 -n agropacayales-namespace
-</code></pre>
-
-<hr />
-<h3>9.3. DEMO 3: Despliegue Continuo Sin Caídas (Zero-Downtime Rolling Update)</h3>
-<blockquote>
-<p><strong>Qué pide el jurado:</strong> <em>"¿Cómo actualizan el software a una nueva versión sin apagar el clúster ni botar a los usuarios conectados?"</em></p>
-</blockquote>
-<h4>Comando a ejecutar en vivo:</h4>
-<pre class="codehilite"><code class="language-bash"># Ejecutar actualización continua de la imagen del frontend
-kubectl rollout restart deployment/frontend -n agropacayales-namespace
-
-# Ver el progreso de la transición
-kubectl rollout status deployment/frontend -n agropacayales-namespace
-</code></pre>
-
-<h4>Qué explicar al jurado:</h4>
-<blockquote>
-<p><em>"Kubernetes utiliza la estrategia RollingUpdate. Primero levanta el contenedor con la nueva versión, ejecuta los chequeos de salud (Readiness Probe), y solo cuando el nuevo contenedor está 100% listo para recibir tráfico, drena y finaliza el pod antiguo. El usuario en el navegador nunca recibe un error 502 o 504."</em></p>
-</blockquote>
-<hr />
-<h3>9.4. DEMO 4: Asignación Física de Cargas (NodeSelector &amp; Aislamiento Multi-Nodo)</h3>
-<blockquote>
-<p><strong>Qué pide el jurado:</strong> <em>"Demuéstrenme que los pods están distribuidos en servidores físicos distintos y no todos amontonados en la misma máquina."</em></p>
-</blockquote>
-<h4>Comando a ejecutar en vivo:</h4>
-<pre class="codehilite"><code class="language-bash">kubectl get pods -n agropacayales-namespace -o wide
-</code></pre>
-
-<h4>Qué mostrar en la columna <code>NODE</code>:</h4>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">POD</th>
-<th style="text-align: left;">STATUS</th>
-<th style="text-align: left;">IP INTERNA POD</th>
-<th style="text-align: left;">NODO FÍSICO ASIGNADO</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><code>frontend-xxxxx</code></td>
-<td style="text-align: left;"><code>Running</code></td>
-<td style="text-align: left;"><code>10.42.1.X</code></td>
-<td style="text-align: left;"><strong><code>k8s-node-frontend</code></strong></td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>backend-transaccional-xxxxx</code></td>
-<td style="text-align: left;"><code>Running</code></td>
-<td style="text-align: left;"><code>10.42.2.X</code></td>
-<td style="text-align: left;"><strong><code>k8s-node-backend</code></strong></td>
-</tr>
-<tr>
-<td style="text-align: left;"><code>backend-analitico-xxxxx</code></td>
-<td style="text-align: left;"><code>Running</code></td>
-<td style="text-align: left;"><code>10.42.3.X</code></td>
-<td style="text-align: left;"><strong><code>k8s-node-backendAnalitico</code></strong></td>
-</tr>
-</tbody>
-</table>
-<h4>Qué explicar al jurado:</h4>
-<blockquote>
-<p><em>"Cada Deployment tiene configurado un bloque <code>nodeSelector</code> estricto (<code>role: frontend</code>, <code>role: backend1</code>, <code>role: backend2</code>). Esto garantiza aislamiento de fallos: si el backend analítico consume alta CPU ejecutando cálculos de Pandas, el frontend y las transacciones de campo en Spring Boot permanecen completamente aisladas y fluidas en sus respectivos servidores dedicados."</em></p>
-</blockquote>
-<hr />
-<h3>9.5. DEMO 5: Service Discovery y DNS Interno de Kubernetes (CoreDNS)</h3>
-<blockquote>
-<p><strong>Qué pide el jurado:</strong> <em>"¿Cómo se comunican el frontend y los dos backends si no usan IPs públicas entre ellos?"</em></p>
-</blockquote>
-<h4>Comando a ejecutar en vivo:</h4>
-<pre class="codehilite"><code class="language-bash"># Probar llamada interna desde el pod del Frontend hacia el Backend 1 usando su nombre DNS:
-kubectl exec -it deployment/frontend -n agropacayales-namespace -- wget -qO- http://backend-transaccional:8081/api/parcelas
-
-# Probar llamada interna desde el Backend 1 hacia el Backend 2:
-kubectl exec -it deployment/backend-transaccional -n agropacayales-namespace -- wget -qO- http://backend-analitico:5000/api/v1/analytics/cultivo/1/metrics
-</code></pre>
-
-<h4>Qué explicar al jurado:</h4>
-<blockquote>
-<p><em>"Kubernetes cuenta con CoreDNS integrado. Cada Service genera una entrada DNS privada (ej: <code>backend-transaccional.agropacayales-namespace.svc.cluster.local</code>). Los microservicios se descubren y comunican internamente a través de la red overlay de Flannel sin exponer puertos a internet, maximizando la seguridad."</em></p>
-</blockquote>
-<hr />
-<h3>9.6. DEMO 6: Seguridad y Desacoplamiento (ConfigMaps &amp; Secrets en Base64)</h3>
-<blockquote>
-<p><strong>Qué pide el jurado:</strong> <em>"¿Dónde están guardadas las claves de base de datos? ¿Están quemadas en el código fuente?"</em></p>
-</blockquote>
-<h4>Comando a ejecutar en vivo:</h4>
-<pre class="codehilite"><code class="language-bash"># 1. Ver la configuración no sensible (ConfigMap):
-kubectl get configmap agropacayales-configmap -n agropacayales-namespace -o yaml
-
-# 2. Ver el Secret protegido (valores cifrados):
-kubectl get secret agropacayales-secret -n agropacayales-namespace -o yaml
-
-# 3. Demostrar la decodificación en vivo para auditoría:
-kubectl get secret agropacayales-secret -n agropacayales-namespace -o jsonpath=&quot;{.data.SQL_PASSWORD}&quot; | base64 --decode
-echo &quot;&quot;
-</code></pre>
-
-<h4>Qué explicar al jurado:</h4>
-<blockquote>
-<p><em>"Cumplimos con el principio de Twelve-Factor App (III. Configuración). El código fuente y las imágenes de Docker son 100% inmutables y agnósticas. Las credenciales y cadenas de conexión se inyectan en tiempo de ejecución desde Secrets de Kubernetes montados como variables de entorno seguras en memoria."</em></p>
-</blockquote>
-<hr />
-<h3>9.7. DEMO 7: Trazabilidad y Logs en Streaming en Tiempo Real</h3>
-<blockquote>
-<p><strong>Qué pide el jurado:</strong> <em>"Hagan una operación en la app móvil o en la web y muéstrenme los logs del servidor procesándola en vivo."</em></p>
-</blockquote>
-<h4>Comando a ejecutar en vivo:</h4>
-<pre class="codehilite"><code class="language-bash"># Ver streaming de logs del Backend 1 (Spring Boot WebFlux):
-kubectl logs -f deployment/backend-transaccional -n agropacayales-namespace --tail=50
-
-# Ver streaming de logs del Backend 2 (Flask Analítico):
-kubectl logs -f deployment/backend-analitico -n agropacayales-namespace --tail=50
-
-# Ver peticiones Nginx en el Frontend:
-kubectl logs -f deployment/frontend -n agropacayales-namespace --tail=50
-</code></pre>
-
-<hr />
-<h3>9.8. DEMO 8: Simulación de Caída de un Servidor Worker en AWS</h3>
-<blockquote>
-<p><strong>Qué pide el jurado:</strong> <em>"¿Qué ocurre si un servidor físico de AWS se apaga o sufre un fallo de hardware?"</em></p>
-</blockquote>
-<h4>Pasos de demostración:</h4>
-<ol>
-<li>Conéctate por SSH al nodo worker de analítica:<br />
+<li>En el nodo Master, clona el repositorio o crea el archivo del manifiesto:<br />
 <code>bash
-   ssh -i "clave.pem" ubuntu@&lt;IP_WORKER_ANALITICO&gt;
-   # Simular corte de servicio deteniendo el agente K3s:
-   sudo systemctl stop k3s-agent</code></li>
-<li>En la terminal del Master, ejecuta:<br />
+   git clone https://github.com/anafelix21/tcc.git
+   cd tcc</code></li>
+<li>
+<p>Edita el archivo <code>k8s-manifests/agropacayales-k8s-all-in-one.yml</code>:<br />
 <code>bash
-   kubectl get nodes</code><br />
-   Verás que el nodo pasa a estado <strong><code>NotReady</code></strong>.</li>
-<li>Explica:<blockquote>
-<p><em>"El controlador de nodos de Kubernetes detecta la pérdida de heartbeat. Si el nodo no se recupera, los pods se reprograman automáticamente en los nodos restantes disponibles que satisfagan las condiciones de scheduling."</em></p>
-</blockquote>
+   nano k8s-manifests/agropacayales-k8s-all-in-one.yml</code><br />
+   Ajusta únicamente estos 2 valores en el <strong>ConfigMap</strong> y <strong>Secret</strong>:<br />
+   - <code>SQL_HOST</code>: Coloca el Endpoint de tu RDS SQL Server.<br />
+   - <code>MONGO_URI</code>: Coloca la IP privada de tu EC2 MongoDB:<br />
+<code>mongodb://admin:Mongo12345@&lt;IP_PRIVADA_MONGO&gt;:27017/agropacayales_db?authSource=admin</code></p>
 </li>
-<li>Reactivar el nodo:<br />
+<li>
+<p><strong>Aplica el despliegue con un solo comando:</strong><br />
 <code>bash
-   sudo systemctl start k3s-agent</code><br />
-   En segundos vuelve a estado <strong><code>Ready</code></strong>.</li>
+   kubectl apply -f k8s-manifests/agropacayales-k8s-all-in-one.yml</code></p>
+</li>
+<li>
+<p><strong>Verifica los pods:</strong><br />
+<code>bash
+   kubectl get pods -n agropacayales-namespace -o wide</code><br />
+<em>En 1 minuto los 3 pods (<code>frontend</code>, <code>backend-transaccional</code>, <code>backend-analitico</code>) estarán en estado <strong><code>Running</code></strong>.</em></p>
+</li>
 </ol>
 <hr />
-<h3>9.9. DEMO 9: Cheat Sheet de Emergencia y Rescate Rápido</h3>
-<p>Comandos indispensables para tener a la mano durante la sustentación ante cualquier imprevisto:</p>
-<pre class="codehilite"><code class="language-bash"># 1. Ver el estado global de todo el namespace en una sola pantalla:
+<h2>PASO 5: Conectar la Aplicación Móvil (Expo React Native)</h2>
+<ol>
+<li>En tu laptop, abre el archivo:<br />
+<code>e:\Nueva carpeta (8)\tcc\ASE251S4_T05-mobile\.env</code></li>
+<li>Coloca la IP pública de tu instancia AWS:<br />
+<code>env
+   EXPO_PUBLIC_API_URL=http://&lt;IP_PUBLICA_AWS&gt;:30001/api
+   EXPO_PUBLIC_ANALYTICS_URL=http://&lt;IP_PUBLICA_AWS&gt;:30002/api/v1/analytics</code></li>
+<li>En la terminal de la app móvil, reinicia limpiando la caché:<br />
+<code>powershell
+   npx expo start -c</code></li>
+<li><strong>Para probar en tu laptop con el marco de smartphone:</strong> Presiona la tecla <strong><code>w</code></strong> (se abre en <code>http://localhost:8081</code>).<br />
+<strong>Para probar en tu celular físico:</strong> Escanea el código QR con la app gratuita <strong>Expo Go</strong>.</li>
+</ol>
+<hr />
+<h2>🌐 URLs de Acceso Rápido</h2>
+<p>Reemplaza <code>&lt;IP_PUBLICA_AWS&gt;</code> por la IP de cualquiera de tus nodos:</p>
+<ul>
+<li><strong>Frontend Web:</strong> <code>http://&lt;IP_PUBLICA_AWS&gt;:30000</code></li>
+<li><strong>Swagger UI (Spring Boot Backend 1):</strong> <code>http://&lt;IP_PUBLICA_AWS&gt;:30001/webjars/swagger-ui/index.html</code></li>
+<li><strong>OpenAPI Docs (Flask Backend 2):</strong> <code>http://&lt;IP_PUBLICA_AWS&gt;:30002/api/v1/analytics/docs/</code></li>
+</ul>
+<hr />
+<h1>🎯 DEMOSTRACIONES EN VIVO DE KUBERNETES (PARA LA SUSTENTACIÓN)</h1>
+<p>Usa esta guía rápida frente al jurado para realizar las pruebas en vivo:</p>
+<h3>1. Auto-Recuperación (Self-Healing)</h3>
+<ul>
+<li><strong>Qué decir:</strong> <em>"Kubernetes garantiza alta disponibilidad; si un pod se cae, el ReplicaSet lo recrea de inmediato."</em></li>
+<li><strong>Comando:</strong><br />
+<code>bash
+  kubectl delete pod -l app=backend-transaccional -n agropacayales-namespace
+  kubectl get pods -n agropacayales-namespace -w</code></li>
+<li><strong>Resultado:</strong> En 1 segundo el pod viejo muere y uno nuevo arranca en estado <code>Running</code>.</li>
+</ul>
+<hr />
+<h3>2. Escalabilidad Horizontal en Caliente (HPA / Replica Scaling)</h3>
+<ul>
+<li><strong>Qué decir:</strong> <em>"Ante un pico de cosecha o exceso de operarios, escalamos los pods del backend en caliente sin reiniciar nada."</em></li>
+<li><strong>Comando:</strong><br />
+<code>bash
+  kubectl scale deployment backend-transaccional --replicas=3 -n agropacayales-namespace
+  kubectl get pods -n agropacayales-namespace -o wide</code></li>
+<li><strong>Volver a 1 réplica al terminar:</strong><br />
+<code>bash
+  kubectl scale deployment backend-transaccional --replicas=1 -n agropacayales-namespace</code></li>
+</ul>
+<hr />
+<h3>3. Actualización Continua Sin Caídas (Rolling Update)</h3>
+<ul>
+<li><strong>Qué decir:</strong> <em>"Podemos actualizar la versión de la aplicación sin desconectar a los usuarios usando RollingUpdate."</em></li>
+<li><strong>Comando:</strong><br />
+<code>bash
+  kubectl rollout restart deployment/frontend -n agropacayales-namespace
+  kubectl rollout status deployment/frontend -n agropacayales-namespace</code></li>
+</ul>
+<hr />
+<h3>4. Distribución Multi-Nodo (NodeSelector)</h3>
+<ul>
+<li><strong>Qué decir:</strong> <em>"Cada contenedor corre en un servidor físico dedicado para aislar fallos y evitar que la analítica sature las transacciones."</em></li>
+<li><strong>Comando:</strong><br />
+<code>bash
+  kubectl get pods -n agropacayales-namespace -o wide</code></li>
+<li><strong>Mostrar al jurado:</strong></li>
+<li><code>frontend</code> corre en <code>k8s-node-frontend</code></li>
+<li><code>backend-transaccional</code> corre en <code>k8s-node-backend</code></li>
+<li><code>backend-analitico</code> corre en <code>k8s-node-backendAnalitico</code></li>
+</ul>
+<hr />
+<h3>5. Service Discovery y DNS Interno Privado</h3>
+<ul>
+<li><strong>Qué decir:</strong> <em>"Los microservicios se comunican internamente por nombre DNS privado sin exponer puertos a internet."</em></li>
+<li><strong>Comando:</strong><br />
+<code>bash
+  kubectl exec -it deployment/frontend -n agropacayales-namespace -- wget -qO- http://backend-transaccional:8081/api/parcelas</code></li>
+</ul>
+<hr />
+<h3>6. Streaming de Logs en Tiempo Real</h3>
+<ul>
+<li><strong>Qué decir:</strong> <em>"Podemos auditar en vivo las peticiones que llegan desde el celular o la web."</em></li>
+<li><strong>Comando:</strong><br />
+<code>bash
+  kubectl logs -f deployment/backend-transaccional -n agropacayales-namespace --tail=30</code></li>
+</ul>
+<hr />
+<h3>7. Comandos de Emergencia (Cheat Sheet)</h3>
+<pre class="codehilite"><code class="language-bash"># Ver todo el estado en 1 pantalla:
 kubectl get all -n agropacayales-namespace
 
-# 2. Diagnosticar por qué un pod no levanta o se queda en Error:
+# Diagnosticar un pod con error:
 kubectl describe pod &lt;NOMBRE_POD&gt; -n agropacayales-namespace
 
-# 3. Ver los últimos 30 eventos del clúster ordenados por hora:
-kubectl get events -n agropacayales-namespace --sort-by='.metadata.creationTimestamp'
-
-# 4. Entrar a la terminal interactiva dentro de un contenedor en ejecución:
-kubectl exec -it deployment/backend-transaccional -n agropacayales-namespace -- sh
-
-# 5. Reiniciar todos los microservicios del proyecto en 1 solo comando:
+# Reiniciar todos los pods del proyecto:
 kubectl rollout restart deployment -n agropacayales-namespace
-
-# 6. Eliminar y volver a aplicar todo el manifiesto desde cero:
-kubectl apply -f k8s-manifests/agropacayales-k8s-all-in-one.yml
 </code></pre>
 
 <hr />
-<p><strong>Fin del Manual Maestro de Despliegue, Operación y Sustentación — AgroPacayales S.A.C.</strong></p>
+<p><em>Nota: Para ver la colección detallada de Payloads JSON de Swagger y scripts CRUD de MongoDB, consulta el archivo complementario: <code>GUIA_PRUEBAS_SWAGGER_Y_CRUD_MONGODB.md</code>.</em></p>
 </div>
 </body>
 </html>
