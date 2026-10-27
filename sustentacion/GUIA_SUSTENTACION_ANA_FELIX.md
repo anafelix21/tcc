@@ -59,8 +59,10 @@ mongosh "mongodb://admin:Mongo12345@localhost:27017/agropacayales_db?authSource=
 ```
 (Desde tu PC también sirve **MongoDB Compass** con la IP pública; desde SSMS para SQL Server.)
 
-### 2.4 ⚠️ Arreglo obligatorio en MongoDB (1 sola vez después de desplegar)
-El validador de la colección `users` exige las fechas como **texto**, pero el Backend 1 las guarda como **fecha** → registrar o importar **usuarios con fechas falla**. Dentro de `mongosh` pegar:
+### 2.4 Fechas de usuarios en MongoDB (solo para despliegues antiguos)
+✅ **Ya corregido en los scripts de datos** (commit `8665dd9`): en todo despliegue **nuevo** (Kubernetes o Taller) el validador de `users` acepta las fechas como texto **o** fecha, y registrar/importar usuarios funciona sin hacer nada.
+
+Solo si tu MongoDB se creó **antes** de esa corrección (error `Document failed validation` en `fecha_nacimiento`), dentro de `mongosh` pegar:
 ```js
 const v = db.getCollectionInfos({name:"users"})[0].options.validator;
 v.$jsonSchema.properties.fecha_nacimiento.bsonType = ["string","date"];
@@ -431,7 +433,7 @@ Mismo enfoque con nombres propios (`cc-…`) para no chocar con Kubernetes en el
 | :-- | :-- |
 | `SECURITY_ENFORCE=false` | "Para probar Swagger y Postman sin token en la demo. Con `true`, toda ruta `/api/**` sin token responde 401." |
 | Contraseñas | "Hoy se comparan en texto plano; la mejora es **BCrypt**." |
-| Fechas de usuarios en el validador | "El validador esperaba texto y el backend guarda fecha; lo corregimos ampliando la regla a `string` o `date` con `collMod` (sección 2.4)." |
+| Fechas de usuarios en el validador | "El `$jsonSchema` de `users` esperaba las fechas como texto y el backend las guarda como `LocalDate` (tipo date). Lo corregimos en el script de datos permitiendo `string` o `date`, sin perder las demás validaciones; en bases ya creadas se aplica con `collMod` (sección 2.4)." |
 | Credenciales en `application.yml` | "Son valores por defecto de desarrollo; en AWS se reemplazan por variables de entorno (ConfigMap y Secret)." |
 | Figma | Tener abiertos los links de tu sección y del dashboard general. |
 
