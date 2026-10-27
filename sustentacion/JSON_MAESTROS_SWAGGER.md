@@ -4,7 +4,7 @@ Para el criterio de **Talleres de Software Empresarial** (registrar, editar, eli
 
 ✅ **Todos estos JSON se probaron contra el backend real** (imagen Docker del Backend 1 + MongoDB 8 cargado con `init_mongodb_completo.js`, **con los mismos validadores `$jsonSchema` que en AWS**): registrar → editar → eliminar → restaurar → importar → exportar funcionó en los **3 maestros**.
 
-> ⚠️ **Antes de la demo de Usuarios** ejecutar el arreglo del validador de fechas de la [guía, sección 2.4](GUIA_SUSTENTACION_ANA_FELIX.md#24-%EF%B8%8F-arreglo-obligatorio-en-mongodb-1-sola-vez-despu%C3%A9s-de-desplegar). Sin eso, todo usuario con fechas falla con `Document failed validation`.
+> ✅ Las fechas de usuarios ya funcionan en despliegues nuevos. Si tu MongoDB es anterior a la corrección, ver la [guía, sección 2.4](GUIA_SUSTENTACION_ANA_FELIX.md#24-%EF%B8%8F-arreglo-obligatorio-en-mongodb-1-sola-vez-despu%C3%A9s-de-desplegar).
 
 | Maestro | Responsable | Ruta base | Campos (mín. 12) |
 | :-- | :-- | :-- | :-- |
@@ -244,7 +244,7 @@ nombre,descripcion,precio,stock,unidadMedida,tipoInsumo,proveedor,presentacion
 `PATCH /api/usuarios/{id}/eliminar` · `PATCH /api/usuarios/{id}/restaurar` (sin body).
 
 ### 📥 Importar — `POST /api/usuarios/importar/csv` (campo `file`)
-Archivo: [`sustentacion/csv/usuarios.csv`](csv/usuarios.csv) (igual al del backend) · ⚠️ requiere el arreglo de fechas (sección 2.4 de la guía)
+Archivo: [`sustentacion/csv/usuarios.csv`](csv/usuarios.csv) (igual al del backend)
 ```
 nombre,apellido,correo,password,rol,fechaNacimiento,fechaContratacion
 ```
