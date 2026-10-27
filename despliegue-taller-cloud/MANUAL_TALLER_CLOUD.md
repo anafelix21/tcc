@@ -258,7 +258,32 @@ Cómo leer lo que sale:
 
 ---
 
-## 12. Al terminar la presentación
+## 12. Si se apagaron las EC2 (se acabó el tiempo del Learner Lab)
+
+AWS apaga todo al terminar la sesión del lab. **No se borra nada**: solo se vuelve a encender.
+
+- [ ] **Learner Lab → Start Lab** → círculo verde → clic **AWS** (cerrar antes la pestaña vieja de la consola)
+- [ ] **RDS → Databases** → `cc-taller-rds-sqlserver` → si dice **Stopped**: **Actions → Start** → esperar **Available**
+- [ ] **EC2 → Instances** → ☑ `cc-mongodb` → **Instance state → Start**
+- [ ] ☑ `cc-backends` → **Instance state → Start**
+- [ ] Esperar **3 minutos** (las 2 en **Running** y **2/2 checks passed**)
+- [ ] Abrir el frontend con el mismo link de S3 → **Ctrl+F5**
+
+Qué pasa solo al encender:
+
+| Componente | Al reiniciar |
+| :-- | :-- |
+| MongoDB | Arranca solo |
+| Backend 1 y Backend 2 | Arrancan solos (Docker `--restart always`) |
+| Frontend en S3 | Se vuelve a publicar solo con la **IP pública nueva** de `cc-backends` |
+| Link del frontend (S3) | **No cambia** |
+| IP pública de `cc-backends` | **Cambia**: copiar la nueva para los Swagger |
+
+- [ ] Si a los 5 min sigue "Tiempo de espera agotado": `cc-backends` → **Connect → EC2 Instance Connect** → `sudo /root/publicar-frontend-s3.sh` → **Ctrl+F5**
+
+---
+
+## 13. Al terminar la presentación
 
 - [ ] **EC2 → Security Groups** → `cc-ec2-sg` → **Edit inbound rules** → **Delete** en SSH 22 y en 27017 → **Save rules**
 - [ ] `cc-rds-sg` → **Edit inbound rules** → **Delete** en la regla MSSQL **0.0.0.0/0** → **Save rules**
