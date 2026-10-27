@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manual Rápido Clic por Clic — AgroPacayales en AWS (K3s)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #059669;
+      --primary-dark: #047857;
+      --primary-light: #d1fae5;
+      --accent: #d97706;
+      --dark-slate: #0f172a;
+      --surface: #ffffff;
+      --bg: #f8fafc;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --code-bg: #0f172a;
+      --warning-bg: #fffbeb;
+      --warning-border: #f59e0b;
+      --info-bg: #eff6ff;
+      --info-border: #3b82f6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.65;
+      color: var(--text);
+      background-color: var(--bg);
+      padding: 24px 16px 80px 16px;
+    }
+
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      background: var(--surface);
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+      border: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    /* Top Banner */
+    .top-hero {
+      background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);
+      color: #ffffff;
+      padding: 40px 48px;
+      position: relative;
+    }
+    .top-hero h1 {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-bottom: 12px;
+    }
+    .badge-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+    .badge-gold {
+      background: #fbbf24;
+      color: #78350f;
+      border: none;
+    }
+
+    /* Quick Progress Bar */
+    .progress-bar-container {
+      background: #e2e8f0;
+      height: 8px;
+      width: 100%;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .progress-fill {
+      background: linear-gradient(90deg, #10b981, #059669);
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .progress-info {
+      background: #f1f5f9;
+      padding: 12px 48px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    .btn-reset {
+      background: transparent;
+      border: 1px solid #cbd5e1;
+      padding: 4px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+    .btn-reset:hover {
+      background: #fee2e2;
+      border-color: #fca5a5;
+      color: #991b1b;
+    }
+
+    /* Content Layout */
+    .content-body {
+      padding: 48px;
+    }
+
+    h1, h2, h3, h4 {
+      color: var(--dark-slate);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    h2 {
+      font-size: 22px;
+      margin-top: 44px;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #f1f5f9;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    h3 {
+      font-size: 17px;
+      margin-top: 24px;
+      margin-bottom: 12px;
+      color: #1e40af;
+    }
+
+    p {
+      margin-bottom: 14px;
+      font-size: 15px;
+      color: #334155;
+    }
+
+    ul, ol {
+      margin-bottom: 20px;
+      padding-left: 24px;
+    }
+
+    li {
+      margin-bottom: 8px;
+      font-size: 14.5px;
+    }
+
+    /* Checklists */
+    .task-box {
+      display: inline-flex;
+      align-items: flex-start;
+      gap: 10px;
+      width: 100%;
+      cursor: pointer;
+      user-select: none;
+    }
+    .step-check {
+      width: 18px;
+      height: 18px;
+      margin-top: 3px;
+      accent-color: #059669;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .task-text {
+      flex: 1;
+    }
+    .checked-text {
+      text-decoration: line-through;
+      color: #94a3b8;
+    }
+
+    /* Tables */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0 28px 0;
+      font-size: 13.5px;
+      background: #ffffff;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    th {
+      background-color: #f8fafc;
+      color: #334155;
+      font-weight: 600;
+      text-align: left;
+      padding: 12px 14px;
+      border-bottom: 2px solid var(--border);
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border);
+      color: #334155;
+      vertical-align: middle;
+    }
+    tr:nth-child(even) td {
+      background-color: #fbfcfe;
+    }
+    tr:hover td {
+      background-color: #f1f5f9;
+    }
+
+    /* Code Blocks with Terminal Look */
+    .code-wrapper {
+      margin: 18px 0 26px 0;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+      border: 1px solid #1e293b;
+      background: var(--code-bg);
+    }
+    .code-header {
+      background: #1e293b;
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid #334155;
+    }
+    .mac-dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .mac-dot.red { background: #ef4444; }
+    .mac-dot.yellow { background: #f59e0b; }
+    .mac-dot.green { background: #10b981; }
+    .copy-btn {
+      margin-left: auto;
+      background: #334155;
+      color: #f8fafc;
+      border: none;
+      padding: 4px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .copy-btn:hover {
+      background: #475569;
+      color: #ffffff;
+    }
+    .copy-btn.copied {
+      background: #059669;
+      color: #ffffff;
+    }
+
+    pre {
+      margin: 0;
+      padding: 16px 20px;
+      overflow-x: auto;
+      background: var(--code-bg);
+      color: #e2e8f0;
+      font-family: 'JetBrains Mono', Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    code {
+      font-family: 'JetBrains Mono', Consolas, monospace;
+      font-size: 13px;
+      color: #e11d48;
+      background-color: #ffe4e6;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    pre code {
+      color: inherit;
+      background: transparent;
+      padding: 0;
+    }
+
+    /* Quotes & Callouts */
+    blockquote {
+      margin: 20px 0;
+      padding: 16px 20px;
+      border-left: 4px solid var(--primary);
+      background-color: var(--primary-light);
+      color: #065f46;
+      border-radius: 0 8px 8px 0;
+      font-size: 14.5px;
+    }
+    blockquote p {
+      margin-bottom: 0;
+      color: inherit;
+    }
+
+    /* Floating Navigation Tool */
+    .floating-tools {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 1000;
+    }
+    .fab-btn {
+      background: #0f172a;
+      color: #ffffff;
+      border: 1px solid #334155;
+      padding: 10px 18px;
+      border-radius: 9999px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+    .fab-btn:hover {
+      background: #059669;
+      transform: translateY(-2px);
+    }
+
+    /* Print styling */
+    @media print {
+      body {
+        padding: 0;
+        background: #ffffff;
+      }
+      .container {
+        box-shadow: none;
+        border: none;
+      }
+      .floating-tools, .progress-bar-container, .progress-info, .copy-btn {
+        display: none !important;
+      }
+      pre {
+        white-space: pre-wrap;
+        word-break: break-all;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="top-hero">
+      <h1>🚀 Manual Rápido Clic por Clic — AgroPacayales en AWS</h1>
+      <p style="color: #a7f3d0; margin-bottom: 0;">Despliegue integral K3s sobre Amazon EC2 + Amazon RDS SQL Server + Amazon EC2 MongoDB</p>
+      <div class="badge-bar">
+        <span class="badge badge-gold">⭐ Rúbrica 20/20</span>
+        <span class="badge">☁️ AWS Academy (Voclabs)</span>
+        <span class="badge">☸️ Kubernetes (K3s)</span>
+        <span class="badge">📌 IP Elástica Persistente</span>
+        <span class="badge">⏱ 20–25 Minutos</span>
+      </div>
+    </div>
+
+    <div class="progress-bar-container">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-info">
+      <span id="progressText">Progreso: 0 de 0 pasos completados (0%)</span>
+      <button class="btn-reset" onclick="resetProgress()">Reiniciar Checklist</button>
+    </div>
+
+    <div class="content-body">
+      <h1>Manual Rápido Clic por Clic — AgroPacayales en AWS (Desde Cero)</h1>
+<blockquote>
+<p><strong>Unidad Didáctica:</strong> Taller de Cloud Computing — Evaluación Intermedia (20/20)<br />
+<strong>Proyecto:</strong> AgroPacayales S.A.C. (Equipo T05)<br />
+Consola de AWS en <strong>inglés</strong>. Orden: <strong>Grupos de seguridad → RDS → EC2 → IP Elástica → BDs → Demo en Vivo</strong>.<br />
+Tener abierto <a href="user-data-universal.sh"><code>user-data-universal.sh</code></a> para copiar (Ctrl+A, Ctrl+C).</p>
+</blockquote>
+<hr />
+<h2>📋 0. Hoja de Datos: Lo que Tienes que Reemplazar al Crear desde Cero</h2>
+<p>Cada compañero tendrá su propia cuenta de AWS. Por tanto, ciertos endpoints e IDs cambian. <strong>Anota estos datos a medida que los crees:</strong></p>
+<h3>0.1. Tabla de Datos Dinámicos a Reemplazar</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Variable</th>
+<th>¿En qué paso se genera?</th>
+<th>Ejemplo Real</th>
+<th>Tu Valor Real (Anota aquí)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1</strong></td>
+<td><strong>ID de Security Group (<code>sg-...</code>)</strong></td>
+<td>Paso 2 (al crear <code>evi-ec2-sg</code>)</td>
+<td><code>sg-00ac74ff62ebece96</code></td>
+<td><code>sg-_____________________</code></td>
+</tr>
+<tr>
+<td><strong>2</strong></td>
+<td><strong>Endpoint de Amazon RDS</strong></td>
+<td>Paso 4 (al crear RDS SQL Server)</td>
+<td><code>agropacayales-rds-sqlserver.c4rhnptakjkc.us-east-1.rds.amazonaws.com</code></td>
+<td><code>________________________</code></td>
+</tr>
+<tr>
+<td><strong>3</strong></td>
+<td><strong>Contraseña de RDS</strong></td>
+<td>Paso 4 (Master password)</td>
+<td><code>AgroPacayales2026!</code></td>
+<td><code>AgroPacayales2026!</code> (Recomendada)</td>
+</tr>
+<tr>
+<td><strong>4</strong></td>
+<td><strong>IP Pública de <code>ec2-mongodb</code></strong></td>
+<td>Paso 6 y 7 (en consola EC2)</td>
+<td><code>98.20.208.209</code></td>
+<td><code>________________________</code></td>
+</tr>
+<tr>
+<td><strong>5</strong></td>
+<td><strong>IP Elástica de <code>k8s-master</code></strong></td>
+<td>Paso 5.2 (al asignar Elastic IP)</td>
+<td><code>100.55.148.151</code></td>
+<td><code>________________________</code></td>
+</tr>
+</tbody>
+</table>
+<h3>0.2. Valores Fijos que NO debes Modificar (Estándar del Equipo)</h3>
+<table>
+<thead>
+<tr>
+<th>Parámetro</th>
+<th>Valor Fijo</th>
+<th>Justificación</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>SQL Server Usuario</strong></td>
+<td><code>admin</code></td>
+<td>Obligatorio en RDS (no usar <code>sa</code>)</td>
+</tr>
+<tr>
+<td><strong>SQL Server Puerto y BD</strong></td>
+<td><code>1433</code> | <code>agropacayales_db</code></td>
+<td>Contrato de conexión Backend 1 y Backend 2</td>
+</tr>
+<tr>
+<td><strong>MongoDB Usuario y Clave</strong></td>
+<td><code>admin</code> | <code>Mongo12345</code></td>
+<td>Configurado en el script universal y backends</td>
+</tr>
+<tr>
+<td><strong>MongoDB Puerto y BD</strong></td>
+<td><code>27017</code> | <code>agropacayales_db</code></td>
+<td>Con <code>?authSource=admin</code></td>
+</tr>
+<tr>
+<td><strong>Namespace Kubernetes</strong></td>
+<td><code>agropacayales-namespace</code></td>
+<td>Aislamiento de pods</td>
+</tr>
+<tr>
+<td><strong>NodePort Frontend</strong></td>
+<td><code>30000</code></td>
+<td>Nginx Web SPA</td>
+</tr>
+<tr>
+<td><strong>NodePort Backend 1</strong></td>
+<td><code>30001</code></td>
+<td>Spring Boot WebFlux (<code>/swagger-ui.html</code>)</td>
+</tr>
+<tr>
+<td><strong>NodePort Backend 2</strong></td>
+<td><code>30002</code></td>
+<td>Python Flask Analítica (<code>/apidocs/</code>, <code>/health</code>)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>1. Learner Lab ⏱ min 0</h2>
+<ul>
+<li><span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text"><strong>Start Lab</strong> → esperar círculo verde → clic <strong>AWS</strong></span></span></li>
+<li><span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Arriba a la derecha, verificar región: <strong>United States (N. Virginia) <code>us-east-1</code></strong></span></span></li>
+</ul>
+<hr />
+<h2>2. Grupo de seguridad <code>evi-ec2-sg</code> ⏱ min 1</h2>
+<p><strong>EC2 → Security Groups → Create security group</strong><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Security group name: <code>evi-ec2-sg</code></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Description: <code>evi-ec2-sg</code></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">VPC: dejar la que sale (default)</span></span></p>
+<p><strong>Inbound rules:</strong><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text"><strong>Add rule</strong> → Type: <strong>Custom TCP</strong> → Port range: <code>30000-30002</code> (en un solo campo) → Source type: <strong>Anywhere-IPv4</strong> (<code>0.0.0.0/0</code>)</span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text"><strong>Add rule</strong> → Type: <strong>SSH</strong> → Port: <code>22</code> → Source type: <strong>Anywhere-IPv4</strong> (<code>0.0.0.0/0</code>)</span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text"><strong>Add rule</strong> → Type: <strong>Custom TCP</strong> → Port range: <code>27017</code> → Source type: <strong>Anywhere-IPv4</strong> (para conectar MongoDB Compass desde tu PC)</span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Clic <strong>Create security group</strong></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">👉 <strong>COPIAR EL ID GENERADO</strong> en la parte superior (ej: <code>sg-00ac74ff62ebece96</code>). Lo usarás en el siguiente subpaso y en el Paso 3.</span></span></p>
+<p><strong>Regla interna (en el mismo grupo, recién creado):</strong><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Seleccionar <code>evi-ec2-sg</code> → pestaña <strong>Inbound rules</strong> → <strong>Edit inbound rules</strong> → <strong>Add rule</strong></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Type: <strong>All traffic</strong> (bajar en la lista)</span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Source type: <strong>Custom</strong></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Source: pegar el ID <code>sg-...</code> copiado arriba → <strong>elegir de la lista desplegable</strong> (no basta con escribir el nombre)</span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text"><strong>Save rules</strong></span></span></p>
+<p>Debe quedar:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Port range</th>
+<th style="text-align: left;">Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">SSH</td>
+<td style="text-align: left;">22</td>
+<td style="text-align: left;">0.0.0.0/0</td>
+</tr>
+<tr>
+<td style="text-align: left;">Custom TCP</td>
+<td style="text-align: left;">30000 - 30002</td>
+<td style="text-align: left;">0.0.0.0/0</td>
+</tr>
+<tr>
+<td style="text-align: left;">Custom TCP</td>
+<td style="text-align: left;">27017</td>
+<td style="text-align: left;">0.0.0.0/0</td>
+</tr>
+<tr>
+<td style="text-align: left;">All traffic</td>
+<td style="text-align: left;">All</td>
+<td style="text-align: left;">sg-... (<code>evi-ec2-sg</code>)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>3. Grupo de seguridad <code>evi-rds-sg</code> ⏱ min 3</h2>
+<p><strong>EC2 → Security Groups → Create security group</strong><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Security group name: <code>evi-rds-sg</code></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Description: <code>evi-rds-sg</code></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">VPC: default</span></span></p>
+<p><strong>Inbound rules (aquí NO va All traffic):</strong><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text"><strong>Add rule</strong> → Type: <strong>MSSQL</strong> (puerto 1433) → Source type: <strong>Custom</strong> → Source: pegar el ID <code>sg-...</code> de <code>evi-ec2-sg</code> → <strong>elegir de la lista desplegable</strong></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text"><strong>Add rule</strong> → Type: <strong>MSSQL</strong> (puerto 1433) → Source type: <strong>Anywhere-IPv4</strong> (<code>0.0.0.0/0</code>, para entrar con SSMS desde tu PC)</span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Clic <strong>Create security group</strong></span></span></p>
+<p>Debe quedar:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Type</th>
+<th style="text-align: left;">Port range</th>
+<th style="text-align: left;">Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">MSSQL</td>
+<td style="text-align: left;">1433</td>
+<td style="text-align: left;">sg-... (<code>evi-ec2-sg</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;">MSSQL</td>
+<td style="text-align: left;">1433</td>
+<td style="text-align: left;">0.0.0.0/0</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>4. RDS SQL Server ⏱ min 4 (tarda 10–15 min en crearse, no esperar)</h2>
+<p><strong>Buscador de arriba: RDS → Databases → Create database</strong><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text"><strong>Standard create</strong></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Engine type: <strong>Microsoft SQL Server</strong></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Database management type: <strong>Amazon RDS</strong></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Edition: <strong>SQL Server Express Edition</strong></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Templates: <strong>Free tier</strong> (si no sale, <strong>Dev/Test</strong>)</span></span></p>
+<p><strong>Settings:</strong><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">DB instance identifier: <code>agropacayales-rds-sqlserver</code></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Master username: <code>admin</code></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Credentials management: <strong>Self managed</strong> ⚠️ <strong>NO</strong> "Managed in AWS Secrets Manager" (si queda con Secrets Manager, AWS genera una clave desconocida y fallará con <code>Login failed for user 'admin'</code>)</span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Master password: <code>AgroPacayales2026!</code></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Confirm master password: <code>AgroPacayales2026!</code></span></span></p>
+<p><strong>Instance configuration:</strong><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">DB instance class: <strong>Burstable classes</strong> → <code>db.t3.micro</code> (si no sale, <code>db.t3.small</code>)</span></span></p>
+<p><strong>Storage:</strong><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Storage type: <strong>gp3</strong> · Allocated storage: <code>20</code></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Abrir <strong>Additional storage configuration</strong> → ☐ desmarcar <strong>Enable storage autoscaling</strong></span></span></p>
+<p><strong>Connectivity:</strong><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Compute resource: <strong>Don't connect to an EC2 compute resource</strong></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">VPC: default</span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Public access: <strong>Yes</strong> (para conectarte desde SSMS / Azure Data Studio)</span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">VPC security group: <strong>Choose existing</strong> → agregar <code>evi-rds-sg</code> → quitar <code>default</code> (X)</span></span></p>
+<p><strong>Monitoring (CRÍTICO para evitar error de permisos IAM en Voclabs):</strong><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">☐ desmarcar <strong>Performance Insights</strong> / <strong>Database Insights</strong></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">☐ desmarcar <strong>Enhanced Monitoring</strong> (Monitoreo mejorado)</span></span></p>
+<p><strong>Additional configuration (abajo, abrirlo):</strong><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">☐ desmarcar <strong>Enable automated backups</strong> (retención 0 días)</span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Clic <strong>Create database</strong> (si sale ventana de add-ons → <strong>Close</strong>)</span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Estado: <strong>Creating</strong> → seguir al paso 5 inmediatamente sin esperar.</span></span></p>
+<hr />
+<h2>5. EC2 <code>k8s-master</code> e IP Elástica ⏱ min 7</h2>
+<h3>5.1. Lanzar la Instancia <code>k8s-master</code></h3>
+<p><strong>EC2 → Instances → Launch instances</strong></p>
+<p><strong>Name and tags:</strong><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Name: <code>k8s-master</code></span></span></p>
+<p><strong>Application and OS Images:</strong><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text"><strong>Ubuntu</strong> → <strong>Ubuntu Server 24.04 LTS (HVM), SSD Volume Type</strong> · <strong>64-bit (x86)</strong></span></span></p>
+<p><strong>Instance type:</strong><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text"><code>t3.small</code></span></span></p>
+<p><strong>Key pair (login):</strong><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text"><code>vockey</code></span></span></p>
+<p><strong>Network settings → Edit:</strong><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">VPC: default</span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Auto-assign public IP: <strong>Enable</strong></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Firewall: <strong>Select existing security group</strong> → <code>evi-ec2-sg</code></span></span></p>
+<p><strong>Configure storage:</strong><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text"><code>20</code> GiB · gp3</span></span></p>
+<p><strong>Advanced details (abrirlo, abajo):</strong><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">IAM instance profile: <strong><code>LabInstanceProfile</code></strong> ⚠️ (Obligatorio)</span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">User data (al final): pegar <strong>todo</strong> el contenido de <a href="user-data-universal.sh"><code>user-data-universal.sh</code></a></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Clic <strong>Launch instance</strong> → <strong>View all instances</strong></span></span></p>
+<hr />
+<h3>5.2. Asignar la IP Elástica (Para que NUNCA cambie al reiniciar AWS)</h3>
+<blockquote>
+<p>💡 <em>En AWS Academy, al apagar y prender la máquina la IP cambia. La IP elástica la fija permanentemente.</em></p>
+</blockquote>
+<ol>
+<li>En la consola EC2, menú izquierdo: <strong>Elastic IPs</strong> → Clic en <strong>Allocate Elastic IP address</strong> → <strong>Allocate</strong>.</li>
+<li>Seleccionar la IP recién creada → <strong>Actions</strong> → <strong>Associate Elastic IP address</strong>.</li>
+<li>En <strong>Instance</strong>: seleccionar tu <strong><code>k8s-master</code></strong>.</li>
+<li>Clic en <strong>Associate</strong>.</li>
+<li>👉 <strong>Anota esa IP Elástica</strong> (ej: <code>100.55.148.151</code>). Esta será la IP oficial de Swagger y del Frontend.</li>
+</ol>
+<hr />
+<h2>6. Las otras 4 EC2 ⏱ min 9–12</h2>
+<p>Repetir 4 veces usando la función clonar de AWS:<br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Marcar ☑ <code>k8s-master</code> → <strong>Actions → Image and templates → Launch more like this</strong></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Name and tags → cambiar <strong>Name</strong></span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Instance type → cambiar tipo</span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Configure storage → cambiar disco</span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Advanced details → confirmar que tenga <strong><code>LabInstanceProfile</code></strong> y el <strong>User data</strong> pegado</span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text"><strong>Launch instance</strong></span></span></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">✔</th>
+<th style="text-align: left;">Name (exacto, sin espacios)</th>
+<th style="text-align: left;">Instance type</th>
+<th style="text-align: left;">Storage</th>
+<th style="text-align: left;">Qué contiene</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><input type="checkbox" class="step-check"></td>
+<td style="text-align: left;"><code>ec2-mongodb</code></td>
+<td style="text-align: left;"><code>t3.small</code></td>
+<td style="text-align: left;">8 GiB</td>
+<td style="text-align: left;">MongoDB 8.0 nativo (NoSQL)</td>
+</tr>
+<tr>
+<td style="text-align: center;"><input type="checkbox" class="step-check"></td>
+<td style="text-align: left;"><code>k8s-node-frontend</code></td>
+<td style="text-align: left;"><code>t3.small</code></td>
+<td style="text-align: left;">20 GiB</td>
+<td style="text-align: left;">Node K3s para Frontend Web</td>
+</tr>
+<tr>
+<td style="text-align: center;"><input type="checkbox" class="step-check"></td>
+<td style="text-align: left;"><code>k8s-node-backend</code></td>
+<td style="text-align: left;"><strong><code>t3.medium</code></strong></td>
+<td style="text-align: left;">20 GiB</td>
+<td style="text-align: left;">Node K3s para Backend 1 (Spring Boot)</td>
+</tr>
+<tr>
+<td style="text-align: center;"><input type="checkbox" class="step-check"></td>
+<td style="text-align: left;"><code>k8s-node-backendAnalitico</code></td>
+<td style="text-align: left;"><code>t3.small</code></td>
+<td style="text-align: left;">20 GiB</td>
+<td style="text-align: left;">Node K3s para Backend 2 (Flask)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>7. Revisar ⏱ min 13</h2>
+<p><strong>EC2 → Instances</strong><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Deben aparecer 5 instancias en estado <strong>Running</strong> con sus nombres exactos.</span></span><br />
+- <span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Si a alguna le falta el rol: marcarla → <strong>Actions → Security → Modify IAM role</strong> → <code>LabInstanceProfile</code> → <strong>Update IAM role</strong> (continúa sola sin reiniciar).</span></span></p>
+<hr />
+<h2>8. Esperar el Avance Automático ⏱ min 13 → 22</h2>
+<ul>
+<li><span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Marcar ☑ <code>k8s-master</code> → <strong>Actions → Monitor and troubleshoot → Get system log</strong></span></span></li>
+<li><span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Buscar líneas con <code>[AGRO]</code>. Cerrar y volver a abrir cada 1–2 min.</span></span></li>
+<li><span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Orden de finalización:</span></span><br />
+  1. <code>K3s server instalado</code><br />
+  2. <code>Esperando que RDS SQL Server termine de crearse...</code> (normal, tarda ≈10 min)<br />
+  3. <code>MongoDB: ... | RDS: ...</code> (las descubrió solas)<br />
+  4. <code>SQL SERVER POBLADO</code> (tablas y +800 registros cargados en RDS)<br />
+  5. <code>Manifiestos aplicados...</code><br />
+  6. <code>DESPLIEGUE TERMINADO</code> + URLs<br />
+  7. <code>DESPLIEGUE COMPLETO</code> ✅</li>
+</ul>
+<hr />
+<h2>9. Abrir la Aplicación ⏱ min 22</h2>
+<p>En <strong>EC2 → Instances</strong>, copia la <strong>Public IPv4 address</strong> de cada máquina (o usa la IP elástica para el master).<br />
+<em>(Usar <code>http://</code>, no <code>https://</code>)</em>:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: center;">✔</th>
+<th style="text-align: left;">Componente</th>
+<th style="text-align: left;">URL de Acceso</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;"><input type="checkbox" class="step-check"></td>
+<td style="text-align: left;"><strong>Frontend Web</strong></td>
+<td style="text-align: left;"><code>http://&lt;IP de k8s-node-frontend&gt;:30000</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><input type="checkbox" class="step-check"></td>
+<td style="text-align: left;"><strong>Backend 1 — Swagger UI</strong></td>
+<td style="text-align: left;"><code>http://&lt;IP_ELASTICA_O_IP_NODE_BACKEND&gt;:30001/webjars/swagger-ui/index.html</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><input type="checkbox" class="step-check"></td>
+<td style="text-align: left;"><strong>Backend 1 — OpenAPI JSON</strong></td>
+<td style="text-align: left;"><code>http://&lt;IP&gt;:30001/api-docs</code> (importar en Postman)</td>
+</tr>
+<tr>
+<td style="text-align: center;"><input type="checkbox" class="step-check"></td>
+<td style="text-align: left;"><strong>Backend 2 — Swagger Docs</strong></td>
+<td style="text-align: left;"><code>http://&lt;IP de k8s-node-backendAnalitico&gt;:30002/apidocs/</code></td>
+</tr>
+<tr>
+<td style="text-align: center;"><input type="checkbox" class="step-check"></td>
+<td style="text-align: left;"><strong>Backend 2 — Health Check</strong></td>
+<td style="text-align: left;"><code>http://&lt;IP de k8s-node-backendAnalitico&gt;:30002/health</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>10. Conectarse y Ejecutar Scripts en las Bases de Datos desde tu PC ⏱ min 23</h2>
+<h3>10.1. SQL Server Management Studio (SSMS) o Azure Data Studio</h3>
+<ol>
+<li><strong>RDS → Databases →</strong> <code>agropacayales-rds-sqlserver</code> → pestaña <strong>Connectivity &amp; security</strong> → copiar <strong>Endpoint</strong>.</li>
+<li>Abrir SSMS y conectar:<br />
+   * <strong>Server name:</strong> <code>&lt;TU_ENDPOINT_DE_RDS&gt;,1433</code> <em>(con coma)</em><br />
+   * <strong>Authentication:</strong> SQL Server Authentication<br />
+   * <strong>Login:</strong> <code>admin</code> · <strong>Password:</strong> <code>AgroPacayales2026!</code><br />
+   * <strong>Encryption:</strong> Mandatory · ☑️ <strong>Trust server certificate</strong></li>
+<li>Clic en <strong>Connect</strong>.</li>
+<li>Abrir el archivo <a href="../scripts/init_sqlserver_completo.sql"><code>scripts/init_sqlserver_completo.sql</code></a> y clic en <strong>Execute / Run</strong> <em>(si el script universal ya terminó, las tablas ya están creadas; puedes verificar haciendo clic derecho en <code>agropacayales_db</code> → Tables → Select Top 1000 Rows)</em>.</li>
+</ol>
+<h3>10.2. MongoDB Compass</h3>
+<ol>
+<li><strong>EC2 → Instances</strong> → marcar ☑ <code>ec2-mongodb</code> → copiar <strong>Public IPv4 address</strong>.</li>
+<li>En Compass → <strong>Add new connection</strong> → pegar URI:<br />
+<code>text
+   mongodb://admin:Mongo12345@&lt;TU_IP_PUBLICA_EC2_MONGO&gt;:27017/agropacayales_db?authSource=admin</code><br />
+<em>(Reemplaza <code>&lt;TU_IP_PUBLICA_EC2_MONGO&gt;</code> por la IP pública de tu <code>ec2-mongodb</code>)</em>.</li>
+<li>Clic en <strong>Save &amp; Connect</strong>.</li>
+<li>Verás la base <code>agropacayales_db</code> con las colecciones <code>supplies</code>, <code>users</code>, <code>plots</code>, <code>field_records</code>.</li>
+<li><em>(Opcional)</em> Si necesitas recargar los datos manualmente desde la terminal de <code>ec2-mongodb</code>:<br />
+<code>bash
+   curl -sSL https://raw.githubusercontent.com/anafelix21/tcc/main/scripts/init_mongodb_completo.js | mongosh "mongodb://admin:Mongo12345@localhost:27017/?authSource=admin"</code></li>
+</ol>
+<hr />
+<h2>11. Guion de Demostración en Vivo ante el Docente ⏱ min 24</h2>
+<ol>
+<li>En la consola EC2, marca ☑ <code>k8s-master</code> → <strong>Connect</strong> → pestaña <strong>EC2 Instance Connect</strong> → <strong>Connect</strong>.</li>
+<li>Ejecuta estos comandos uno por uno para sustentar cada criterio de la rúbrica:</li>
+</ol>
+<pre class="codehilite"><code class="language-bash"># 1. URLs de acceso y estado general
+cat ~/URLS.txt
+</code></pre>
+
+<p><em>(Muestra las URLs públicas y puertos).</em></p>
+<pre class="codehilite"><code class="language-bash"># 2. Criterio 1: Clúster de Kubernetes y roles dedicados
+kubectl get nodes -L role
+</code></pre>
+
+<p><em>(Evidencia 4 nodos K3s, cada uno con su etiqueta <code>role=frontend</code>, <code>role=backend1</code>, <code>role=backend2</code>).</em></p>
+<pre class="codehilite"><code class="language-bash"># 3. Criterio 1: Distribución de Pods en nodos dedicados
+kubectl get pods -n agropacayales-namespace -o wide
+</code></pre>
+
+<p><em>(Muestra que cada pod corre en su propio nodo sin colisión).</em></p>
+<pre class="codehilite"><code class="language-bash"># 4. Criterio 2: Comunicación interna inter-servicios (Backend 1 -&gt; Backend 2)
+kubectl -n agropacayales-namespace exec deploy/backend-transaccional -- wget -qO- http://backend-analitico:5000/health
+</code></pre>
+
+<p><em>(Demuestra que Backend 1 llama internamente a Backend 2 por DNS del clúster recibiendo HTTP 200 y <code>status: UP</code>).</em></p>
+<pre class="codehilite"><code class="language-bash"># 5. Criterio 3: Conexión interna políglota a las 2 BDs (RDS SQL Server + Mongo EC2)
+kubectl -n agropacayales-namespace exec deploy/backend-analitico -- curl -s localhost:5000/status/database
+</code></pre>
+
+<p><em>(Reporta estado CONNECTED hacia RDS puerto 1433 y MongoDB puerto 27017).</em></p>
+<pre class="codehilite"><code class="language-bash"># 6. Criterio 4: Resiliencia y Self-Healing de Kubernetes en vivo
+kubectl delete pod -l app=frontend -n agropacayales-namespace
+kubectl get pods -n agropacayales-namespace -w
+</code></pre>
+
+<p><em>(Se observa cómo Kubernetes recrea el pod en 2 segundos. Presiona <code>Ctrl + C</code> para salir).</em></p>
+<pre class="codehilite"><code class="language-bash"># 7. Criterio 4 (Bonus): Escalabilidad horizontal dinámica
+kubectl scale deployment backend-transaccional --replicas=3 -n agropacayales-namespace
+kubectl get pods -n agropacayales-namespace
+</code></pre>
+
+<p><em>(Demuestra 3 réplicas del backend transaccional en caliente).</em></p>
+<hr />
+<h2>📋 12. Catálogo de Payloads JSON para CRUD de Maestros (Swagger UI)</h2>
+<p>Abre Swagger UI en tu navegador: <strong><code>http://&lt;IP_BACKEND1&gt;:30001/webjars/swagger-ui/index.html</code></strong></p>
+<h3>12.1. Insumos Agrícolas (MongoDB: <code>supplies</code>)</h3>
+<ul>
+<li><strong>Endpoint:</strong> <code>POST /api/insumos</code> (Try it out → Pegar y Execute):</li>
+</ul>
+<pre class="codehilite"><code class="language-json">{
+  &quot;id&quot;: &quot;INS-FERT-999&quot;,
+  &quot;nombre&quot;: &quot;Nitrato de Calcio Grado Fertirriego Ultra&quot;,
+  &quot;descripcion&quot;: &quot;Fertilizante hidrosoluble de alta asimilación para etapa fenológica de cuajado&quot;,
+  &quot;precio&quot;: 89.50,
+  &quot;stock&quot;: 150.0,
+  &quot;unidadMedida&quot;: &quot;KG&quot;,
+  &quot;tipoInsumo&quot;: &quot;Fertilizante&quot;,
+  &quot;categoria&quot;: &quot;Fertirriego&quot;,
+  &quot;proveedor&quot;: &quot;Yara Perú S.A.C.&quot;,
+  &quot;estado&quot;: true
+}
+</code></pre>
+
+<ul>
+<li><strong>Consultar:</strong> <code>GET /api/insumos</code> (Verificar que aparece en la lista).</li>
+</ul>
+<hr />
+<h3>12.2. Parcelas de Cultivo (MongoDB: <code>plots</code>)</h3>
+<ul>
+<li><strong>Endpoint:</strong> <code>POST /api/parcelas</code>:</li>
+</ul>
+<pre class="codehilite"><code class="language-json">{
+  &quot;id&quot;: &quot;PARC-SUR-888&quot;,
+  &quot;nombre&quot;: &quot;Sector Sur - Parcela Experimental 888&quot;,
+  &quot;ubicacion&quot;: &quot;Fundo AgroPacayales, Lote 14 Valle de Cañete&quot;,
+  &quot;areaHectareas&quot;: 5.20,
+  &quot;hectareas&quot;: 5.20,
+  &quot;tipoSuelo&quot;: &quot;Franco Arenoso&quot;,
+  &quot;responsable&quot;: &quot;Ing. Ana Félix&quot;,
+  &quot;estadoRiego&quot;: &quot;Activo&quot;,
+  &quot;cultivoActual&quot;: &quot;Palto Hass&quot;,
+  &quot;produccionEstimada&quot;: &quot;32 Toneladas&quot;,
+  &quot;fechaUltimaSiembra&quot;: &quot;2026-04-10&quot;,
+  &quot;observaciones&quot;: &quot;Monitoreo fenológico semanal mediante inspección agronómica.&quot;,
+  &quot;enUso&quot;: true,
+  &quot;estado&quot;: true
+}
+</code></pre>
+
+<hr />
+<h3>12.3. Fichas de Campo y Cuaderno Técnico (MongoDB: <code>field_records</code>)</h3>
+<ul>
+<li><strong>Endpoint:</strong> <code>POST /api/fichas-campo</code>:</li>
+</ul>
+<pre class="codehilite"><code class="language-json">{
+  &quot;id&quot;: &quot;FICHA-2026-001&quot;,
+  &quot;parcelaId&quot;: &quot;PARC-SUR-888&quot;,
+  &quot;cultivo&quot;: &quot;Palto Hass&quot;,
+  &quot;etapaFenologica&quot;: &quot;Floración&quot;,
+  &quot;porcentajeDesarrollo&quot;: 65,
+  &quot;temperaturaCampo&quot;: &quot;24.5°C&quot;,
+  &quot;clima&quot;: &quot;Soleado&quot;,
+  &quot;humedadSuelo&quot;: &quot;Óptima (Riego presurizado activo)&quot;,
+  &quot;vigor&quot;: &quot;Excelente&quot;,
+  &quot;sanidad&quot;: &quot;Sin plagas activas&quot;,
+  &quot;diagnosticoTecnico&quot;: &quot;Excelente brotación floral. Mantener régimen hídrico.&quot;,
+  &quot;evaluador&quot;: &quot;Hugo Fernández&quot;,
+  &quot;fechaInspeccion&quot;: &quot;2026-10-26&quot;
+}
+</code></pre>
+
+<hr />
+<h3>12.4. Cultivos en SQL Server (Amazon RDS)</h3>
+<ul>
+<li><strong>Endpoint:</strong> <code>POST /api/cultivos</code>:</li>
+</ul>
+<pre class="codehilite"><code class="language-json">{
+  &quot;nombre&quot;: &quot;Arándano Biloxi Exportación&quot;,
+  &quot;variedad&quot;: &quot;Biloxi&quot;,
+  &quot;tipo&quot;: &quot;Frutal&quot;,
+  &quot;cicloDias&quot;: 180,
+  &quot;temporada&quot;: &quot;Invierno-Primavera&quot;,
+  &quot;temperaturaOptimaMin&quot;: 14.5,
+  &quot;temperaturaOptimaMax&quot;: 26.0,
+  &quot;humedadOptimaMin&quot;: 60.0,
+  &quot;humedadOptimaMax&quot;: 80.0,
+  &quot;rendimientoEstimadoPorHa&quot;: 18.5,
+  &quot;estado&quot;: &quot;ACTIVO&quot;
+}
+</code></pre>
+
+<hr />
+<h2>13. Al Terminar la Presentación (Cierre de Seguridad)</h2>
+<ul>
+<li><span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text"><strong>EC2 → Security Groups</strong> → <code>evi-ec2-sg</code> → <strong>Edit inbound rules</strong> → <strong>Delete</strong> en SSH 22 y en 27017 → <strong>Save rules</strong></span></span></li>
+<li><span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text"><code>evi-rds-sg</code> → <strong>Edit inbound rules</strong> → <strong>Delete</strong> en la regla MSSQL <strong>0.0.0.0/0</strong> → <strong>Save rules</strong></span></span></li>
+<li><span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text"><strong>RDS → Modify</strong> → Public access: <strong>Not publicly accessible</strong> → <strong>Apply immediately</strong></span></span></li>
+</ul>
+<hr />
+<h2>🔍 Comando Único: Revisar que Todo Esté Conectado</h2>
+<ul>
+<li><span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Marcar ☑ <code>k8s-master</code> → <strong>Connect</strong> → <strong>EC2 Instance Connect</strong> → <strong>Connect</strong></span></span></li>
+<li><span class="task-box"><input type="checkbox" class="step-check"> <span class="task-text">Copiar y pegar <strong>todo</strong> este comando en una sola línea:</span></span></li>
+</ul>
+<pre class="codehilite"><code class="language-bash">R=$(aws rds describe-db-instances --query &quot;DBInstances[?starts_with(Engine,'sqlserver')]|[0].Endpoint.Address&quot; --output text); echo &quot;== RDS: $R&quot;; nc -zv -w5 &quot;$R&quot; 1433 &amp;&amp; sudo /opt/mssql-tools18/bin/sqlcmd -C -S &quot;$R,1433&quot; -U admin -P 'AgroPacayales2026!' -d agropacayales_db -Q &quot;SET NOCOUNT ON; SELECT COUNT(*) AS tablas FROM sys.tables; SELECT DISTINCT client_net_address AS ips_conectadas FROM sys.dm_exec_connections&quot;; echo &quot;== PODS&quot;; kubectl get pods -n agropacayales-namespace -o wide; echo &quot;== AVANCE&quot;; sudo grep AGRO /var/log/agropacayales.log | tail -3
+</code></pre>
+
+<p><strong>Cómo interpretar la salida:</strong></p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Salida</th>
+<th style="text-align: left;">Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>== RDS: None</code></td>
+<td style="text-align: left;">La RDS aún se está creando: esperar 2 min y volver a pegar</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>succeeded!</code></td>
+<td style="text-align: left;">El master llega a la RDS por el puerto 1433 ✅</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>tablas</code> con número (&gt;0)</td>
+<td style="text-align: left;">Login correcto y datos SQL Server cargados ✅</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>ips_conectadas</code> con <code>172.31.x.x</code></td>
+<td style="text-align: left;">Los backends del clúster están conectados a la RDS ✅</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Login failed</code></td>
+<td style="text-align: left;">La RDS quedó con Secrets Manager: <strong>Modify → Self managed</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;">Pods <code>1/1 Running</code></td>
+<td style="text-align: left;">Aplicación y microservicios levantados con éxito ✅</td>
+</tr>
+<tr>
+<td style="text-align: left;">Última línea <code>DESPLIEGUE COMPLETO</code></td>
+<td style="text-align: left;">Todo el despliegue finalizó al 100% ✅</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>🛠️ Solucionario si Algo se Traba</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Mensaje en el System Log</th>
+<th style="text-align: left;">Solución</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><code>SIN PERMISOS AWS</code></td>
+<td style="text-align: left;">En EC2: seleccionar la máquina → <strong>Actions → Security → Modify IAM role</strong> → <code>LabInstanceProfile</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>no corresponde a ningún rol</code></td>
+<td style="text-align: left;">El nombre de la EC2 tiene un typo: <strong>Instance state → Terminate</strong> y relanzar con el nombre exacto (<code>k8s-master</code>, <code>ec2-mongodb</code>, <code>k8s-node-frontend</code>, <code>k8s-node-backend</code>, <code>k8s-node-backendAnalitico</code>).</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Esperando ...:1433</code></td>
+<td style="text-align: left;">La RDS no tiene asignado <code>evi-rds-sg</code>: RDS → la BD → <strong>Modify</strong> → Security group <code>evi-rds-sg</code> → <strong>Apply immediately</strong>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Esperando ...:27017</code> o <code>:6443</code></td>
+<td style="text-align: left;">Falta la regla interna del Paso 2: <strong>All traffic</strong> con origen <code>sg-...</code> de <code>evi-ec2-sg</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><code>Login failed for user 'admin'</code></td>
+<td style="text-align: left;">En RDS (Connectivity &amp; security) figura Secrets Manager: <strong>Modify</strong> → desmarcar Secrets Manager (Self managed). Colocar clave <code>AgroPacayales2026!</code> → <strong>Apply immediately</strong>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Error rojo "CIDR block, a security group ID..."</td>
+<td style="text-align: left;">En Source escribiste el nombre: borra la etiqueta y <strong>elige el <code>sg-...</code> de la lista</strong>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">SSMS: <em>timeout</em> / <em>network-related error</em></td>
+<td style="text-align: left;">RDS no está <strong>Available</strong>, Public access no es <strong>Yes</strong>, o falta MSSQL <strong>Anywhere-IPv4</strong> en <code>evi-rds-sg</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">SSMS: <em>certificate chain not trusted</em></td>
+<td style="text-align: left;">Marcar casilla ☑️ <strong>Trust server certificate</strong>.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Compass: <em>connection timed out</em></td>
+<td style="text-align: left;">Falta 27017 <strong>Anywhere-IPv4</strong> en <code>evi-ec2-sg</code>, o la IP de <code>ec2-mongodb</code> está mal copiada.</td>
+</tr>
+<tr>
+<td style="text-align: left;">Compass: <em>Authentication failed</em></td>
+<td style="text-align: left;">La URI debe terminar en <code>?authSource=admin</code>.</td>
+</tr>
+</tbody>
+</table>
+    </div>
+  </div>
+
+  <div class="floating-tools">
+    <a href="#" class="fab-btn">⬆ Subir al inicio</a>
+  </div>
+
+  <script>
+    // Sistema interactivo de checklist con persistencia en localStorage
+    const STORAGE_KEY = 'agropacayales_k8s_checklist';
+    const checkboxes = document.querySelectorAll('.step-check');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+
+    function updateProgress() {
+      const total = checkboxes.length;
+      let checkedCount = 0;
+      const state = [];
+
+      checkboxes.forEach((cb, index) => {
+        if (cb.checked) {
+          checkedCount++;
+          state.push(index);
+          const taskText = cb.closest('li')?.querySelector('.task-text');
+          if (taskText) taskText.classList.add('checked-text');
+        } else {
+          const taskText = cb.closest('li')?.querySelector('.task-text');
+          if (taskText) taskText.classList.remove('checked-text');
+        }
+      });
+
+      const percent = total > 0 ? Math.round((checkedCount / total) * 100) : 0;
+      if (progressFill) progressFill.style.width = percent + '%';
+      if (progressText) progressText.textContent = `Progreso: ${checkedCount} de ${total} pasos completados (${percent}%)`;
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function loadProgress() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        saved.forEach(index => {
+          if (checkboxes[index]) {
+            checkboxes[index].checked = true;
+          }
+        });
+      } catch (e) {
+        console.warn('Error loading checklist state', e);
+      }
+      updateProgress();
+    }
+
+    function resetProgress() {
+      if (confirm('¿Deseas reiniciar todas las casillas de verificación?')) {
+        checkboxes.forEach(cb => cb.checked = false);
+        updateProgress();
+      }
+    }
+
+    checkboxes.forEach(cb => {
+      cb.addEventListener('change', updateProgress);
+    });
+
+    // Función para copiar código al portapapeles
+    function copyCode(btn) {
+      const pre = btn.closest('.code-wrapper').querySelector('pre');
+      const text = pre.innerText || pre.textContent;
+      navigator.clipboard.writeText(text).then(() => {
+        const oldText = btn.textContent;
+        btn.textContent = '✅ ¡Copiado!';
+        btn.classList.add('copied');
+        setTimeout(() => {
+          btn.textContent = oldText;
+          btn.classList.remove('copied');
+        }, 2000);
+      }).catch(err => {
+        console.error('Error al copiar', err);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', loadProgress);
+  </script>
+</body>
+</html>
