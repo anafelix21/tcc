@@ -264,6 +264,30 @@ kubectl get pods -n agropacayales-namespace -w
 
 ---
 
+## Comando único: revisar que todo esté conectado
+
+- [ ] Marcar ☑ `k8s-master` → **Connect** → **EC2 Instance Connect** → **Connect**
+- [ ] Copiar y pegar **todo** este comando (es una sola línea):
+
+```bash
+R=$(aws rds describe-db-instances --query "DBInstances[?starts_with(Engine,'sqlserver')]|[0].Endpoint.Address" --output text); echo "== RDS: $R"; nc -zv -w5 "$R" 1433 && sudo /opt/mssql-tools18/bin/sqlcmd -C -S "$R,1433" -U admin -P 'AgroPacayales2026!' -d agropacayales_db -Q "SET NOCOUNT ON; SELECT COUNT(*) AS tablas FROM sys.tables; SELECT DISTINCT client_net_address AS ips_conectadas FROM sys.dm_exec_connections"; echo "== PODS"; kubectl get pods -n agropacayales-namespace -o wide; echo "== AVANCE"; sudo grep AGRO /var/log/agropacayales.log | tail -3
+```
+
+Cómo leer lo que sale:
+
+| Sale | Significa |
+| :-- | :-- |
+| `== RDS: None` | La RDS aún se está creando: esperar y volver a pegarlo |
+| `succeeded!` | El master llega a la RDS por la red ✅ |
+| `tablas` con un número | Login OK y datos cargados ✅ |
+| `ips_conectadas` con varias `172.31.x.x` | Los backends del clúster están conectados a la RDS ✅ |
+| `Login failed` | La RDS quedó con Secrets Manager: **Modify → Self managed** |
+| `Cannot open database` | Aún no termina la carga de datos: esperar |
+| Pods `1/1 Running` | App levantada ✅ |
+| Última línea `DESPLIEGUE COMPLETO` | Todo terminó ✅ |
+
+---
+
 ## Si se traba
 
 | Mensaje en el system log | Hacer |
