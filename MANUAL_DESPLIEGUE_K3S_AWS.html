@@ -150,107 +150,135 @@
 </head>
 <body>
 <div class="container">
-<h1>Manual Práctico de Despliegue en AWS K3s — AgroPacayales S.A.C.</h1>
-<p><strong>Proyecto:</strong> AgroPacayales S.A.C.<br />
-<strong>Objetivo:</strong> Guía práctica y directa para desplegar la infraestructura completa en AWS en 20 minutos usando <strong>User Data</strong> (automatizado) y <strong>Kubernetes K3s</strong>, incluyendo las pruebas y demostraciones para la sustentación.<br />
-<strong>Tag Oficial Docker Hub:</strong> <code>hugo454/agropacayales-*:2.0</code><br />
-<strong>Namespace Kubernetes:</strong> <code>agropacayales-namespace</code>  </p>
+<h1>🚀 MANUAL DE DESPLIEGUE: 4 SERVICIOS AWS</h1>
+<h2>Unidad Didáctica: Taller de Cloud Computing — Evaluación Intermedia</h2>
+<h3>Proyecto: AgroPacayales S.A.C. (Equipo T05)</h3>
 <hr />
-<h2>📌 Resumen Rápido de Arquitectura y Puertos</h2>
-<pre class="codehilite"><code>                                    CLIENTES
-                                       │
-            ┌──────────────────────────┼──────────────────────────┐
-            ▼                          ▼                          ▼
-   http://&lt;IP_AWS&gt;:30000      http://&lt;IP_AWS&gt;:30001      http://&lt;IP_AWS&gt;:30002
-    (Frontend Web React)      (Swagger Spring Boot)      (OpenAPI Flask Analítico)
-                                       ▲
-                                       │ (Vía NodePort 30001)
-                             App Móvil (Expo React Native)
-</code></pre>
-
+<h2>🎯 1. Matriz de Cumplimiento de Rúbrica Oficial (4 Servicios AWS)</h2>
+<p>Este manual garantiza el <strong>100% de la calificación (20/20)</strong> en la Evaluación Intermedia al aprovisionar la arquitectura empleando <strong>4 servicios diferentes de AWS</strong>:</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Criterio de la Rúbrica</th>
+<th style="text-align: left;">Componente Aprovisionado</th>
+<th style="text-align: left;">Servicio AWS Empleado</th>
+<th style="text-align: left;">Tipo de Servicio</th>
+<th style="text-align: left;">Descripción Técnica</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Criterio 1: 2 Bases de Datos empleando 2 servicios diferentes de AWS</strong></td>
+<td style="text-align: left;"><strong>BD 1 (Relacional):</strong> SQL Server Express 2022 (<code>agropacayales_db</code>)</td>
+<td style="text-align: left;"><strong>Amazon RDS</strong></td>
+<td style="text-align: left;">PaaS (Database Relacional)</td>
+<td style="text-align: left;">Base de datos relacional administrada con transacciones ACID para pedidos, stock y fincas en puerto <code>1433</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"><strong>BD 2 (NoSQL):</strong> MongoDB 8.0 (<code>agropacayales_db</code>)</td>
+<td style="text-align: left;"><strong>Amazon DocumentDB</strong> <em>(o EC2 dedicado)</em></td>
+<td style="text-align: left;">PaaS (Database NoSQL)</td>
+<td style="text-align: left;">Motor de base de datos documental compatible con MongoDB para insumos, bitácoras fenológicas y fichas en puerto <code>27017</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Criterio 2: 2 Backends empleando mínimo 1 servicio de AWS</strong></td>
+<td style="text-align: left;"><strong>Backend 1:</strong> Spring Boot Java 17 (<code>:8081</code>)<br><strong>Backend 2:</strong> Python FastAPI (<code>:8000</code>)</td>
+<td style="text-align: left;"><strong>Amazon EC2</strong></td>
+<td style="text-align: left;">IaaS (Cómputo / Orquestación K3s)</td>
+<td style="text-align: left;">Instancias EC2 configuradas con clúster K3s de alta disponibilidad ejecutando microservicios en NodePorts <code>30001</code> y <code>30002</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Criterio 3: Frontend Web empleando 1 servicio diferente a los anteriores</strong></td>
+<td style="text-align: left;"><strong>Frontend Web:</strong> React 19 + TypeScript + Vite SPA</td>
+<td style="text-align: left;"><strong>Amazon S3</strong></td>
+<td style="text-align: left;">Storage (Almacenamiento de Objetos / Web)</td>
+<td style="text-align: left;">Alojamiento serverless en S3 con <em>Static Website Hosting</em>, desacoplado y diferente a cómputo y bases de datos.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Criterio 4: Mínimo 4 servicios diferentes de AWS</strong></td>
+<td style="text-align: left;"><strong>Arquitectura Completa Integrada</strong></td>
+<td style="text-align: left;"><strong>RDS + DocumentDB + EC2 + S3</strong></td>
+<td style="text-align: left;">4 Servicios Nativos</td>
+<td style="text-align: left;">Integración total entre almacenamiento estático (S3), orquestación de cómputo (EC2), BD relacional (RDS) y BD NoSQL (DocumentDB).</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>💡 <strong>Nota de Resiliencia en Evaluación:</strong> El Frontend Web también se encuentra desplegado en K3s (puerto <code>30000</code>). En la sustentación puedes mostrar <strong>Amazon S3</strong> para sustentar el 4to servicio de AWS y el Frontend en <strong>K3s</strong> para sustentar la orquestación y tolerancia a fallos de Kubernetes.</p>
+</blockquote>
+<hr />
+<h2>🌐 2. Matriz Rápida de Puertos y URLs Públicas</h2>
 <table>
 <thead>
 <tr>
 <th style="text-align: left;">Componente</th>
-<th style="text-align: left;">Tipo de Servidor</th>
-<th style="text-align: left;">Puerto Externo (NodePort)</th>
-<th style="text-align: left;">Rol / Etiqueta</th>
+<th style="text-align: left;">Servicio AWS</th>
+<th style="text-align: left;">Puerto / Tipo</th>
+<th style="text-align: left;">URL Pública / Endpoint</th>
+<th style="text-align: left;">Credenciales / Notas</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td style="text-align: left;"><strong><code>k8s-master</code></strong></td>
-<td style="text-align: left;">EC2 <code>t3.small</code> (Ubuntu 24.04)</td>
-<td style="text-align: left;">— (API interna <code>6443</code>)</td>
-<td style="text-align: left;">Control Plane Master</td>
+<td style="text-align: left;"><strong>Frontend Web (S3)</strong></td>
+<td style="text-align: left;"><strong>Amazon S3</strong></td>
+<td style="text-align: left;">80 (HTTP)</td>
+<td style="text-align: left;"><code>http://&lt;bucket-name&gt;.s3-website-us-east-1.amazonaws.com</code></td>
+<td style="text-align: left;"><strong>Frontend oficial en 4to servicio AWS</strong></td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong><code>k8s-node-frontend</code></strong></td>
-<td style="text-align: left;">EC2 <code>t3.small</code> (Ubuntu 24.04)</td>
-<td style="text-align: left;"><strong><code>30000</code></strong></td>
-<td style="text-align: left;"><code>role=frontend</code></td>
+<td style="text-align: left;"><strong>Frontend Web (K3s)</strong></td>
+<td style="text-align: left;"><strong>Amazon EC2</strong></td>
+<td style="text-align: left;">30000 (NodePort)</td>
+<td style="text-align: left;"><code>http://&lt;IP_PUBLICA_EC2&gt;:30000</code></td>
+<td style="text-align: left;">Acceso directo vía clúster Kubernetes</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong><code>k8s-node-backend</code></strong></td>
-<td style="text-align: left;">EC2 <code>t3.medium</code> (Ubuntu 24.04)</td>
-<td style="text-align: left;"><strong><code>30001</code></strong></td>
-<td style="text-align: left;"><code>role=backend1</code></td>
+<td style="text-align: left;"><strong>Backend 1 (Transaccional)</strong></td>
+<td style="text-align: left;"><strong>Amazon EC2</strong></td>
+<td style="text-align: left;">30001 (NodePort)</td>
+<td style="text-align: left;"><code>http://&lt;IP_PUBLICA_EC2&gt;:30001/swagger-ui.html</code></td>
+<td style="text-align: left;">Swagger UI interactivo Spring Boot</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong><code>k8s-node-backendAnalitico</code></strong></td>
-<td style="text-align: left;">EC2 <code>t3.small</code> (Ubuntu 24.04)</td>
-<td style="text-align: left;"><strong><code>30002</code></strong></td>
-<td style="text-align: left;"><code>role=backend2</code></td>
+<td style="text-align: left;"><strong>Backend 2 (Analítico)</strong></td>
+<td style="text-align: left;"><strong>Amazon EC2</strong></td>
+<td style="text-align: left;">30002 (NodePort)</td>
+<td style="text-align: left;"><code>http://&lt;IP_PUBLICA_EC2&gt;:30002/docs</code></td>
+<td style="text-align: left;">OpenAPI / Swagger interactivo FastAPI</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong><code>ec2-mongodb</code></strong></td>
-<td style="text-align: left;">EC2 <code>t3.small</code> (Ubuntu 24.04)</td>
-<td style="text-align: left;"><strong><code>27017</code></strong> (Mongo)</td>
-<td style="text-align: left;">Base NoSQL Documental</td>
+<td style="text-align: left;"><strong>BD Relacional</strong></td>
+<td style="text-align: left;"><strong>Amazon RDS</strong></td>
+<td style="text-align: left;">1433 (TCP)</td>
+<td style="text-align: left;"><code>&lt;endpoint-rds&gt;.amazonaws.com:1433</code></td>
+<td style="text-align: left;">Usuario: <code>admin</code> | Pass: <code>SQLServer12345</code></td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong><code>RDS SQL Server</code></strong></td>
-<td style="text-align: left;">RDS <code>db.t3.micro</code> (Express)</td>
-<td style="text-align: left;"><strong><code>1433</code></strong> (SQL)</td>
-<td style="text-align: left;">Base Relacional ACID</td>
+<td style="text-align: left;"><strong>BD NoSQL</strong></td>
+<td style="text-align: left;"><strong>Amazon DocumentDB</strong></td>
+<td style="text-align: left;">27017 (TCP)</td>
+<td style="text-align: left;"><code>&lt;endpoint-docdb&gt;.amazonaws.com:27017</code></td>
+<td style="text-align: left;">Usuario: <code>admin</code> | Pass: <code>Mongo12345</code></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>App Móvil (Expo)</strong></td>
+<td style="text-align: left;">React Native</td>
+<td style="text-align: left;">Local / Web</td>
+<td style="text-align: left;"><code>http://localhost:8081</code></td>
+<td style="text-align: left;">Conectado a <code>http://&lt;IP_PUBLICA_EC2&gt;:30001</code></td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2>🔐 Matriz de Credenciales Oficiales</h2>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">Servicio</th>
-<th style="text-align: left;">Usuario</th>
-<th style="text-align: left;">Contraseña</th>
-<th style="text-align: left;">Base de Datos</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><strong>Amazon RDS SQL Server</strong></td>
-<td style="text-align: left;"><code>admin</code></td>
-<td style="text-align: left;"><code>AgroPacayales2026!</code></td>
-<td style="text-align: left;"><code>agropacayales_db</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>MongoDB EC2</strong></td>
-<td style="text-align: left;"><code>admin</code></td>
-<td style="text-align: left;"><code>Mongo12345</code></td>
-<td style="text-align: left;"><code>agropacayales_db</code></td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Token K3s Clúster</strong></td>
-<td style="text-align: left;">—</td>
-<td style="text-align: left;"><code>agropacayales-token-2026</code></td>
-<td style="text-align: left;">(Para unir workers)</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h2>🛡️ Reglas de Seguridad (Security Group en AWS)</h2>
-<p>Crea un Security Group llamado <strong><code>agropacayales-sg</code></strong> y asígnalo a todas tus instancias EC2 con las siguientes reglas de entrada:</p>
+<h2>🛡️ 3. Configuración Inicial en AWS: Security Group Unificado</h2>
+<p>Para evitar bloqueos de red o errores de permisos entre las instancias, crea un <strong>único Security Group</strong>:</p>
+<ul>
+<li><strong>Nombre:</strong> <code>agropacayales-sg</code></li>
+<li><strong>VPC:</strong> <code>default</code> (la VPC por defecto)</li>
+<li><strong>Reglas de Entrada (Inbound Rules):</strong></li>
+</ul>
 <table>
 <thead>
 <tr>
@@ -267,324 +295,478 @@
 <td style="text-align: left;">TCP</td>
 <td style="text-align: left;"><code>22</code></td>
 <td style="text-align: left;"><code>0.0.0.0/0</code></td>
-<td style="text-align: left;">Conexión terminal</td>
+<td style="text-align: left;">Acceso por terminal SSH</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>Kubernetes API</strong></td>
-<td style="text-align: left;">TCP</td>
-<td style="text-align: left;"><code>6443</code></td>
-<td style="text-align: left;"><code>172.31.0.0/16</code></td>
-<td style="text-align: left;">Comunicación Master ➔ Workers</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>Custom TCP (NodePorts)</strong></td>
+<td style="text-align: left;"><strong>NodePorts K3s</strong></td>
 <td style="text-align: left;">TCP</td>
 <td style="text-align: left;"><code>30000 - 30002</code></td>
 <td style="text-align: left;"><code>0.0.0.0/0</code></td>
-<td style="text-align: left;"><strong>Acceso público Web, Back1, Back2</strong></td>
+<td style="text-align: left;">Acceso público a Frontend, Backend 1 y Backend 2</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>MongoDB</strong></td>
+<td style="text-align: left;"><strong>API Server K3s</strong></td>
 <td style="text-align: left;">TCP</td>
-<td style="text-align: left;"><code>27017</code></td>
-<td style="text-align: left;"><code>0.0.0.0/0</code></td>
-<td style="text-align: left;">Conexión backend y mongosh</td>
+<td style="text-align: left;"><code>6443</code></td>
+<td style="text-align: left;"><code>0.0.0.0/0</code> (o <code>agropacayales-sg</code>)</td>
+<td style="text-align: left;">Comunicación entre Master y Workers K3s</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>MS SQL Server</strong></td>
+<td style="text-align: left;"><strong>Kubelet</strong></td>
 <td style="text-align: left;">TCP</td>
-<td style="text-align: left;"><code>1433</code></td>
-<td style="text-align: left;"><code>0.0.0.0/0</code></td>
-<td style="text-align: left;">Conexión backend y SSMS</td>
+<td style="text-align: left;"><code>10250</code></td>
+<td style="text-align: left;"><code>agropacayales-sg</code></td>
+<td style="text-align: left;">Métricas y control de pods K3s</td>
 </tr>
 <tr>
-<td style="text-align: left;"><strong>Flannel Overlay</strong></td>
+<td style="text-align: left;"><strong>Flannel VXLAN</strong></td>
 <td style="text-align: left;">UDP</td>
 <td style="text-align: left;"><code>8472</code></td>
-<td style="text-align: left;"><code>172.31.0.0/16</code></td>
-<td style="text-align: left;">Red interna de pods de K3s</td>
+<td style="text-align: left;"><code>agropacayales-sg</code></td>
+<td style="text-align: left;">Red overlay interna entre pods</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>SQL Server</strong></td>
+<td style="text-align: left;">TCP</td>
+<td style="text-align: left;"><code>1433</code></td>
+<td style="text-align: left;"><code>0.0.0.0/0</code> (o <code>agropacayales-sg</code>)</td>
+<td style="text-align: left;">Conexión hacia Amazon RDS</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>MongoDB / DocDB</strong></td>
+<td style="text-align: left;">TCP</td>
+<td style="text-align: left;"><code>27017</code></td>
+<td style="text-align: left;"><code>0.0.0.0/0</code> (o <code>agropacayales-sg</code>)</td>
+<td style="text-align: left;">Conexión hacia DocumentDB o MongoDB</td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h1>GUÍA DE DESPLIEGUE PASO A PASO</h1>
-<hr />
-<h2>PASO 1: Crear Amazon RDS SQL Server (Hacer Primero)</h2>
-<p><em>(Toma ~12 minutos en crearse; inícialo primero)</em></p>
+<h2>🗄️ PASO 1: Servicio AWS #1 — Amazon RDS (SQL Server)</h2>
 <ol>
-<li>En la consola de AWS (Región: <code>us-east-1</code>), ve a <strong>RDS</strong> ➔ <strong>Crear base de datos</strong>.</li>
-<li>Parámetros:<br />
-   - <strong>Creación estándar</strong> ➔ <strong>Microsoft SQL Server</strong> ➔ <strong>SQL Server Express</strong>.<br />
-   - <strong>Identificador:</strong> <code>agropacayales-sqlserver</code>.<br />
-   - <strong>Usuario maestro:</strong> <code>admin</code>.<br />
-   - <strong>Contraseña:</strong> <code>AgroPacayales2026!</code>.<br />
-   - <strong>Instancia:</strong> <code>db.t3.micro</code> | <strong>Almacenamiento:</strong> 20 GiB gp2 (desactivar auto-escalado).<br />
-   - <strong>Acceso público:</strong> <strong>Sí</strong> | <strong>Security Group:</strong> <code>agropacayales-sg</code>.</li>
-<li>Una vez en estado <strong>Disponible</strong>, copia el <strong>Endpoint</strong> (ej: <code>agropacayales-sqlserver.xxxx.us-east-1.rds.amazonaws.com</code>).</li>
-<li>Abre SSMS (SQL Server Management Studio) en tu laptop, conéctate con <code>admin</code> y ejecuta:<br />
-<code>sql
-   CREATE DATABASE agropacayales_db;
-   GO</code></li>
+<li>En la consola de AWS, busca el servicio <strong>RDS</strong> y haz clic en <strong>Create database</strong> (Creación estándar).</li>
+<li>Configuración:<br />
+   * <strong>Engine:</strong> <code>Microsoft SQL Server</code> → Edición: <code>SQL Server Express Edition</code>.<br />
+   * <strong>DB instance class:</strong> <code>db.t3.micro</code> (1 vCPU, 1 GB RAM).<br />
+   * <strong>Master username:</strong> <code>admin</code>.<br />
+   * <strong>Master password:</strong> <code>SQLServer12345</code>.<br />
+   * <strong>Public access:</strong> <code>No</code> (o <code>Yes</code> si deseas conectarte directo desde tu PC sin túnel).<br />
+   * <strong>Security Group:</strong> Selecciona <code>agropacayales-sg</code>.</li>
+<li>Haz clic en <strong>Create database</strong>. Cuando esté en estado <strong>Available</strong>, copia el <strong>Endpoint</strong> (ejemplo: <code>agropacayales-rds.c123456.us-east-1.rds.amazonaws.com</code>).</li>
+<li><strong>Inicialización de la Base de Datos:</strong><br />
+   Conéctate desde Azure Data Studio o SQL Server Management Studio (usando la IP del master como túnel o acceso directo) y ejecuta:<br />
+   ```sql<br />
+   CREATE DATABASE agropacayales_db;<br />
+   GO<br />
+   USE agropacayales_db;<br />
+   GO</li>
 </ol>
+<p>IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'sale_order')<br />
+   BEGIN<br />
+       CREATE TABLE sale_order (<br />
+           id INT IDENTITY(1,1) PRIMARY KEY,<br />
+           person_id CHAR(24) NOT NULL,<br />
+           warehouse_id CHAR(24) NOT NULL,<br />
+           sale_order_date DATETIME DEFAULT GETDATE(),<br />
+           status CHAR(1) DEFAULT 'A',<br />
+           total DECIMAL(7,2) NOT NULL,<br />
+           delivery_type CHAR(2) NOT NULL,<br />
+           payment_method CHAR(2) NOT NULL,<br />
+           notes NVARCHAR(MAX) NULL<br />
+       );<br />
+   END;<br />
+   GO</p>
+<p>IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'order_details')<br />
+   BEGIN<br />
+       CREATE TABLE order_details (<br />
+           id INT IDENTITY(1,1) PRIMARY KEY,<br />
+           sale_order_id INT NOT NULL,<br />
+           product_id CHAR(24) NOT NULL,<br />
+           quantity DECIMAL(5,2) NOT NULL,<br />
+           sub_total DECIMAL(7,2) NOT NULL<br />
+       );<br />
+   END;<br />
+   GO<br />
+   ```</p>
 <hr />
-<h2>PASO 2: Servidor MongoDB en EC2 (Automatizado con User Data)</h2>
+<h2>🍃 PASO 2: Servicio AWS #2 — Amazon DocumentDB (MongoDB NoSQL)</h2>
+<p>Para cumplir con el criterio de <strong>2 bases de datos en 2 servicios diferentes de AWS</strong>, aprovisionamos <strong>Amazon DocumentDB</strong> (servicio NoSQL nativo de AWS compatible con MongoDB):</p>
 <ol>
-<li>En AWS EC2, lanza una instancia:<br />
-   - <strong>Nombre:</strong> <code>ec2-mongodb</code><br />
-   - <strong>AMI:</strong> Ubuntu Server 24.04 LTS (64-bit x86) | <strong>Tipo:</strong> <code>t3.small</code><br />
-   - <strong>Security Group:</strong> <code>agropacayales-sg</code> | <strong>Disco:</strong> 15 GiB gp3</li>
-<li>Ve al final a <strong>Detalles avanzados</strong> ➔ <strong>Datos del usuario (User data)</strong> y pega este script:</li>
+<li>En la consola de AWS, busca el servicio <strong>Amazon DocumentDB</strong> y haz clic en <strong>Create cluster</strong>.</li>
+<li>Configuración:<br />
+   * <strong>Cluster identifier:</strong> <code>agropacayales-docdb</code>.<br />
+   * <strong>Engine version:</strong> <code>5.0.0</code> (o <code>4.0.0</code>).<br />
+   * <strong>Instance class:</strong> <code>db.t3.medium</code>.<br />
+   * <strong>Number of instances:</strong> <code>1</code> (suficiente para pruebas de evaluación).<br />
+   * <strong>Master username:</strong> <code>admin</code>.<br />
+   * <strong>Master password:</strong> <code>Mongo12345</code>.<br />
+   * <strong>Security Group:</strong> Selecciona <code>agropacayales-sg</code>.</li>
+<li>Haz clic en <strong>Create cluster</strong>.</li>
+<li>Una vez disponible, copia el <strong>Cluster Endpoint</strong> (ejemplo: <code>agropacayales-docdb.cluster-c1234.us-east-1.docdb.amazonaws.com</code>).</li>
+<li>La URI de conexión para el clúster será:<br />
+<code>text
+   mongodb://admin:Mongo12345@&lt;docdb-endpoint&gt;:27017/agropacayales_db?tls=false&amp;authSource=admin</code></li>
 </ol>
-<pre class="codehilite"><code class="language-bash">#!/bin/bash
-set -e
-exec &gt; /var/log/user-data.log 2&gt;&amp;1
-
-apt-get update -y &amp;&amp; apt-get install -y gnupg curl
-curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg --dearmor --yes
-echo &quot;deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse&quot; | tee /etc/apt/sources.list.d/mongodb-org-8.0.list
-
-apt-get update -y &amp;&amp; apt-get install -y mongodb-org
-systemctl start mongod &amp;&amp; systemctl enable mongod
-
-until mongosh --eval &quot;db.adminCommand('ping')&quot; &gt; /dev/null 2&gt;&amp;1; do sleep 2; done
-
-mongosh admin --eval '
-db.createUser({ user: &quot;admin&quot;, pwd: &quot;Mongo12345&quot;, roles: [&quot;userAdminAnyDatabase&quot;, &quot;readWriteAnyDatabase&quot;, &quot;dbAdminAnyDatabase&quot;] });
-'
-mongosh agropacayales_db --eval '
-db.createUser({ user: &quot;admin&quot;, pwd: &quot;Mongo12345&quot;, roles: [{ role: &quot;readWrite&quot;, db: &quot;agropacayales_db&quot; }] });
-'
-
-cat &lt;&lt; 'EOF' &gt; /etc/mongod.conf
-storage:
-  dbPath: /var/lib/mongodb
-systemLog:
-  destination: file
-  logAppend: true
-  path: /var/log/mongodb/mongod.log
-net:
-  port: 27017
-  bindIp: 0.0.0.0
-security:
-  authorization: enabled
-EOF
-
-systemctl restart mongod
-echo &quot;MongoDB 8.0 listo.&quot;
-</code></pre>
-
-<ol start="3">
-<li>Lanza la instancia y copia su <strong>IP Privada</strong> (ej: <code>172.31.30.50</code>).</li>
-</ol>
+<blockquote>
+<p>⚠️ <strong>Opción Alternativa (Si tu cuenta de AWS Academy tiene bloqueado DocumentDB):</strong><br />
+Si tu cuenta académica restringe DocumentDB por cuota, lanza una instancia EC2 <code>t3.small</code> llamada <code>ec2-mongodb</code> con el siguiente <strong>User Data</strong>, el cual instala MongoDB 8.0 y aplica el parche de kernel automáticamente:<br />
+```bash</p>
+<h1>!/bin/bash</h1>
+<p>apt update &amp;&amp; apt install -y gnupg curl<br />
+curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-8.0.gpg<br />
+echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-8.0.list<br />
+apt update &amp;&amp; apt install -y mongodb-org<br />
+mkdir -p /etc/systemd/system/mongod.service.d<br />
+printf '[Service]\nEnvironment="GLIBC_TUNABLES=glibc.pthread.rseq=1"\n' | tee /etc/systemd/system/mongod.service.d/rseq.conf<br />
+sed -i 's/bindIp: 127.0.0.1/bindIp: 0.0.0.0/' /etc/mongod.conf<br />
+systemctl daemon-reload &amp;&amp; systemctl enable --now mongod<br />
+mongosh --eval 'db.getSiblingDB("admin").createUser({user:"admin",pwd:"Mongo12345",roles:["root"]})'<br />
+printf "\nsecurity:\n  authorization: enabled\n" | tee -a /etc/mongod.conf<br />
+systemctl restart mongod<br />
+```</p>
+</blockquote>
 <hr />
-<h2>PASO 3: Clúster K3s en AWS (Automatizado con User Data)</h2>
-<h3>3.1. Lanzar el Nodo Master (<code>k8s-master</code>)</h3>
-<ul>
-<li>EC2 <code>t3.small</code> | Ubuntu 24.04 | SG: <code>agropacayales-sg</code>.</li>
-<li>En <strong>Datos del usuario (User data)</strong> pega:</li>
-</ul>
+<h2>⚙️ PASO 3: Servicio AWS #3 — Amazon EC2 con K3s (2 Backends)</h2>
+<p>Aprovisionamos <strong>Amazon EC2</strong> para orquestar los microservicios Backend mediante <strong>K3s</strong>.</p>
+<h3>3.1. Lanzar las Instancias EC2</h3>
+<p>En la consola de <strong>EC2</strong> → <strong>Launch Instances</strong>:<br />
+* <strong>AMI:</strong> Ubuntu Server 24.04 LTS (x86_64).<br />
+* <strong>Security Group:</strong> <code>agropacayales-sg</code>.<br />
+* <strong>Instancias a crear:</strong><br />
+  1. <code>k8s-master</code> (<code>t3.small</code> o <code>t3.medium</code>)<br />
+  2. <code>k8s-node-backend</code> (<code>t3.medium</code>) → Ejecuta Backend 1 (Spring Boot)<br />
+  3. <code>k8s-node-backendAnalitico</code> (<code>t3.small</code>) → Ejecuta Backend 2 (FastAPI)<br />
+  4. <code>k8s-node-frontend</code> (<code>t3.small</code>) → Ejecuta Frontend Nginx en K3s</p>
+<h3>3.2. User Data para <code>k8s-master</code> (Automatizado al 100%)</h3>
+<p>Pega este script en <strong>Advanced details</strong> → <strong>User data</strong> al lanzar <code>k8s-master</code>:</p>
 <pre class="codehilite"><code class="language-bash">#!/bin/bash
-set -e
-exec &gt; /var/log/user-data.log 2&gt;&amp;1
-
-curl -sfL https://get.k3s.io | K3S_TOKEN=&quot;agropacayales-token-2026&quot; sh -s - server \
-  --disable traefik \
-  --disable servicelb \
-  --node-name k8s-master \
-  --write-kubeconfig-mode 644
+# ==============================================================================
+# SCRIPT USER DATA - K3S MASTER AGROPACAYALES
+# ==============================================================================
+export K3S_TOKEN=&quot;agropacayales-token-2026&quot;
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=&quot;--token ${K3S_TOKEN} --write-kubeconfig-mode 644&quot; sh -
 
 mkdir -p /home/ubuntu/.kube
 cp /etc/rancher/k3s/k3s.yaml /home/ubuntu/.kube/config
 chown -R ubuntu:ubuntu /home/ubuntu/.kube
+echo 'alias k=&quot;kubectl&quot;' &gt;&gt; /home/ubuntu/.bashrc
 
-echo &quot;export KUBECONFIG=/home/ubuntu/.kube/config&quot; &gt;&gt; /home/ubuntu/.bashrc
-echo &quot;alias k=kubectl&quot; &gt;&gt; /home/ubuntu/.bashrc
+# Esperar a que K3s inicie completamente
+sleep 20
 </code></pre>
 
+<h3>3.3. User Data para los Workers K3s (Auto-etiquetado)</h3>
+<p>Al lanzar cada nodo worker, pega su script correspondiente en <strong>User data</strong> (reemplaza <code>IP_PRIVADA_MASTER</code> por la IP privada real de <code>k8s-master</code>):</p>
 <ul>
-<li>Lanza la instancia y copia su <strong>IP Privada</strong> (ejemplo: <code>172.31.21.112</code>).</li>
+<li>
+<p><strong>En <code>k8s-node-backend</code> (Backend 1):</strong><br />
+<code>bash
+  #!/bin/bash
+  curl -sfL https://get.k3s.io | K3S_URL=https://IP_PRIVADA_MASTER:6443 \
+    K3S_TOKEN="agropacayales-token-2026" \
+    INSTALL_K3S_EXEC="--node-label role=backend1" sh -</code></p>
+</li>
+<li>
+<p><strong>En <code>k8s-node-backendAnalitico</code> (Backend 2):</strong><br />
+<code>bash
+  #!/bin/bash
+  curl -sfL https://get.k3s.io | K3S_URL=https://IP_PRIVADA_MASTER:6443 \
+    K3S_TOKEN="agropacayales-token-2026" \
+    INSTALL_K3S_EXEC="--node-label role=backend2" sh -</code></p>
+</li>
+<li>
+<p><strong>En <code>k8s-node-frontend</code> (Frontend K3s):</strong><br />
+<code>bash
+  #!/bin/bash
+  curl -sfL https://get.k3s.io | K3S_URL=https://IP_PRIVADA_MASTER:6443 \
+    K3S_TOKEN="agropacayales-token-2026" \
+    INSTALL_K3S_EXEC="--node-label role=frontend" sh -</code></p>
+</li>
 </ul>
+<h3>3.4. Desplegar los Backends y Manifiestos desde <code>k8s-master</code></h3>
+<p>Conéctate por SSH a <code>k8s-master</code>:</p>
+<pre class="codehilite"><code class="language-bash">ssh -i &quot;tu-llave.pem&quot; ubuntu@&lt;IP_PUBLICA_MASTER&gt;
+</code></pre>
+
+<p>Crea el archivo <code>agropacayales.yml</code> con tus endpoints de RDS y DocumentDB:</p>
+<pre class="codehilite"><code class="language-bash">cat &lt;&lt; 'EOF' &gt; ~/agropacayales.yml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: agropacayales-namespace
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: agropacayales-configmap
+  namespace: agropacayales-namespace
+data:
+  SERVER_PORT: &quot;8081&quot;
+  MONGO_DATABASE: agropacayales_db
+  SQL_SERVER_HOST: &quot;ENDPOINT_DE_RDS&quot;
+  SQL_SERVER_PORT: &quot;1433&quot;
+  SQL_SERVER_DATABASE: agropacayales_db
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: agropacayales-secret
+  namespace: agropacayales-namespace
+type: Opaque
+stringData:
+  MONGO_URI: &quot;mongodb://admin:Mongo12345@ENDPOINT_DE_DOCUMENTDB_O_MONGO:27017/agropacayales_db?authSource=admin&quot;
+  SQL_SERVER_USERNAME: &quot;admin&quot;
+  SQL_SERVER_PASSWORD: &quot;SQLServer12345&quot;
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend1-deployment
+  namespace: agropacayales-namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend1
+  template:
+    metadata:
+      labels:
+        app: backend1
+    spec:
+      nodeSelector:
+        role: backend1
+      containers:
+        - name: backend1
+          image: hugo454/agropacayales-backend1:2.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8081
+          envFrom:
+            - configMapRef:
+                name: agropacayales-configmap
+            - secretRef:
+                name: agropacayales-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend1-service
+  namespace: agropacayales-namespace
+spec:
+  type: NodePort
+  selector:
+    app: backend1
+  ports:
+    - port: 8081
+      targetPort: 8081
+      nodePort: 30001
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend2-deployment
+  namespace: agropacayales-namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backend2
+  template:
+    metadata:
+      labels:
+        app: backend2
+    spec:
+      nodeSelector:
+        role: backend2
+      containers:
+        - name: backend2
+          image: hugo454/agropacayales-backend-analitico:2.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - configMapRef:
+                name: agropacayales-configmap
+            - secretRef:
+                name: agropacayales-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend2-service
+  namespace: agropacayales-namespace
+spec:
+  type: NodePort
+  selector:
+    app: backend2
+  ports:
+    - port: 8000
+      targetPort: 8000
+      nodePort: 30002
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend-deployment
+  namespace: agropacayales-namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      nodeSelector:
+        role: frontend
+      containers:
+        - name: frontend
+          image: hugo454/agropacayales-frontend:2.0
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: agropacayales-namespace
+spec:
+  type: NodePort
+  selector:
+    app: frontend
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30000
+EOF
+</code></pre>
+
+<p>Aplica el despliegue con:</p>
+<pre class="codehilite"><code class="language-bash">sed -i 's/ENDPOINT_DE_RDS/&lt;tu-endpoint-rds&gt;/g' ~/agropacayales.yml
+sed -i 's/ENDPOINT_DE_DOCUMENTDB_O_MONGO/&lt;tu-endpoint-docdb-o-mongo&gt;/g' ~/agropacayales.yml
+kubectl apply -f ~/agropacayales.yml
+kubectl get pods -n agropacayales-namespace -o wide
+</code></pre>
+
 <hr />
-<h3>3.2. Lanzar los 3 Nodos Workers (en paralelo)</h3>
-<blockquote>
-<p><strong>Importante:</strong> Reemplaza <code>&lt;IP_PRIVADA_MASTER&gt;</code> por la IP privada real de tu Master en los 3 scripts antes de lanzarlos.</p>
-</blockquote>
-<h4>Worker 1: Frontend (<code>k8s-node-frontend</code> — <code>t3.small</code>)</h4>
-<p>User Data:</p>
-<pre class="codehilite"><code class="language-bash">#!/bin/bash
-set -e
-exec &gt; /var/log/user-data.log 2&gt;&amp;1
-
-curl -sfL https://get.k3s.io | K3S_URL=https://&lt;IP_PRIVADA_MASTER&gt;:6443 \
-  K3S_TOKEN=&quot;agropacayales-token-2026&quot; sh -s - agent \
-  --node-name k8s-node-frontend \
-  --node-label role=frontend
+<h2>🪣 PASO 4: Servicio AWS #4 — Amazon S3 (Frontend Web en Servicio Diferente)</h2>
+<p>Para cumplir estrictamente con el <strong>Criterio 3 (Frontend Web en 1 servicio diferente a los anteriores)</strong>, desplegamos el Frontend en <strong>Amazon S3</strong> con Static Website Hosting.</p>
+<h3>4.1. Compilación del Frontend apuntando a AWS</h3>
+<p>En tu PC, abre una terminal en la raíz del proyecto y ejecuta el script automatizado indicando la IP pública de tu EC2 en AWS:</p>
+<pre class="codehilite"><code class="language-cmd">build-s3.bat &lt;IP_PUBLICA_EC2_BACKEND&gt;
 </code></pre>
 
-<h4>Worker 2: Backend 1 WebFlux (<code>k8s-node-backend</code> — <code>t3.medium</code>)</h4>
-<p>User Data:</p>
-<pre class="codehilite"><code class="language-bash">#!/bin/bash
-set -e
-exec &gt; /var/log/user-data.log 2&gt;&amp;1
-
-curl -sfL https://get.k3s.io | K3S_URL=https://&lt;IP_PRIVADA_MASTER&gt;:6443 \
-  K3S_TOKEN=&quot;agropacayales-token-2026&quot; sh -s - agent \
-  --node-name k8s-node-backend \
-  --node-label role=backend1
-</code></pre>
-
-<h4>Worker 3: Backend 2 Analítico (<code>k8s-node-backendAnalitico</code> — <code>t3.small</code>)</h4>
-<p>User Data:</p>
-<pre class="codehilite"><code class="language-bash">#!/bin/bash
-set -e
-exec &gt; /var/log/user-data.log 2&gt;&amp;1
-
-curl -sfL https://get.k3s.io | K3S_URL=https://&lt;IP_PRIVADA_MASTER&gt;:6443 \
-  K3S_TOKEN=&quot;agropacayales-token-2026&quot; sh -s - agent \
-  --node-name k8s-node-backendAnalitico \
-  --node-label role=backend2
-</code></pre>
-
-<hr />
-<h3>3.3. Verificar los Nodos en el Master</h3>
-<p>Conéctate por SSH al Master y ejecuta:</p>
-<pre class="codehilite"><code class="language-bash">kubectl get nodes --show-labels
-</code></pre>
-
-<p><strong>Resultado esperado (los 4 en <code>Ready</code> con sus roles asignados):</strong></p>
-<pre class="codehilite"><code>NAME                       STATUS   ROLES                  VERSION        LABELS
-k8s-master                 Ready    control-plane,master   v1.31...       ...
-k8s-node-frontend          Ready    &lt;none&gt;                 v1.31...       role=frontend
-k8s-node-backend           Ready    &lt;none&gt;                 v1.31...       role=backend1
-k8s-node-backendAnalitico  Ready    &lt;none&gt;                 v1.31...       role=backend2
-</code></pre>
-
-<hr />
-<h2>PASO 4: Desplegar las Aplicaciones en Kubernetes</h2>
+<p><em>(Ejemplo: <code>build-s3.bat 54.210.85.90</code>). Esto genera la carpeta optimizada <code>ASE251S3_T05-fe\dist</code>.</em></p>
+<h3>4.2. Crear y Configurar el Bucket en Amazon S3</h3>
 <ol>
-<li>En el nodo Master, clona el repositorio o crea el archivo del manifiesto:<br />
+<li>En la consola de AWS, busca <strong>S3</strong> y haz clic en <strong>Create bucket</strong>.</li>
+<li><strong>Bucket name:</strong> <code>agropacayales-frontend-t05</code> (debe ser único globalmente).</li>
+<li><strong>Object Ownership:</strong> Selecciona <em>ACLs disabled (recommended)</em>.</li>
+<li><strong>Block Public Access settings for this bucket:</strong><br />
+   * <strong>Desmarca</strong> la casilla <em>"Block all public access"</em>.<br />
+   * Marca la casilla de confirmación de advertencia.</li>
+<li>Haz clic en <strong>Create bucket</strong>.</li>
+</ol>
+<h3>4.3. Habilitar Static Website Hosting</h3>
+<ol>
+<li>Haz clic en el nombre de tu bucket recién creado → Pestaña <strong>Properties</strong> (Propiedades).</li>
+<li>Baja hasta el final a <strong>Static website hosting</strong> y haz clic en <strong>Edit</strong>.</li>
+<li>Selecciona <strong>Enable</strong>.</li>
+<li>En <strong>Hosting type</strong>, selecciona <em>Host a static website</em>.</li>
+<li><strong>Index document:</strong> <code>index.html</code></li>
+<li><strong>Error document:</strong> <code>index.html</code> <em>(CRÍTICO para que no dé error 404 al navegar en React)</em>.</li>
+<li>Haz clic en <strong>Save changes</strong>.</li>
+</ol>
+<h3>4.4. Asignar Política de Lectura Pública</h3>
+<ol>
+<li>En tu bucket, entra a la pestaña <strong>Permissions</strong> (Permisos).</li>
+<li>En <strong>Bucket policy</strong>, haz clic en <strong>Edit</strong> y pega lo siguiente (reemplaza <code>NOMBRE_DE_TU_BUCKET</code>):</li>
+</ol>
+<pre class="codehilite"><code class="language-json">{
+    &quot;Version&quot;: &quot;2012-10-17&quot;,
+    &quot;Statement&quot;: [
+        {
+            &quot;Sid&quot;: &quot;PublicReadGetObject&quot;,
+            &quot;Effect&quot;: &quot;Allow&quot;,
+            &quot;Principal&quot;: &quot;*&quot;,
+            &quot;Action&quot;: &quot;s3:GetObject&quot;,
+            &quot;Resource&quot;: &quot;arn:aws:s3:::NOMBRE_DE_TU_BUCKET/*&quot;
+        }
+    ]
+}
+</code></pre>
+
+<ol start="3">
+<li>Haz clic en <strong>Save changes</strong>.</li>
+</ol>
+<h3>4.5. Subir los Archivos al Bucket</h3>
+<ol>
+<li>Entra a la pestaña <strong>Objects</strong> (Objetos).</li>
+<li>Haz clic en <strong>Upload</strong> (Cargar).</li>
+<li>Arrastra y suelta todos los archivos y carpetas que están dentro de <code>ASE251S3_T05-fe\dist\</code> (es decir: <code>index.html</code> y la carpeta <code>assets</code>).</li>
+<li>Haz clic en <strong>Upload</strong>.</li>
+<li>¡Listo! Vuelve a la pestaña <strong>Properties</strong> → baja a <strong>Static website hosting</strong> y abre la <strong>Bucket website endpoint</strong>:<br />
+<code>text
+   http://agropacayales-frontend-t05.s3-website-us-east-1.amazonaws.com</code></li>
+</ol>
+<hr />
+<h2>📱 PASO 5: Conexión de la App Móvil (Expo React Native)</h2>
+<p>Para conectar la app móvil al Backend en AWS:<br />
+1. Abre <code>ASE251S4_T05-mobile/.env</code> y coloca la IP pública de tu EC2 en el puerto <code>30001</code>:<br />
+<code>env
+   EXPO_PUBLIC_API_URL=http://&lt;IP_PUBLICA_EC2&gt;:30001</code><br />
+2. Inicia Expo limpiando la caché:<br />
 <code>bash
-   git clone https://github.com/anafelix21/tcc.git
-   cd tcc</code></li>
-<li>
-<p>Edita el archivo <code>k8s-manifests/agropacayales-k8s-all-in-one.yml</code>:<br />
-<code>bash
-   nano k8s-manifests/agropacayales-k8s-all-in-one.yml</code><br />
-   Ajusta únicamente estos 2 valores en el <strong>ConfigMap</strong> y <strong>Secret</strong>:<br />
-   - <code>SQL_HOST</code>: Coloca el Endpoint de tu RDS SQL Server.<br />
-   - <code>MONGO_URI</code>: Coloca la IP privada de tu EC2 MongoDB:<br />
-<code>mongodb://admin:Mongo12345@&lt;IP_PRIVADA_MONGO&gt;:27017/agropacayales_db?authSource=admin</code></p>
-</li>
-<li>
-<p><strong>Aplica el despliegue con un solo comando:</strong><br />
-<code>bash
-   kubectl apply -f k8s-manifests/agropacayales-k8s-all-in-one.yml</code></p>
-</li>
-<li>
-<p><strong>Verifica los pods:</strong><br />
+   cd ASE251S4_T05-mobile
+   npx expo start -c</code><br />
+3. Presiona la tecla <code>w</code> para abrir la simulación Web en el navegador (<code>http://localhost:8081</code>).</p>
+<hr />
+<h2>🎓 6. Guion de Sustentación para la Evaluación Intermedia (20/20)</h2>
+<p>Al defender ante el jurado o docente, muestra los 4 servicios en este orden cronológico para verificar el cumplimiento punto por punto:</p>
+<h3>1. Evidencia de las 2 Bases de Datos en 2 Servicios AWS Diferentes (Criterio 1)</h3>
+<ol>
+<li><strong>Amazon RDS (Relacional):</strong><br />
+   * Muestra la consola de <strong>Amazon RDS</strong> con la instancia <code>agropacayales-rds</code> en estado <em>Available</em>.<br />
+   * Abre Azure Data Studio conectado al endpoint de RDS y ejecuta: <code>SELECT * FROM agropacayales_db.dbo.sale_order;</code>.</li>
+<li><strong>Amazon DocumentDB (NoSQL):</strong><br />
+   * Muestra la consola de <strong>Amazon DocumentDB</strong> con el clúster activo en puerto <code>27017</code>.<br />
+   * En Swagger de Backend 1 ejecuta <code>GET /api/insumos</code> o <code>GET /api/parcelas</code> para demostrar la lectura en tiempo real desde la BD documental.</li>
+</ol>
+<h3>2. Evidencia de los 2 Backends en AWS EC2 (Criterio 2)</h3>
+<ol>
+<li>Muestra la terminal SSH de <code>k8s-master</code> ejecutando:<br />
 <code>bash
    kubectl get pods -n agropacayales-namespace -o wide</code><br />
-<em>En 1 minuto los 3 pods (<code>frontend</code>, <code>backend-transaccional</code>, <code>backend-analitico</code>) estarán en estado <strong><code>Running</code></strong>.</em></p>
-</li>
+<em>Señala que <code>backend1</code> corre en el nodo <code>role=backend1</code> y <code>backend2</code> en el nodo <code>role=backend2</code>.</em></li>
+<li>Abre en vivo los dos Swagger interactivos:<br />
+   * <strong>Backend 1:</strong> <code>http://&lt;IP_EC2&gt;:30001/swagger-ui.html</code><br />
+   * <strong>Backend 2:</strong> <code>http://&lt;IP_EC2&gt;:30002/docs</code></li>
 </ol>
-<hr />
-<h2>PASO 5: Conectar la Aplicación Móvil (Expo React Native)</h2>
+<h3>3. Evidencia del Frontend Web en Amazon S3 (Criterio 3)</h3>
 <ol>
-<li>En tu laptop, abre el archivo:<br />
-<code>e:\Nueva carpeta (8)\tcc\ASE251S4_T05-mobile\.env</code></li>
-<li>Coloca la IP pública de tu instancia AWS:<br />
-<code>env
-   EXPO_PUBLIC_API_URL=http://&lt;IP_PUBLICA_AWS&gt;:30001/api
-   EXPO_PUBLIC_ANALYTICS_URL=http://&lt;IP_PUBLICA_AWS&gt;:30002/api/v1/analytics</code></li>
-<li>En la terminal de la app móvil, reinicia limpiando la caché:<br />
-<code>powershell
-   npx expo start -c</code></li>
-<li><strong>Para probar en tu laptop con el marco de smartphone:</strong> Presiona la tecla <strong><code>w</code></strong> (se abre en <code>http://localhost:8081</code>).<br />
-<strong>Para probar en tu celular físico:</strong> Escanea el código QR con la app gratuita <strong>Expo Go</strong>.</li>
+<li>Muestra la consola de <strong>Amazon S3</strong> con el bucket <code>agropacayales-frontend-t05</code> y la propiedad <em>Static website hosting</em> activa.</li>
+<li>Abre la URL pública del bucket:<br />
+<code>http://agropacayales-frontend-t05.s3-website-us-east-1.amazonaws.com</code></li>
+<li>Inicia sesión con: <code>ana.felix@agropacayales.com</code> / <code>Pass123!</code></li>
+<li>Navega a <strong>Dashboard</strong> (gráficos analíticos de Backend 2) y a <strong>Sectores y Parcelas</strong> (datos transaccionales de Backend 1).</li>
+<li>Presiona <strong>F5</strong> en cualquier módulo para demostrar que el enrutamiento SPA no genera error 404.</li>
 </ol>
-<hr />
-<h2>🌐 URLs de Acceso Rápido</h2>
-<p>Reemplaza <code>&lt;IP_PUBLICA_AWS&gt;</code> por la IP de cualquiera de tus nodos:</p>
-<ul>
-<li><strong>Frontend Web:</strong> <code>http://&lt;IP_PUBLICA_AWS&gt;:30000</code></li>
-<li><strong>Swagger UI (Spring Boot Backend 1):</strong> <code>http://&lt;IP_PUBLICA_AWS&gt;:30001/webjars/swagger-ui/index.html</code></li>
-<li><strong>OpenAPI Docs (Flask Backend 2):</strong> <code>http://&lt;IP_PUBLICA_AWS&gt;:30002/api/v1/analytics/docs/</code></li>
-</ul>
-<hr />
-<h1>🎯 DEMOSTRACIONES EN VIVO DE KUBERNETES (PARA LA SUSTENTACIÓN)</h1>
-<p>Usa esta guía rápida frente al jurado para realizar las pruebas en vivo:</p>
-<h3>1. Auto-Recuperación (Self-Healing)</h3>
-<ul>
-<li><strong>Qué decir:</strong> <em>"Kubernetes garantiza alta disponibilidad; si un pod se cae, el ReplicaSet lo recrea de inmediato."</em></li>
-<li><strong>Comando:</strong><br />
+<h3>4. Demostración de Resiliencia en Kubernetes (Bonus Jurado)</h3>
+<ol>
+<li><strong>Auto-reparación (Self-Healing):</strong><br />
 <code>bash
-  kubectl delete pod -l app=backend-transaccional -n agropacayales-namespace
-  kubectl get pods -n agropacayales-namespace -w</code></li>
-<li><strong>Resultado:</strong> En 1 segundo el pod viejo muere y uno nuevo arranca en estado <code>Running</code>.</li>
-</ul>
-<hr />
-<h3>2. Escalabilidad Horizontal en Caliente (HPA / Replica Scaling)</h3>
-<ul>
-<li><strong>Qué decir:</strong> <em>"Ante un pico de cosecha o exceso de operarios, escalamos los pods del backend en caliente sin reiniciar nada."</em></li>
-<li><strong>Comando:</strong><br />
+   # Elimina el pod del frontend o backend
+   kubectl delete pod -l app=backend1 -n agropacayales-namespace
+   # Demuestra que Kubernetes levantó un nuevo Pod en segundos
+   kubectl get pods -n agropacayales-namespace -w</code></li>
+<li><strong>Escalado Dinámico:</strong><br />
 <code>bash
-  kubectl scale deployment backend-transaccional --replicas=3 -n agropacayales-namespace
-  kubectl get pods -n agropacayales-namespace -o wide</code></li>
-<li><strong>Volver a 1 réplica al terminar:</strong><br />
-<code>bash
-  kubectl scale deployment backend-transaccional --replicas=1 -n agropacayales-namespace</code></li>
-</ul>
-<hr />
-<h3>3. Actualización Continua Sin Caídas (Rolling Update)</h3>
-<ul>
-<li><strong>Qué decir:</strong> <em>"Podemos actualizar la versión de la aplicación sin desconectar a los usuarios usando RollingUpdate."</em></li>
-<li><strong>Comando:</strong><br />
-<code>bash
-  kubectl rollout restart deployment/frontend -n agropacayales-namespace
-  kubectl rollout status deployment/frontend -n agropacayales-namespace</code></li>
-</ul>
-<hr />
-<h3>4. Distribución Multi-Nodo (NodeSelector)</h3>
-<ul>
-<li><strong>Qué decir:</strong> <em>"Cada contenedor corre en un servidor físico dedicado para aislar fallos y evitar que la analítica sature las transacciones."</em></li>
-<li><strong>Comando:</strong><br />
-<code>bash
-  kubectl get pods -n agropacayales-namespace -o wide</code></li>
-<li><strong>Mostrar al jurado:</strong></li>
-<li><code>frontend</code> corre en <code>k8s-node-frontend</code></li>
-<li><code>backend-transaccional</code> corre en <code>k8s-node-backend</code></li>
-<li><code>backend-analitico</code> corre en <code>k8s-node-backendAnalitico</code></li>
-</ul>
-<hr />
-<h3>5. Service Discovery y DNS Interno Privado</h3>
-<ul>
-<li><strong>Qué decir:</strong> <em>"Los microservicios se comunican internamente por nombre DNS privado sin exponer puertos a internet."</em></li>
-<li><strong>Comando:</strong><br />
-<code>bash
-  kubectl exec -it deployment/frontend -n agropacayales-namespace -- wget -qO- http://backend-transaccional:8081/api/parcelas</code></li>
-</ul>
-<hr />
-<h3>6. Streaming de Logs en Tiempo Real</h3>
-<ul>
-<li><strong>Qué decir:</strong> <em>"Podemos auditar en vivo las peticiones que llegan desde el celular o la web."</em></li>
-<li><strong>Comando:</strong><br />
-<code>bash
-  kubectl logs -f deployment/backend-transaccional -n agropacayales-namespace --tail=30</code></li>
-</ul>
-<hr />
-<h3>7. Comandos de Emergencia (Cheat Sheet)</h3>
-<pre class="codehilite"><code class="language-bash"># Ver todo el estado en 1 pantalla:
-kubectl get all -n agropacayales-namespace
-
-# Diagnosticar un pod con error:
-kubectl describe pod &lt;NOMBRE_POD&gt; -n agropacayales-namespace
-
-# Reiniciar todos los pods del proyecto:
-kubectl rollout restart deployment -n agropacayales-namespace
-</code></pre>
-
-<hr />
-<p><em>Nota: Para ver la colección detallada de Payloads JSON de Swagger y scripts CRUD de MongoDB, consulta el archivo complementario: <code>GUIA_PRUEBAS_SWAGGER_Y_CRUD_MONGODB.md</code>.</em></p>
+   kubectl scale deployment backend1-deployment --replicas=3 -n agropacayales-namespace
+   kubectl get pods -n agropacayales-namespace</code></li>
+</ol>
 </div>
 </body>
 </html>

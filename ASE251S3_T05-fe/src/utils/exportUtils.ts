@@ -15,7 +15,8 @@ export async function exportarExcel(
     const headers: HeadersInit = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const res = await fetch(`/api${endpoint}/exportar/excel`, { headers });
+    const apiBase = (import.meta as any).env?.VITE_API_URL || '/api';
+    const res = await fetch(`${apiBase}${endpoint}/exportar/excel`, { headers });
     if (res.ok) {
       const blob = await res.blob();
       descargarBlob(blob, `${nombreArchivo}.xlsx`);
@@ -54,7 +55,8 @@ export async function exportarPdf(
     const headers: HeadersInit = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const res = await fetch(`/api${endpoint}/exportar/pdf`, { headers });
+    const apiBase = (import.meta as any).env?.VITE_API_URL || '/api';
+    const res = await fetch(`${apiBase}${endpoint}/exportar/pdf`, { headers });
     if (res.ok) {
       const blob = await res.blob();
       descargarBlob(blob, `${nombreArchivo}.pdf`);

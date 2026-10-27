@@ -4,8 +4,8 @@
  * - Timeout controlado de 2500ms para evitar cuelgues o cargas lentas
  */
 
-const API_BASE = '/api';
-const ANALYTICS_BASE = '/api/v1/analytics';
+const API_BASE = (import.meta as any).env?.VITE_API_URL || '/api';
+const ANALYTICS_BASE = (import.meta as any).env?.VITE_ANALYTICS_URL || '/api/v1/analytics';
 
 export async function request<T>(
   url: string,
