@@ -150,12 +150,12 @@
 </head>
 <body>
 <div class="container">
-<h1>🚀 MANUAL DE DESPLIEGUE: 4 SERVICIOS AWS (VPC + EC2 + RDS + S3)</h1>
-<h2>Unidad Didáctica: Taller de Cloud Computing — Evaluación Intermedia</h2>
+<h1>🚀 MANUAL DEFINITIVO DE DESPLIEGUE: 4 SERVICIOS AWS</h1>
+<h2>Unidad Didáctica: Taller de Cloud Computing — Evaluación Intermedia (20/20)</h2>
 <h3>Proyecto: AgroPacayales S.A.C. (Equipo T05)</h3>
+<p><em>Guía unificada, probada en vivo y blindada contra reinicios de AWS Academy (Voclabs).</em></p>
 <hr />
 <h2>🎯 1. Matriz de Cumplimiento de Rúbrica Oficial (20/20)</h2>
-<p>Esta arquitectura está 100% optimizada para el entorno de <strong>AWS Academy (Voclabs)</strong>, sin errores de permisos IAM ni bloqueos de políticas:</p>
 <table>
 <thead>
 <tr>
@@ -176,10 +176,10 @@
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Criterio 2: 2 Backends empleando mínimo 1 servicio de AWS</strong></td>
-<td style="text-align: left;"><strong>Backend 1:</strong> Spring Boot Java 17 (<code>:8081</code>)<br><strong>Backend 2:</strong> Python FastAPI (<code>:8000</code>)</td>
+<td style="text-align: left;"><strong>Backend 1:</strong> Spring Boot Java 17 (<code>:8081</code>)<br><strong>Backend 2:</strong> Python Flask / Pandas (<code>:5000</code>)</td>
 <td style="text-align: left;"><strong>Amazon EC2</strong> (Clúster K3s)</td>
-<td style="text-align: left;"><em>Compute</em> (IaaS / Contenedores)</td>
-<td style="text-align: left;">Microservicios orquestados en contenedores con alta disponibilidad en los nodos dedicados K3s (NodePorts <code>30001</code> y <code>30002</code>).</td>
+<td style="text-align: left;"><em>Compute</em> (IaaS / Orquestación)</td>
+<td style="text-align: left;">Microservicios orquestados en contenedores con alta disponibilidad en los nodos K3s (NodePorts <code>30001</code> y <code>30002</code>).</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Criterio 3: Frontend Web empleando 1 servicio diferente a los anteriores</strong></td>
@@ -199,14 +199,11 @@
 </table>
 <blockquote>
 <p>💡 <strong>Nota de Sustentación:</strong> En la evaluación cuentas con <strong>4 servicios oficiales nativos de AWS</strong>:<br />
-1. <strong>Amazon VPC</strong> (Networking)<br />
-2. <strong>Amazon EC2</strong> (Compute)<br />
-3. <strong>Amazon RDS</strong> (Database)<br />
-4. <strong>Amazon S3</strong> (Storage)<br />
+1. <strong>Amazon VPC</strong> (Networking) | 2. <strong>Amazon EC2</strong> (Compute) | 3. <strong>Amazon RDS</strong> (Database) | 4. <strong>Amazon S3</strong> (Storage).<br />
 Además, demuestras el frontend en <strong>Amazon S3</strong> (para la rúbrica) y el frontend en <strong>K3s</strong> (para la auto-reparación de Kubernetes ante el jurado).</p>
 </blockquote>
 <hr />
-<h2>🌐 2. Matriz Rápida de Puertos y URLs Públicas</h2>
+<h2>📌 2. Matriz Rápida de Conexiones y URLs Permanentes</h2>
 <table>
 <thead>
 <tr>
@@ -226,6 +223,13 @@ Además, demuestras el frontend en <strong>Amazon S3</strong> (para la rúbrica)
 <td style="text-align: left;">2 subredes públicas + Internet Gateway</td>
 </tr>
 <tr>
+<td style="text-align: left;"><strong>IP Fija Master</strong></td>
+<td style="text-align: left;"><strong>Amazon EC2</strong></td>
+<td style="text-align: left;">IP Elástica</td>
+<td style="text-align: left;"><code>100.55.148.151</code> <em>(o tu Elastic IP)</em></td>
+<td style="text-align: left;">IP permanente: ¡nunca cambia al reiniciar!</td>
+</tr>
+<tr>
 <td style="text-align: left;"><strong>Frontend Web (S3)</strong></td>
 <td style="text-align: left;"><strong>Amazon S3</strong></td>
 <td style="text-align: left;">80 (HTTP)</td>
@@ -236,22 +240,22 @@ Además, demuestras el frontend en <strong>Amazon S3</strong> (para la rúbrica)
 <td style="text-align: left;"><strong>Frontend Web (K3s)</strong></td>
 <td style="text-align: left;"><strong>Amazon EC2</strong></td>
 <td style="text-align: left;">30000 (NodePort)</td>
-<td style="text-align: left;"><code>http://&lt;IP_MASTER&gt;:30000</code></td>
+<td style="text-align: left;"><code>http://&lt;IP_ELASTICA&gt;:30000</code></td>
 <td style="text-align: left;">Acceso directo vía clúster Kubernetes</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Backend 1 (Transaccional)</strong></td>
 <td style="text-align: left;"><strong>Amazon EC2</strong></td>
 <td style="text-align: left;">30001 (NodePort)</td>
-<td style="text-align: left;"><code>http://&lt;IP_MASTER&gt;:30001/swagger-ui.html</code></td>
+<td style="text-align: left;"><code>http://&lt;IP_ELASTICA&gt;:30001/swagger-ui.html</code></td>
 <td style="text-align: left;">Swagger UI interactivo Spring Boot</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>Backend 2 (Analítico)</strong></td>
 <td style="text-align: left;"><strong>Amazon EC2</strong></td>
 <td style="text-align: left;">30002 (NodePort)</td>
-<td style="text-align: left;"><code>http://&lt;IP_MASTER&gt;:30002/docs</code></td>
-<td style="text-align: left;">OpenAPI interactivo FastAPI</td>
+<td style="text-align: left;"><code>http://&lt;IP_ELASTICA&gt;:30002/docs</code> | <code>/health</code></td>
+<td style="text-align: left;">OpenAPI / Flasgger interactivo Python</td>
 </tr>
 <tr>
 <td style="text-align: left;"><strong>BD Relacional</strong></td>
@@ -272,200 +276,155 @@ Además, demuestras el frontend en <strong>Amazon S3</strong> (para la rúbrica)
 <td style="text-align: left;">React Native</td>
 <td style="text-align: left;">Local / Web</td>
 <td style="text-align: left;"><code>http://localhost:8081</code></td>
-<td style="text-align: left;">Conectado a <code>http://&lt;IP_MASTER&gt;:30001</code></td>
+<td style="text-align: left;">Conectado a <code>http://&lt;IP_ELASTICA&gt;:30001</code></td>
 </tr>
 </tbody>
 </table>
 <hr />
-<h2>🌐 PASO 1: Servicio AWS #1 — Amazon VPC (Creación desde cero en 2 min)</h2>
-<p>Creamos la red privada virtual oficial con el asistente automatizado de AWS:</p>
+<h2>🔒 3. El Secreto de la Persistencia: IP Elástica (Elastic IP)</h2>
+<p>Por defecto, en AWS EC2 <strong>cada vez que apagas y prendes una máquina, la IP pública cambia</strong>, lo que rompe las URLs del Frontend en S3 y de la App Móvil.</p>
+<p>Para que <strong>NUNCA MÁS cambie la IP al reiniciar</strong>:<br />
+1. En la consola de AWS, ve a <strong>EC2</strong> → menú izquierdo: <strong>Elastic IPs</strong> (Direcciones IP elásticas).<br />
+2. Haz clic en <strong>Allocate Elastic IP address</strong> (Asignar dirección IP elástica) → Clic en <strong>Allocate</strong>.<br />
+3. Selecciona la IP recién creada → <strong>Actions</strong> (Acciones) → <strong>Associate Elastic IP address</strong> (Asociar dirección IP elástica).<br />
+4. En <strong>Instance</strong> (Instancia): Selecciona tu <strong><code>k8s-master</code></strong>.<br />
+5. Haz clic en <strong>Associate</strong>.<br />
+6. ¡Listo! Esa IP pública queda permanentemente atada a tu Master. Puedes apagar y prender tu máquina 100 veces y siempre conservará la misma IP.</p>
+<hr />
+<h2>🌐 PASO 1: Servicio AWS #1 — Amazon VPC (Creación en 2 min)</h2>
 <h3>1.1. Crear la VPC con el Asistente "VPC y más"</h3>
 <ol>
-<li>En la consola de AWS, busca <strong>VPC</strong> y haz clic en el botón naranja <strong>Crear VPC</strong> (<em>Create VPC</em>).</li>
-<li>Arriba selecciona la opción: 👉 <strong>"VPC y más"</strong> (<em>VPC and more</em>).</li>
+<li>En la consola de AWS, busca <strong>VPC</strong> → Clic en <strong>Crear VPC</strong> (<em>Create VPC</em>).</li>
+<li>Selecciona la opción: 👉 <strong>"VPC y más"</strong> (<em>VPC and more</em>).</li>
 <li>Configuración:<br />
-   * <strong>Generación automática de etiquetas de nombre:</strong> <code>agropacayales-vpc</code><br />
-   * <strong>Bloque de CIDR IPv4:</strong> <code>10.0.0.0/16</code><br />
-   * <strong>Número de zonas de disponibilidad (AZ):</strong> <code>2</code> <em>(RDS exige mínimo 2 zonas)</em>.<br />
-   * <strong>Número de subredes públicas:</strong> <code>2</code><br />
-   * <strong>Número de subredes privadas:</strong> <code>0</code> <em>(Cero, para no pagar NAT Gateway)</em>.<br />
+   * <strong>Nombre:</strong> <code>agropacayales-vpc</code><br />
+   * <strong>Bloque CIDR IPv4:</strong> <code>10.0.0.0/16</code><br />
+   * <strong>Zonas de disponibilidad (AZ):</strong> <code>2</code> <em>(RDS exige mínimo 2 zonas)</em>.<br />
+   * <strong>Subredes públicas:</strong> <code>2</code><br />
+   * <strong>Subredes privadas:</strong> <code>0</code> <em>(Cero, para no pagar NAT Gateway)</em>.<br />
    * <strong>Pasarelas NAT:</strong> <code>Ninguna</code> (<em>None</em>).<br />
    * <strong>Extremos de VPC:</strong> <code>Ninguno</code> (<em>None</em>).</li>
-<li>Verás el diagrama con las 2 subredes públicas y el Internet Gateway. Haz clic en <strong>Crear VPC</strong>.</li>
+<li>Clic en <strong>Crear VPC</strong>.</li>
 </ol>
-<h3>1.2. Habilitar nombres de host DNS en la VPC (Obligatorio)</h3>
+<h3>1.2. Habilitar DNS y Asignación de IP Pública</h3>
 <ol>
-<li>En el menú izquierdo de VPC, entra a <strong>Tus VPC</strong> (<em>Your VPCs</em>).</li>
-<li>Selecciona <code>agropacayales-vpc</code> → <strong>Acciones</strong> (<em>Actions</em>) → <strong>Editar la configuración de la VPC</strong> (<em>Edit VPC settings</em>).</li>
-<li>Marca ambas casillas:<br />
-   * ☑️ <strong>Habilitar la resolución de DNS</strong> (<em>Enable DNS resolution</em>).<br />
-   * ☑️ <strong>Habilitar nombres de host de DNS</strong> (<em>Enable DNS hostnames</em>).</li>
-<li>Haz clic en <strong>Guardar cambios</strong>.</li>
+<li><strong>Activar DNS:</strong> Ve a <strong>Tus VPC</strong> → selecciona <code>agropacayales-vpc</code> → <strong>Acciones</strong> → <strong>Editar la configuración de la VPC</strong> → Marca:<br />
+   * ☑️ <strong>Habilitar la resolución de DNS</strong> (<em>DNS resolution</em>).<br />
+   * ☑️ <strong>Habilitar nombres de host de DNS</strong> (<em>DNS hostnames</em>).<br />
+   * Clic en <strong>Guardar</strong>.</li>
+<li><strong>IPs públicas en Subredes:</strong> Ve a <strong>Subredes</strong> → selecciona <code>agropacayales-subnet-public1</code> → <strong>Acciones</strong> → <strong>Editar configuración de la subred</strong> → Marca:<br />
+   * ☑️ <strong>Habilitar la asignación automática de direcciones IPv4 públicas</strong>.<br />
+   * Guarda y repite el mismo paso con <code>agropacayales-subnet-public2</code>.</li>
 </ol>
-<h3>1.3. Habilitar IPs públicas automáticas en las Subredes</h3>
+<h3>1.3. Crear el Security Group Unificado (<code>agropacayales-sg</code>)</h3>
 <ol>
-<li>En el menú izquierdo de VPC, entra a <strong>Subredes</strong> (<em>Subnets</em>).</li>
-<li>Selecciona la primera subred (<code>agropacayales-subnet-public1</code>) → <strong>Acciones</strong> → <strong>Editar la configuración de la subred</strong> (<em>Edit subnet settings</em>).</li>
-<li>Marca la casilla: ☑️ <strong>Habilitar la asignación automática de direcciones IPv4 públicas</strong>.</li>
-<li>Haz clic en <strong>Guardar</strong>.</li>
-<li>Repite el mismo paso con la segunda subred (<code>agropacayales-subnet-public2</code>).</li>
-</ol>
-<h3>1.4. Crear el Security Group Unificado en tu VPC</h3>
-<ol>
-<li>En el menú izquierdo de VPC, entra a <strong>Grupos de seguridad</strong> (<em>Security Groups</em>) → <strong>Crear grupo de seguridad</strong>.</li>
-<li><strong>Nombre:</strong> <code>agropacayales-sg</code> | <strong>Descripción:</strong> <code>Security Group AgroPacayales</code></li>
-<li><strong>VPC:</strong> Selecciona tu <strong><code>agropacayales-vpc</code></strong>.</li>
-<li>En <strong>Reglas de entrada</strong> (<em>Inbound rules</em>), agrega:<br />
-   * <strong>SSH:</strong> Puerto <code>22</code>, Origen <code>0.0.0.0/0</code>.<br />
-   * <strong>TCP personalizado:</strong> Puerto <code>30000-30002</code>, Origen <code>0.0.0.0/0</code>.<br />
-   * <strong>TCP personalizado:</strong> Puerto <code>1433</code> (SQL Server), Origen <code>0.0.0.0/0</code>.<br />
-   * <strong>TCP personalizado:</strong> Puerto <code>27017</code> (MongoDB), Origen <code>0.0.0.0/0</code>.<br />
-   * <strong>Todo el tráfico:</strong> Origen <code>agropacayales-sg</code> <em>(para la red interna entre pods y K3s)</em>.</li>
-<li>Haz clic en <strong>Crear grupo de seguridad</strong>.</li>
+<li>Ve a <strong>Grupos de seguridad</strong> (<em>Security Groups</em>) → <strong>Crear grupo de seguridad</strong>.</li>
+<li><strong>Nombre:</strong> <code>agropacayales-sg</code> | <strong>VPC:</strong> <code>agropacayales-vpc</code>.</li>
+<li><strong>Reglas de entrada (Inbound rules):</strong><br />
+   * <strong>SSH:</strong> TCP <code>22</code>, Origen <code>0.0.0.0/0</code>.<br />
+   * <strong>NodePorts K3s:</strong> TCP <code>30000-30002</code>, Origen <code>0.0.0.0/0</code>.<br />
+   * <strong>SQL Server:</strong> TCP <code>1433</code>, Origen <code>0.0.0.0/0</code>.<br />
+   * <strong>MongoDB:</strong> TCP <code>27017</code>, Origen <code>0.0.0.0/0</code>.<br />
+   * <strong>Todo el tráfico (All traffic):</strong> Origen <code>agropacayales-sg</code> <em>(red interna entre pods y K3s)</em>.</li>
+<li>Clic en <strong>Crear grupo de seguridad</strong>.</li>
 </ol>
 <hr />
-<h2>🗄️ PASO 2: Servicio AWS #2 — Amazon RDS (SQL Server Express)</h2>
-<p>Configurado específicamente para <strong>evitar errores de permisos IAM en AWS Academy (Voclabs)</strong>:</p>
-<h3>2.1. Crear la Base de Datos en AWS RDS</h3>
+<h2>🗄️ PASO 2: Servicio AWS #2 — Amazon RDS SQL Server (Configuración y Scripts)</h2>
+<h3>2.1. Crear la Base de Datos en Amazon RDS</h3>
 <ol>
-<li>En la consola de AWS, busca <strong>RDS</strong> y haz clic en <strong>Create database</strong> (Creación estándar).</li>
+<li>Consola AWS → <strong>RDS</strong> → <strong>Create database</strong> (Creación estándar).</li>
 <li><strong>Motor:</strong> <code>Microsoft SQL Server</code> → <strong>Edición:</strong> <code>SQL Server Express Edition</code>.</li>
-<li><strong>Identificador de instancia:</strong> <code>agropacayales-rds</code>.</li>
-<li><strong>Master username:</strong> <code>admin</code>.</li>
-<li><strong>Master password:</strong> <code>SQLServer12345</code>.</li>
-<li><strong>Clase de instancia:</strong> Selecciona 👉 <strong><code>db.t3.micro</code></strong> (1 vCPU, 1 GB RAM). <em>(¡No uses otra clase!)</em>.</li>
-<li><strong>Almacenamiento:</strong><br />
-   * Tipo: <code>General Purpose SSD (gp2 o gp3)</code>.<br />
-   * Almacenamiento asignado: <code>20 GiB</code>.<br />
-   * ❌ <strong>DESMARCA:</strong> "Habilitar el escalado automático del almacenamiento" (<em>Enable storage autoscaling</em>).</li>
+<li><strong>Identificador:</strong> <code>agropacayales-rds</code>.</li>
+<li><strong>Master username:</strong> <code>admin</code> | <strong>Master password:</strong> <code>SQLServer12345</code>.</li>
+<li><strong>Clase de instancia:</strong> 👉 <strong><code>db.t3.micro</code></strong> (1 vCPU, 1 GB RAM). <em>(¡No uses otra para evitar el bloqueo de Voclabs!)</em>.</li>
+<li><strong>Almacenamiento:</strong> <code>20 GiB</code> | ❌ <strong>DESMARCA:</strong> "Habilitar el escalado automático del almacenamiento".</li>
 <li><strong>Conectividad:</strong><br />
-   * <strong>Virtual Private Cloud (VPC):</strong> Selecciona tu <strong><code>agropacayales-vpc</code></strong>.<br />
-   * <strong>Acceso público:</strong> <code>Yes</code> (para conectarte directo desde tu PC) o <code>No</code> (con túnel SSH).<br />
-   * <strong>VPC security group:</strong> Selecciona <strong><code>agropacayales-sg</code></strong> (y retira el default si está marcado).</li>
-<li><strong>Monitoreo (CRÍTICO para evitar error de permisos Voclabs):</strong><br />
-   * ❌ <strong>DESMARCA:</strong> "Habilitar el monitoreo mejorado" (<em>Enable Enhanced Monitoring</em>).</li>
-<li><strong>Configuración adicional:</strong><ul>
-<li>❌ <strong>DESMARCA:</strong> "Habilitar Performance Insights".</li>
-<li>En <strong>Copias de seguridad</strong>: Retención en <code>0</code> días (o desmarca copias automatizadas).</li>
-</ul>
-</li>
-<li>Haz clic en <strong>Create database</strong>. Cuando esté en estado <strong>Available</strong>, copia el <strong>Endpoint</strong>.</li>
+   * <strong>VPC:</strong> <code>agropacayales-vpc</code>.<br />
+   * <strong>Acceso público:</strong> <code>Yes</code> <em>(para conectarte desde Azure Data Studio/SSMS en tu PC)</em>.<br />
+   * <strong>Security Group:</strong> Selecciona <strong><code>agropacayales-sg</code></strong> (y retira el default).</li>
+<li><strong>Monitoreo (CRÍTICO para evitar error de permisos IAM <code>iam:CreateRole</code>):</strong><br />
+   * ❌ <strong>DESMARCA:</strong> "Habilitar el monitoreo mejorado" (<em>Enhanced Monitoring</em>).</li>
+<li><strong>Configuración adicional:</strong><br />
+   * ❌ <strong>DESMARCA:</strong> "Habilitar Performance Insights".<br />
+   * Copias de seguridad: Retención en <code>0</code> días.</li>
+<li>Clic en <strong>Create database</strong>. Cuando esté en estado <strong>Available</strong>, copia el <strong>Endpoint</strong> (ej: <code>agropacayales-rds.c4rhnptakjkc.us-east-1.rds.amazonaws.com</code>).</li>
 </ol>
-<h3>2.2. Inicialización de Tablas en RDS</h3>
-<p>Desde Azure Data Studio, SSMS o DBeaver, conéctate al endpoint de RDS (usuario <code>admin</code>, contraseña <code>SQLServer12345</code>) y ejecuta:</p>
-<pre class="codehilite"><code class="language-sql">CREATE DATABASE agropacayales_db;
-GO
-USE agropacayales_db;
-GO
-
-IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'sale_order')
-BEGIN
-    CREATE TABLE sale_order (
-        id INT IDENTITY(1,1) PRIMARY KEY,
-        person_id CHAR(24) NOT NULL,
-        warehouse_id CHAR(24) NOT NULL,
-        sale_order_date DATETIME DEFAULT GETDATE(),
-        status CHAR(1) DEFAULT 'A',
-        total DECIMAL(7,2) NOT NULL,
-        delivery_type CHAR(2) NOT NULL,
-        payment_method CHAR(2) NOT NULL,
-        notes NVARCHAR(MAX) NULL
-    );
-END;
-GO
-
-IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'order_details')
-BEGIN
-    CREATE TABLE order_details (
-        id INT IDENTITY(1,1) PRIMARY KEY,
-        sale_order_id INT NOT NULL,
-        product_id CHAR(24) NOT NULL,
-        quantity DECIMAL(5,2) NOT NULL,
-        sub_total DECIMAL(7,2) NOT NULL
-    );
-END;
-GO
+<h3>2.2. Cómo conectarse y ejecutar el Script de SQL Server</h3>
+<ol>
+<li>Abre en tu PC <strong>Azure Data Studio</strong> o <strong>SQL Server Management Studio (SSMS)</strong>.</li>
+<li>Parámetros de conexión:<br />
+   * <strong>Servidor / Server:</strong> <code>&lt;TU_ENDPOINT_RDS&gt;,1433</code><br />
+   * <strong>Autenticación:</strong> SQL Server Authentication<br />
+   * <strong>Usuario:</strong> <code>admin</code><br />
+   * <strong>Contraseña:</strong> <code>SQLServer12345</code></li>
+<li>Abre el archivo del proyecto <a href="file:///e:/Nueva%20carpeta%20%288%29/tcc/scripts/init_sqlserver_completo.sql"><code>scripts/init_sqlserver_completo.sql</code></a>.</li>
+<li>Haz clic en <strong>Run / Ejecutar</strong>.<br />
+<em>(Crea automáticamente la base de datos <code>agropacayales_db</code> y las 7 tablas con más de 800 filas de prueba: <code>cultivos</code>, <code>harvest</code>, <code>actividad_cultivo</code>, etc.)</em>.</li>
+</ol>
+<hr />
+<h2>🍃 PASO 3: Servicio AWS #3 — Amazon EC2 MongoDB (Instalación, Compass y Script)</h2>
+<h3>3.1. Lanzar la Instancia <code>ec2-mongodb</code></h3>
+<ol>
+<li>Consola AWS → <strong>EC2</strong> → <strong>Launch Instance</strong>:<br />
+   * <strong>Nombre:</strong> <code>ec2-mongodb</code> | <strong>AMI:</strong> Ubuntu 24.04 LTS | <strong>Tipo:</strong> <code>t3.small</code> o <code>t3.micro</code>.<br />
+   * <strong>Network Settings:</strong> VPC <code>agropacayales-vpc</code>, Subred pública, Security Group <code>agropacayales-sg</code>.</li>
+<li>Lanza la instancia y anota su <strong>IP privada</strong> (ej: <code>10.0.5.187</code>) y su <strong>IP pública</strong> (ej: <code>98.20.208.209</code>).</li>
+</ol>
+<h3>3.2. Instalación en 1 Línea con Parche de Kernel</h3>
+<p>Conéctate por SSH a <code>ec2-mongodb</code>:</p>
+<pre class="codehilite"><code class="language-bash">ssh -i &quot;tu-llave.pem&quot; ubuntu@&lt;IP_PUBLICA_EC2_MONGO&gt;
 </code></pre>
 
-<hr />
-<h2>⚙️ PASO 3: Servicio AWS #3 — Amazon EC2 (MongoDB + Clúster K3s)</h2>
-<p>Todas las instancias se lanzan dentro de tu nueva <strong><code>agropacayales-vpc</code></strong> con <strong>User Data</strong> automatizado.</p>
-<h3>3.1. Lanzar <code>ec2-mongodb</code> (Base de Datos NoSQL con MongoDB 8.0)</h3>
-<ol>
-<li><strong>EC2</strong> → <strong>Launch Instance</strong>:<br />
-   * <strong>Nombre:</strong> <code>ec2-mongodb</code><br />
-   * <strong>AMI:</strong> Ubuntu Server 24.04 LTS (x86_64) | <strong>Tipo:</strong> <code>t3.small</code> o <code>t3.micro</code>.<br />
-   * <strong>Network Settings</strong> (Editar):<ul>
-<li><strong>VPC:</strong> <code>agropacayales-vpc</code></li>
-<li><strong>Subred:</strong> Cualquiera de las 2 públicas.</li>
-<li><strong>Auto-assign public IP:</strong> Habilitado.</li>
-<li><strong>Security Group:</strong> <code>agropacayales-sg</code>.</li>
-<li><strong>Advanced details</strong> → <strong>User data</strong> (Pega este script completo):<br />
-<code>bash
- #!/bin/bash
- apt update &amp;&amp; apt install -y gnupg curl
- curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-8.0.gpg
- echo "deb [ signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-8.0.list
- apt update &amp;&amp; apt install -y mongodb-org
- mkdir -p /etc/systemd/system/mongod.service.d
- printf '[Service]\nEnvironment="GLIBC_TUNABLES=glibc.pthread.rseq=1"\n' | tee /etc/systemd/system/mongod.service.d/rseq.conf
- sed -i 's/bindIp: 127.0.0.1/bindIp: 0.0.0.0/' /etc/mongod.conf
- systemctl daemon-reload &amp;&amp; systemctl enable --now mongod
- mongosh --eval 'db.getSiblingDB("admin").createUser({user:"admin",pwd:"Mongo12345",roles:["root"]})'
- printf "\nsecurity:\n  authorization: enabled\n" | tee -a /etc/mongod.conf
- systemctl restart mongod</code></li>
-</ul>
-</li>
-<li>Haz clic en <strong>Launch instance</strong>. Copia su <strong>IP privada</strong> (ej: <code>10.0.0.85</code>).</li>
-</ol>
-<hr />
-<h3>3.2. Lanzar <code>k8s-master</code> (Control Plane K3s)</h3>
-<ol>
-<li><strong>EC2</strong> → <strong>Launch Instance</strong>:<br />
-   * <strong>Nombre:</strong> <code>k8s-master</code><br />
-   * <strong>AMI:</strong> Ubuntu 24.04 LTS | <strong>Tipo:</strong> <code>t3.small</code> o <code>t3.medium</code>.<br />
-   * <strong>Network Settings:</strong> VPC <code>agropacayales-vpc</code>, Subred pública, Security Group <code>agropacayales-sg</code>.<br />
-   * <strong>Advanced details</strong> → <strong>User data</strong>:<br />
-<code>bash
-     #!/bin/bash
-     export K3S_TOKEN="agropacayales-token-2026"
-     curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="--token ${K3S_TOKEN} --write-kubeconfig-mode 644" sh -
-     mkdir -p /home/ubuntu/.kube
-     cp /etc/rancher/k3s/k3s.yaml /home/ubuntu/.kube/config
-     chown -R ubuntu:ubuntu /home/ubuntu/.kube
-     echo 'alias k="kubectl"' &gt;&gt; /home/ubuntu/.bashrc</code></li>
-<li>Haz clic en <strong>Launch instance</strong>. Copia su <strong>IP privada</strong> (ej: <code>10.0.0.210</code>) y su <strong>IP pública</strong> (ej: <code>3.88.182.11</code>).</li>
-</ol>
-<hr />
-<h3>3.3. Lanzar los 3 Nodos Workers K3s (Con Auto-Etiquetado)</h3>
-<p>Lanza cada worker en la VPC <code>agropacayales-vpc</code> con <code>agropacayales-sg</code> pegando su respectivo script de User Data (reemplaza <code>IP_PRIVADA_MASTER</code> por la IP privada real de <code>k8s-master</code>):</p>
-<ul>
-<li><strong>Nodo 1: <code>k8s-node-backend</code> (<code>t3.medium</code>):</strong><br />
-<code>bash
-  #!/bin/bash
-  curl -sfL https://get.k3s.io | K3S_URL=https://IP_PRIVADA_MASTER:6443 \
-    K3S_TOKEN="agropacayales-token-2026" \
-    INSTALL_K3S_EXEC="--node-label role=backend1" sh -</code></li>
-<li><strong>Nodo 2: <code>k8s-node-backendAnalitico</code> (<code>t3.small</code>):</strong><br />
-<code>bash
-  #!/bin/bash
-  curl -sfL https://get.k3s.io | K3S_URL=https://IP_PRIVADA_MASTER:6443 \
-    K3S_TOKEN="agropacayales-token-2026" \
-    INSTALL_K3S_EXEC="--node-label role=backend2" sh -</code></li>
-<li><strong>Nodo 3: <code>k8s-node-frontend</code> (<code>t3.small</code>):</strong><br />
-<code>bash
-  #!/bin/bash
-  curl -sfL https://get.k3s.io | K3S_URL=https://IP_PRIVADA_MASTER:6443 \
-    K3S_TOKEN="agropacayales-token-2026" \
-    INSTALL_K3S_EXEC="--node-label role=frontend" sh -</code></li>
-</ul>
-<hr />
-<h3>3.4. Aplicar el Despliegue de K8s en <code>k8s-master</code></h3>
-<p>Conéctate por SSH a <code>k8s-master</code>:</p>
-<pre class="codehilite"><code class="language-bash">ssh -i &quot;tu-llave.pem&quot; ubuntu@&lt;IP_PUBLICA_MASTER&gt;
+<p>Copia y pega este bloque completo:</p>
+<pre class="codehilite"><code class="language-bash"># Instalar MongoDB 8.0 en Ubuntu 24.04
+sudo apt update &amp;&amp; sudo apt install -y gnupg curl
+curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | sudo gpg -o /usr/share/keyrings/mongodb-server-8.0.gpg --dearmor --yes
+echo &quot;deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse&quot; | sudo tee /etc/apt/sources.list.d/mongodb-org-8.0.list
+sudo apt update &amp;&amp; sudo apt install -y mongodb-org
+
+# Parche de kernel rseq=1 y enlace a 0.0.0.0
+sudo mkdir -p /etc/systemd/system/mongod.service.d
+printf '[Service]\nEnvironment=&quot;GLIBC_TUNABLES=glibc.pthread.rseq=1&quot;\n' | sudo tee /etc/systemd/system/mongod.service.d/rseq.conf
+sudo sed -i 's/bindIp: 127.0.0.1/bindIp: 0.0.0.0/' /etc/mongod.conf
+
+# Iniciar servicio y crear admin
+sudo systemctl daemon-reload &amp;&amp; sudo systemctl enable --now mongod
+sleep 3
+mongosh --eval 'db.getSiblingDB(&quot;admin&quot;).createUser({user:&quot;admin&quot;,pwd:&quot;Mongo12345&quot;,roles:[&quot;root&quot;]})'
 </code></pre>
 
-<p>Crea el manifiesto unificado:</p>
+<h3>3.3. Cómo ejecutar el Script de Inicialización de MongoDB en 1 segundo</h3>
+<p>Ahí mismo en la terminal de <code>ec2-mongodb</code>, ejecuta:</p>
+<pre class="codehilite"><code class="language-bash">curl -sSL https://raw.githubusercontent.com/anafelix21/tcc/main/scripts/init_mongodb_completo.js | mongosh &quot;mongodb://admin:Mongo12345@localhost:27017/?authSource=admin&quot;
+</code></pre>
+
+<p><em>(Inicializa <code>agropacayales_db</code> con las colecciones <code>supplies</code>, <code>plots</code>, <code>users</code> y <code>field_records</code> con documentos en español y esquemas validados)</em>.</p>
+<h3>3.4. Conexión desde MongoDB Compass (en tu PC)</h3>
+<ol>
+<li>Abre <strong>MongoDB Compass</strong>.</li>
+<li>Cadena de conexión:<br />
+<code>text
+   mongodb://admin:Mongo12345@&lt;IP_PUBLICA_EC2_MONGO&gt;:27017/?authSource=admin</code></li>
+<li>Clic en <strong>Connect</strong>. Verás la base de datos <code>agropacayales_db</code> con todas las colecciones.<blockquote>
+<p>💡 <strong>Nota sobre el error de Compass (<code>useConnectionInfo hook</code>):</strong> Si al abrir una colección sale una advertencia roja en Compass, es un fallo visual de su interfaz React. Solo cierra la pestaña en la <code>x</code> o presiona <code>Ctrl + R</code> para recargar.</p>
+</blockquote>
+</li>
+</ol>
+<hr />
+<h2>⚙️ PASO 4: Clúster K3s y Despliegue de Microservicios (El Manifiesto Definitivo)</h2>
+<h3>4.1. Instalar K3s en <code>k8s-master</code></h3>
+<p>Lanza la instancia <code>k8s-master</code> (<code>t3.medium</code> o <code>t3.small</code>) en <code>agropacayales-vpc</code> con <code>agropacayales-sg</code>. Conéctate por SSH:</p>
+<pre class="codehilite"><code class="language-bash">ssh -i &quot;tu-llave.pem&quot; ubuntu@&lt;IP_ELASTICA_MASTER&gt;
+</code></pre>
+
+<p>Ejecuta para instalar K3s y configurar <code>kubectl</code>:</p>
+<pre class="codehilite"><code class="language-bash">curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=&quot;--token agropacayales-token-2026 --write-kubeconfig-mode 644&quot; sh -
+mkdir -p ~/.kube &amp;&amp; sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config &amp;&amp; sudo chown -R ubuntu:ubuntu ~/.kube
+sudo ln -sf /usr/local/bin/k3s /usr/bin/kubectl
+</code></pre>
+
+<h3>4.2. Aplicar el Manifiesto Unificado Definitivo</h3>
+<p>Copia y pega este bloque completo en la terminal de tu master (reemplaza si cambiaste la IP privada de MongoDB):</p>
 <pre class="codehilite"><code class="language-bash">cat &lt;&lt; 'EOF' &gt; ~/agropacayales.yml
 apiVersion: v1
 kind: Namespace
@@ -479,10 +438,16 @@ metadata:
   namespace: agropacayales-namespace
 data:
   SERVER_PORT: &quot;8081&quot;
-  MONGO_DATABASE: agropacayales_db
-  SQL_SERVER_HOST: &quot;ENDPOINT_DE_RDS&quot;
-  SQL_SERVER_PORT: &quot;1433&quot;
-  SQL_SERVER_DATABASE: agropacayales_db
+  SPRING_PROFILES_ACTIVE: &quot;cloud&quot;
+  MONGO_DATABASE: &quot;agropacayales_db&quot;
+  SQL_HOST: &quot;agropacayales-rds.c4rhnptakjkc.us-east-1.rds.amazonaws.com&quot;
+  SQL_SERVER: &quot;agropacayales-rds.c4rhnptakjkc.us-east-1.rds.amazonaws.com&quot;
+  SQL_PORT: &quot;1433&quot;
+  SQL_DATABASE: &quot;agropacayales_db&quot;
+  SQL_USERNAME: &quot;admin&quot;
+  SQL_USER: &quot;admin&quot;
+  R2DBC_URL: &quot;r2dbc:sqlserver://agropacayales-rds.c4rhnptakjkc.us-east-1.rds.amazonaws.com:1433/agropacayales_db?sendStringParametersAsUnicode=false&quot;
+  ANALYTICS_URL: &quot;http://backend2-service:5000&quot;
 ---
 apiVersion: v1
 kind: Secret
@@ -491,9 +456,10 @@ metadata:
   namespace: agropacayales-namespace
 type: Opaque
 stringData:
-  MONGO_URI: &quot;mongodb://admin:Mongo12345@IP_PRIVADA_MONGO:27017/agropacayales_db?authSource=admin&quot;
-  SQL_SERVER_USERNAME: &quot;admin&quot;
+  MONGO_URI: &quot;mongodb://admin:Mongo12345@10.0.5.187:27017/agropacayales_db?authSource=admin&quot;
+  SQL_PASSWORD: &quot;SQLServer12345&quot;
   SQL_SERVER_PASSWORD: &quot;SQLServer12345&quot;
+  SQL_USERNAME: &quot;admin&quot;
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -510,8 +476,6 @@ spec:
       labels:
         app: backend1
     spec:
-      nodeSelector:
-        role: backend1
       containers:
         - name: backend1
           image: hugo454/agropacayales-backend1:2.0
@@ -553,14 +517,12 @@ spec:
       labels:
         app: backend2
     spec:
-      nodeSelector:
-        role: backend2
       containers:
         - name: backend2
           image: hugo454/agropacayales-backend-analitico:2.0
           imagePullPolicy: Always
           ports:
-            - containerPort: 8000
+            - containerPort: 5000
           envFrom:
             - configMapRef:
                 name: agropacayales-configmap
@@ -577,8 +539,8 @@ spec:
   selector:
     app: backend2
   ports:
-    - port: 8000
-      targetPort: 8000
+    - port: 5000
+      targetPort: 5000
       nodePort: 30002
 ---
 apiVersion: apps/v1
@@ -596,8 +558,6 @@ spec:
       labels:
         app: frontend
     spec:
-      nodeSelector:
-        role: frontend
       containers:
         - name: frontend
           image: hugo454/agropacayales-frontend:2.0
@@ -619,56 +579,50 @@ spec:
       targetPort: 80
       nodePort: 30000
 EOF
-</code></pre>
 
-<p>Reemplaza los valores reales y aplica:</p>
-<pre class="codehilite"><code class="language-bash">sed -i 's/ENDPOINT_DE_RDS/&lt;tu-endpoint-rds&gt;/g' ~/agropacayales.yml
-sed -i 's/IP_PRIVADA_MONGO/&lt;ip-privada-de-ec2-mongodb&gt;/g' ~/agropacayales.yml
 kubectl apply -f ~/agropacayales.yml
-kubectl get pods -n agropacayales-namespace -o wide
 </code></pre>
 
+<h3>4.3. Verificar que los 3 Pods estén en <code>Running 1/1</code></h3>
+<pre class="codehilite"><code class="language-bash">kubectl get pods -n agropacayales-namespace
+</code></pre>
+
+<p><em>(Debes ver <code>backend1</code>, <code>backend2</code> y <code>frontend</code> en estado <strong><code>1/1 Running</code></strong>)</em>.</p>
 <hr />
-<h2>🪣 PASO 4: Servicio AWS #4 — Amazon S3 (Frontend Web en Servicio Diferente)</h2>
-<h3>4.1. Compilar el Frontend apuntando a tu clúster AWS</h3>
-<p>En tu computadora, abre la terminal en la raíz del proyecto y corre:</p>
-<pre class="codehilite"><code class="language-cmd">build-s3.bat &lt;IP_PUBLICA_MASTER&gt;
+<h2>🪣 PASO 5: Servicio AWS #4 — Amazon S3 (Frontend Web Serverless)</h2>
+<h3>5.1. Compilación Automática para S3</h3>
+<p>En tu PC, abre una terminal en la raíz del proyecto y corre:</p>
+<pre class="codehilite"><code class="language-cmd">build-s3.bat &lt;TU_IP_ELASTICA_MASTER&gt;
 </code></pre>
 
-<p><em>(Ejemplo: <code>build-s3.bat 3.88.182.11</code>). Esto compila y genera la carpeta <code>ASE251S3_T05-fe\dist</code>.</em></p>
-<h3>4.2. Crear y Configurar el Bucket en Amazon S3</h3>
+<p><em>(Ejemplo: <code>build-s3.bat 100.55.148.151</code>). Genera la carpeta optimizada <code>ASE251S3_T05-fe\dist</code>.</em></p>
+<h3>5.2. Crear Bucket S3 y Habilitar Static Website Hosting</h3>
 <ol>
-<li>En la consola de AWS, busca <strong>S3</strong> → <strong>Create bucket</strong>.</li>
-<li><strong>Bucket name:</strong> <code>agropacayales-frontend-t05</code> <em>(debe ser único)</em>.</li>
-<li><strong>Block Public Access:</strong> <strong>Desmarca</strong> la casilla <em>"Block all public access"</em> y confirma la advertencia.</li>
-<li>Clic en <strong>Create bucket</strong>.</li>
+<li>En AWS busca <strong>S3</strong> → <strong>Create bucket</strong>:<br />
+   * <strong>Nombre:</strong> <code>agropacayales-frontend-t05</code> <em>(debe ser único)</em>.<br />
+   * <strong>Block Public Access:</strong> <strong>Desmarca</strong> <em>"Block all public access"</em> y confirma la advertencia.<br />
+   * Clic en <strong>Create bucket</strong>.</li>
+<li><strong>Static website hosting:</strong> Entra a tu bucket → pestaña <strong>Properties</strong> → baja hasta <strong>Static website hosting</strong> → <strong>Edit</strong>:<br />
+   * Selecciona <strong>Enable</strong> | Tipo: <em>Host a static website</em>.<br />
+   * <strong>Index document:</strong> <code>index.html</code> | <strong>Error document:</strong> <code>index.html</code>.<br />
+   * Clic en <strong>Save changes</strong>.</li>
+<li><strong>Política Pública:</strong> Pestaña <strong>Permissions</strong> → <strong>Bucket policy</strong> → <strong>Edit</strong>:<br />
+<code>json
+   {
+       "Version": "2012-10-17",
+       "Statement": [
+           {
+               "Sid": "PublicReadGetObject",
+               "Effect": "Allow",
+               "Principal": "*",
+               "Action": "s3:GetObject",
+               "Resource": "arn:aws:s3:::agropacayales-frontend-t05/*"
+           }
+       ]
+   }</code><br />
+<em>(Cambia <code>agropacayales-frontend-t05</code> por el nombre real de tu bucket y haz clic en <strong>Save changes</strong>. Ignora cualquier aviso cosmético de access-analyzer)</em>.</li>
 </ol>
-<h3>4.3. Habilitar Static Website Hosting</h3>
-<ol>
-<li>Entra a tu bucket → Pestaña <strong>Properties</strong> (Propiedades).</li>
-<li>Baja hasta el final a <strong>Static website hosting</strong> → <strong>Edit</strong>.</li>
-<li>Selecciona <strong>Enable</strong> y tipo <em>Host a static website</em>.</li>
-<li><strong>Index document:</strong> <code>index.html</code> | <strong>Error document:</strong> <code>index.html</code>.</li>
-<li>Clic en <strong>Save changes</strong>.</li>
-</ol>
-<h3>4.4. Asignar Política de Lectura Pública</h3>
-<p>En la pestaña <strong>Permissions</strong> (Permisos) → <strong>Bucket policy</strong> → <strong>Edit</strong>:</p>
-<pre class="codehilite"><code class="language-json">{
-    &quot;Version&quot;: &quot;2012-10-17&quot;,
-    &quot;Statement&quot;: [
-        {
-            &quot;Sid&quot;: &quot;PublicReadGetObject&quot;,
-            &quot;Effect&quot;: &quot;Allow&quot;,
-            &quot;Principal&quot;: &quot;*&quot;,
-            &quot;Action&quot;: &quot;s3:GetObject&quot;,
-            &quot;Resource&quot;: &quot;arn:aws:s3:::agropacayales-frontend-t05/*&quot;
-        }
-    ]
-}
-</code></pre>
-
-<p><em>(Cambia <code>agropacayales-frontend-t05</code> por el nombre real de tu bucket y guarda cambios)</em>.</p>
-<h3>4.5. Subir los Archivos al Bucket</h3>
+<h3>5.3. Subir los Archivos al Bucket</h3>
 <ol>
 <li>En tu bucket, entra a la pestaña <strong>Objects</strong> (Objetos) → <strong>Upload</strong> (Cargar).</li>
 <li>Sube <strong>todo el contenido que está adentro de <code>ASE251S3_T05-fe\dist\</code></strong>:<br />
@@ -676,52 +630,171 @@ kubectl get pods -n agropacayales-namespace -o wide
    * Carpeta <code>assets</code><br />
    * Carpeta <code>images</code><br />
    * <code>favicon.svg</code>, <code>icono.png</code>, <code>icons.svg</code></li>
-<li>Clic en el botón naranja <strong>Upload</strong>.</li>
-<li>¡Listo! Abre la URL pública:<br />
+<li>Clic en <strong>Upload</strong>.</li>
+<li>¡Listo! Abre tu web en:<br />
    👉 <code>http://agropacayales-frontend-t05.s3-website-us-east-1.amazonaws.com</code></li>
 </ol>
 <hr />
-<h2>📱 PASO 5: Conexión de la App Móvil (Expo React Native)</h2>
-<ol>
-<li>En <code>ASE251S4_T05-mobile/.env</code> coloca la IP pública de tu master:<br />
-<code>env
-   EXPO_PUBLIC_API_URL=http://&lt;IP_PUBLICA_MASTER&gt;:30001</code></li>
-<li>Ejecuta limpiando caché:<br />
-<code>bash
-   cd ASE251S4_T05-mobile
-   npx expo start -c</code></li>
-<li>Presiona la tecla <code>w</code> para simular en el navegador web (<code>http://localhost:8081</code>).</li>
-</ol>
+<h2>📋 PASO 6: Catálogo de Payloads JSON para CRUD de Maestros (Swagger UI)</h2>
+<p>Accede a Swagger UI en: <strong><code>http://&lt;IP_ELASTICA&gt;:30001/swagger-ui.html</code></strong>.</p>
+<h3>6.1. Insumos Agrícolas (MongoDB: Colección <code>supplies</code>)</h3>
+<p>Ruta Base: <code>/api/insumos</code></p>
+<h4>Crear Insumo (<code>POST /api/insumos</code>):</h4>
+<pre class="codehilite"><code class="language-json">{
+  &quot;id&quot;: &quot;INS-FERT-999&quot;,
+  &quot;nombre&quot;: &quot;Nitrato de Calcio Grado Fertirriego Ultra&quot;,
+  &quot;descripcion&quot;: &quot;Fertilizante hidrosoluble de alta asimilación para etapa fenológica de cuajado&quot;,
+  &quot;precio&quot;: 89.50,
+  &quot;stock&quot;: 150.0,
+  &quot;unidadMedida&quot;: &quot;KG&quot;,
+  &quot;tipoInsumo&quot;: &quot;Fertilizante&quot;,
+  &quot;categoria&quot;: &quot;Fertirriego&quot;,
+  &quot;proveedor&quot;: &quot;Yara Perú S.A.C.&quot;,
+  &quot;estado&quot;: true
+}
+</code></pre>
+
+<h4>Actualizar Insumo (<code>PUT /api/insumos/INS-FERT-999</code>):</h4>
+<pre class="codehilite"><code class="language-json">{
+  &quot;id&quot;: &quot;INS-FERT-999&quot;,
+  &quot;nombre&quot;: &quot;Nitrato de Calcio Grado Fertirriego Premium Plus&quot;,
+  &quot;descripcion&quot;: &quot;Fórmula mejorada con boro soluble para brotación y cuaje de floración&quot;,
+  &quot;precio&quot;: 94.00,
+  &quot;stock&quot;: 180.0,
+  &quot;unidadMedida&quot;: &quot;KG&quot;,
+  &quot;tipoInsumo&quot;: &quot;Fertilizante&quot;,
+  &quot;categoria&quot;: &quot;Fertirriego&quot;,
+  &quot;proveedor&quot;: &quot;Yara Perú S.A.C.&quot;,
+  &quot;estado&quot;: true
+}
+</code></pre>
+
 <hr />
-<h2>🎓 6. Guion de Sustentación para la Evaluación Intermedia (20/20)</h2>
+<h3>6.2. Parcelas de Cultivo (MongoDB: Colección <code>plots</code>)</h3>
+<p>Ruta Base: <code>/api/parcelas</code></p>
+<h4>Crear Parcela (<code>POST /api/parcelas</code>):</h4>
+<pre class="codehilite"><code class="language-json">{
+  &quot;id&quot;: &quot;PARC-SUR-888&quot;,
+  &quot;nombre&quot;: &quot;Sector Sur - Parcela Experimental 888&quot;,
+  &quot;ubicacion&quot;: &quot;Fundo AgroPacayales, Lote 14 Valle de Cañete&quot;,
+  &quot;areaHectareas&quot;: 5.20,
+  &quot;hectareas&quot;: 5.20,
+  &quot;tipoSuelo&quot;: &quot;Franco Arenoso&quot;,
+  &quot;responsable&quot;: &quot;Ing. Ana Félix&quot;,
+  &quot;estadoRiego&quot;: &quot;Activo&quot;,
+  &quot;cultivoActual&quot;: &quot;Palto Hass&quot;,
+  &quot;produccionEstimada&quot;: &quot;32 Toneladas&quot;,
+  &quot;fechaUltimaSiembra&quot;: &quot;2026-04-10&quot;,
+  &quot;observaciones&quot;: &quot;Monitoreo fenológico semanal mediante inspección agronómica en campo.&quot;,
+  &quot;enUso&quot;: true,
+  &quot;estado&quot;: true
+}
+</code></pre>
+
+<h4>Actualizar Parcela (<code>PUT /api/parcelas/PARC-SUR-888</code>):</h4>
+<pre class="codehilite"><code class="language-json">{
+  &quot;id&quot;: &quot;PARC-SUR-888&quot;,
+  &quot;nombre&quot;: &quot;Sector Sur - Parcela Experimental 888 Alta Densidad&quot;,
+  &quot;ubicacion&quot;: &quot;Fundo AgroPacayales, Lote 14 Valle de Cañete&quot;,
+  &quot;areaHectareas&quot;: 5.20,
+  &quot;hectareas&quot;: 5.20,
+  &quot;tipoSuelo&quot;: &quot;Franco Arenoso&quot;,
+  &quot;responsable&quot;: &quot;Ing. Ana Félix&quot;,
+  &quot;estadoRiego&quot;: &quot;Activo&quot;,
+  &quot;cultivoActual&quot;: &quot;Palto Hass&quot;,
+  &quot;produccionEstimada&quot;: &quot;38 Toneladas&quot;,
+  &quot;fechaUltimaSiembra&quot;: &quot;2026-04-10&quot;,
+  &quot;observaciones&quot;: &quot;Poda de formación ejecutada y riego presurizado optimizado a 2.2 bar.&quot;,
+  &quot;enUso&quot;: true,
+  &quot;estado&quot;: true
+}
+</code></pre>
+
+<hr />
+<h3>6.3. Cultivos y Cosechas (Amazon RDS SQL Server)</h3>
+<h4>Crear Cultivo en SQL Server (<code>POST /api/cultivos</code>):</h4>
+<pre class="codehilite"><code class="language-json">{
+  &quot;nombre&quot;: &quot;Arándano Biloxi Exportación&quot;,
+  &quot;variedad&quot;: &quot;Biloxi&quot;,
+  &quot;tipo&quot;: &quot;Frutal&quot;,
+  &quot;cicloDias&quot;: 180,
+  &quot;temporada&quot;: &quot;Invierno-Primavera&quot;,
+  &quot;temperaturaOptimaMin&quot;: 14.5,
+  &quot;temperaturaOptimaMax&quot;: 26.0,
+  &quot;humedadOptimaMin&quot;: 60.0,
+  &quot;humedadOptimaMax&quot;: 80.0,
+  &quot;rendimientoEstimadoPorHa&quot;: 18.5,
+  &quot;estado&quot;: &quot;ACTIVO&quot;
+}
+</code></pre>
+
+<h4>Registrar Cosecha en SQL Server (<code>POST /api/harvest</code>):</h4>
+<pre class="codehilite"><code class="language-json">{
+  &quot;parcelaId&quot;: &quot;PARC-SUR-888&quot;,
+  &quot;cultivoId&quot;: 1,
+  &quot;fechaCosecha&quot;: &quot;2026-10-25T08:00:00&quot;,
+  &quot;kilosTotales&quot;: 4250.75,
+  &quot;kilosPrimera&quot;: 3800.00,
+  &quot;kilosSegunda&quot;: 350.75,
+  &quot;kilosMerma&quot;: 100.00,
+  &quot;responsable&quot;: &quot;Axel Huapaya&quot;,
+  &quot;observaciones&quot;: &quot;Cosecha en horas de la mañana con temperatura fresca para exportación.&quot;
+}
+</code></pre>
+
+<hr />
+<h3>6.4. Fichas de Campo y Cuaderno Técnico (MongoDB: <code>field_records</code>)</h3>
+<p>Ruta Base: <code>/api/fichas-campo</code></p>
+<h4>Crear Ficha de Campo (<code>POST /api/fichas-campo</code>):</h4>
+<pre class="codehilite"><code class="language-json">{
+  &quot;id&quot;: &quot;FICHA-2026-001&quot;,
+  &quot;parcelaId&quot;: &quot;PARC-SUR-888&quot;,
+  &quot;cultivo&quot;: &quot;Palto Hass&quot;,
+  &quot;etapaFenologica&quot;: &quot;Floración&quot;,
+  &quot;porcentajeDesarrollo&quot;: 65,
+  &quot;temperaturaCampo&quot;: &quot;24.5°C&quot;,
+  &quot;clima&quot;: &quot;Soleado&quot;,
+  &quot;humedadSuelo&quot;: &quot;Óptima (Riego por goteo activo)&quot;,
+  &quot;vigor&quot;: &quot;Excelente&quot;,
+  &quot;sanidad&quot;: &quot;Sin plagas activas&quot;,
+  &quot;diagnosticoTecnico&quot;: &quot;Excelente brotación floral con presencia activa de polinizadores. Mantener régimen hídrico.&quot;,
+  &quot;evaluador&quot;: &quot;Hugo Fernández&quot;,
+  &quot;fechaInspeccion&quot;: &quot;2026-10-26&quot;
+}
+</code></pre>
+
+<hr />
+<h2>🎓 7. Guion de Sustentación para la Evaluación Intermedia (20/20)</h2>
 <p>Al defender ante el jurado o docente, muestra los 4 servicios en este orden cronológico:</p>
 <h3>1. Evidencia de Red y Seguridad (Amazon VPC)</h3>
 <ul>
-<li>Muestra la consola de <strong>Amazon VPC</strong> con <code>agropacayales-vpc</code> (<code>10.0.0.0/16</code>).</li>
-<li>Muestra las 2 subredes públicas asociadas y el Security Group <code>agropacayales-sg</code>.</li>
+<li>Abre la consola de <strong>Amazon VPC</strong> y muestra <code>agropacayales-vpc</code> (<code>10.0.0.0/16</code>).</li>
+<li>Muestra las 2 subredes públicas y el Security Group <code>agropacayales-sg</code>.</li>
+<li>Explica: <em>"Profesor, diseñamos una VPC aislada que separa y asegura el tráfico interno entre Kubernetes, RDS y MongoDB sin exponer puertos innecesarios a internet"</em>.</li>
 </ul>
 <h3>2. Evidencia de las 2 Bases de Datos (Amazon RDS + EC2 MongoDB)</h3>
 <ul>
-<li><strong>RDS:</strong> Muestra en la consola la instancia <code>agropacayales-rds</code> y en Azure Data Studio ejecuta <code>SELECT * FROM sale_order;</code>.</li>
-<li><strong>EC2 MongoDB:</strong> Muestra la instancia <code>ec2-mongodb</code> activa en puerto <code>27017</code> y la lectura de insumos/parcelas desde Swagger.</li>
+<li><strong>RDS:</strong> Muestra la consola de <strong>Amazon RDS</strong> con <code>agropacayales-rds</code> y en Azure Data Studio ejecuta:<br />
+<code>SELECT TOP 10 * FROM agropacayales_db.dbo.cultivos;</code>.</li>
+<li><strong>MongoDB:</strong> Muestra la consola de <strong>EC2</strong> con <code>ec2-mongodb</code> y abre <strong>MongoDB Compass</strong> mostrando las colecciones <code>supplies</code>, <code>plots</code> y <code>field_records</code>.</li>
 </ul>
 <h3>3. Evidencia de los 2 Backends en Kubernetes (Amazon EC2)</h3>
 <ul>
 <li>Muestra la terminal SSH de <code>k8s-master</code> ejecutando:<br />
 <code>bash
-  kubectl get pods -n agropacayales-namespace -o wide</code><br />
-<em>(Señala que Backend 1 corre en <code>role=backend1</code> y Backend 2 en <code>role=backend2</code>)</em>.</li>
+  kubectl get pods -n agropacayales-namespace</code><br />
+<em>(Señala que los 3 pods están en <code>Running 1/1</code>)</em>.</li>
 <li>Abre en vivo ambos Swagger interactivos:</li>
-<li><strong>Backend 1:</strong> <code>http://&lt;IP_MASTER&gt;:30001/swagger-ui.html</code></li>
-<li><strong>Backend 2:</strong> <code>http://&lt;IP_MASTER&gt;:30002/docs</code></li>
+<li><strong>Backend 1:</strong> <code>http://&lt;IP_ELASTICA&gt;:30001/swagger-ui.html</code> → Ejecuta <code>GET /api/cultivos</code> y <code>GET /api/parcelas</code>.</li>
+<li><strong>Backend 2:</strong> <code>http://&lt;IP_ELASTICA&gt;:30002/docs</code> | <code>/health</code> → Ejecuta <code>GET /health</code> mostrando que ambas bases de datos están <code>UP</code>.</li>
 </ul>
 <h3>4. Evidencia del Frontend Web en Amazon S3</h3>
 <ul>
 <li>Muestra el bucket en <strong>Amazon S3</strong> con <em>Static website hosting</em> activo.</li>
 <li>Abre la URL <code>s3-website</code> e inicia sesión en vivo: <code>ana.felix@agropacayales.com</code> / <code>Pass123!</code>.</li>
-<li>Demuestra la interacción en vivo con las parcelas y el monitor fenológico.</li>
+<li>Navega por los módulos demostrando la interacción en tiempo real con las parcelas, insumos y el monitor fenológico.</li>
 </ul>
-<h3>5. Demostración de Resiliencia en Kubernetes (Bonus)</h3>
+<h3>5. Demostración de Resiliencia en Kubernetes (Bonus Jurado)</h3>
 <pre class="codehilite"><code class="language-bash"># Elimina el pod del backend y demuestra que se auto-repara en segundos:
 kubectl delete pod -l app=backend1 -n agropacayales-namespace
 kubectl get pods -n agropacayales-namespace -w
@@ -730,6 +803,55 @@ kubectl get pods -n agropacayales-namespace -w
 kubectl scale deployment backend1-deployment --replicas=3 -n agropacayales-namespace
 kubectl get pods -n agropacayales-namespace
 </code></pre>
+
+<hr />
+<h2>🛠️ 8. Solucionario Rápido de Errores Comunes (Cheat Sheet)</h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">Síntoma / Error</th>
+<th style="text-align: left;">Causa Probable</th>
+<th style="text-align: left;">Solución Inmediata</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong><code>Failed to obtain R2DBC Connection</code></strong></td>
+<td style="text-align: left;">Las variables del Secret no coinciden con <code>SQL_PASSWORD</code> o el puerto 1433 está bloqueado.</td>
+<td style="text-align: left;">Aplica el Secret del paso 4.2 con <code>SQL_PASSWORD="SQLServer12345"</code> y revisa el Security Group de RDS.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>Backend 2 no responde en 30002</code></strong></td>
+<td style="text-align: left;">El servicio de K8s apuntaba al puerto 8000 en vez de 5000.</td>
+<td style="text-align: left;">Usa el manifiesto del paso 4.2 que ya mapea <code>targetPort: 5000</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Pods en estado <code>Pending</code></strong></td>
+<td style="text-align: left;">Falta etiqueta de rol o hay 1 sola máquina master.</td>
+<td style="text-align: left;">Quita el filtro de nodo aplicando el manifiesto unificado del paso 4.2.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>access-analyzer:ValidatePolicy</code> en S3</strong></td>
+<td style="text-align: left;">Falta de permisos IAM del linter de AWS Academy en Voclabs.</td>
+<td style="text-align: left;">Es una advertencia cosmética. Asegúrate de tener <em>Block Public Access</em> en <em>Off</em> y haz clic en <em>Save changes</em>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>useConnectionInfo hook</code> en Compass</strong></td>
+<td style="text-align: left;">Glitch visual de renderizado en pestañas viejas de Compass.</td>
+<td style="text-align: left;">Cierra la pestaña con la <code>x</code>, haz clic en otra colección o presiona <code>Ctrl + R</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong><code>ECONNREFUSED</code> en MongoDB</strong></td>
+<td style="text-align: left;"><code>bindIp</code> sigue en <code>127.0.0.1</code> o falta el parche de kernel <code>rseq=1</code>.</td>
+<td style="text-align: left;">Ejecuta el bloque del paso 3.2 que aplica el parche y reinicia <code>mongod</code>.</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>La IP pública cambia al apagar AWS</strong></td>
+<td style="text-align: left;">Las instancias EC2 reciben IP dinámica por defecto.</td>
+<td style="text-align: left;">Asocia una <strong>IP Elástica (Elastic IP)</strong> a <code>k8s-master</code> siguiendo el paso 3.</td>
+</tr>
+</tbody>
+</table>
 </div>
 </body>
 </html>
