@@ -10,7 +10,7 @@
 exec > >(tee -a /var/log/taller.log) 2>&1
 : "${BUCKET:?falta BUCKET}" "${PUBLIC_IP:?falta PUBLIC_IP}"
 DOCKER_USER="${DOCKER_USER:-anafelixmendoza21}"
-RAW="https://raw.githubusercontent.com/anafelix21/tcc/main/despliegue-taller-cloud"
+RAW="https://raw.githubusercontent.com/anafelix21/tcc/develop/despliegue-taller-barato"   # datos/ y frontend-s3.tar.gz estan en esta misma carpeta
 SQL_PASS='AgroPacayales2026!'
 MONGO_USER=admin; MONGO_PASS=Mongo12345; DB=agropacayales_db
 IMG_SQL=mcr.microsoft.com/mssql/server:2022-latest

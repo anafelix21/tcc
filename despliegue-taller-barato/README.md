@@ -49,4 +49,11 @@ Detalle y cómo validarlo en la calculadora: [`COSTOS_CALCULADORA.md`](COSTOS_CA
 
 `anafelixmendoza21/agropacayales-cc-backend:1.0` · `anafelixmendoza21/agropacayales-cc-backend-analitico:1.0` · `mcr.microsoft.com/mssql/server:2022-latest` · `mongo:7.0`
 
-> Los datos iniciales y el frontend compilado se toman de [`../despliegue-taller-cloud/`](../despliegue-taller-cloud/) (rama `main`).
+## 📁 Contenido de la carpeta
+
+| Elemento | Qué es |
+| :-- | :-- |
+| `datos/init_sqlserver_completo.sql` · `datos/init_mongodb_completo.js` | Scripts que cargan los datos en SQL Server y MongoDB |
+| `frontend-s3.tar.gz` | Frontend compilado; el script le pone la IP de los backends y lo sube a S3 |
+
+La carpeta es autosuficiente: no depende de ningún otro archivo del repositorio.
