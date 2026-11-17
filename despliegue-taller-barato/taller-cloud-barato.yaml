@@ -1,0 +1,171 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  Taller Cloud Computing - AgroPacayales: proyecto web completo al MINIMO costo con 4 servicios de AWS
+  (EC2, EBS, S3 y VPC). Una sola EC2 con SQL Server Express, MongoDB, Backend Java y Backend Python en Docker;
+  el Frontend va en S3. Se instala solo, sin editar nada.
+
+Parameters:
+  Capacidad:
+    Type: String
+    Default: Spot
+    AllowedValues: [Spot, OnDemand]
+    Description: >-
+      Spot = capacidad sobrante de AWS, ~60% mas barata (si AWS la reclama, la EC2 se detiene y vuelve a arrancar sola
+      con sus datos). OnDemand = precio normal, sin interrupciones.
+  InstanceType:
+    Type: String
+    Default: t3a.medium
+    AllowedValues: [t3a.medium, t3.medium]
+    Description: 4 GiB de RAM (SQL Server necesita al menos 2 GiB). t3a.medium es ~10% mas barata que t3.medium.
+  KeyName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: vockey
+    Description: Llave SSH del Learner Lab (dejar vockey)
+  UbuntuAmi:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/canonical/ubuntu/server/24.04/stable/current/amd64/hvm/ebs-gp3/ami-id
+    Description: Ubuntu 24.04 LTS (se resuelve sola, no tocar)
+  ScriptsUrl:
+    Type: String
+    Default: https://raw.githubusercontent.com/anafelix21/tcc/develop/despliegue-taller-barato/scripts
+    Description: Carpeta raw de GitHub (rama develop) con el script de instalacion (no tocar)
+  DockerUser:
+    Type: String
+    Default: anafelixmendoza21
+    Description: Usuario de Docker Hub con las imagenes agropacayales-cc-*:1.0
+
+Conditions:
+  UsaSpot: !Equals [!Ref Capacidad, Spot]
+
+Resources:
+  # ---------------------------------------------------------------- Servicio 1: Amazon VPC (red propia)
+  Vpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.20.0.0/16
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags: [{Key: Name, Value: taller-barato-vpc}]
+  Igw:
+    Type: AWS::EC2::InternetGateway
+  IgwAttach:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties: {VpcId: !Ref Vpc, InternetGatewayId: !Ref Igw}
+  Subnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref Vpc
+      CidrBlock: 10.20.1.0/24
+      AvailabilityZone: !Select [0, !GetAZs '']
+      MapPublicIpOnLaunch: false      # la IP publica es la IP elastica (se paga una sola)
+      Tags: [{Key: Name, Value: taller-barato-subnet}]
+  RouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties: {VpcId: !Ref Vpc}
+  DefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: IgwAttach
+    Properties: {RouteTableId: !Ref RouteTable, DestinationCidrBlock: 0.0.0.0/0, GatewayId: !Ref Igw}
+  SubnetRoute:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties: {SubnetId: !Ref Subnet, RouteTableId: !Ref RouteTable}
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: taller-barato-grupo
+      GroupDescription: SSH (22), Backend Java (8081) y Backend Python (5000). Las bases de datos NO se publican
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        - {IpProtocol: tcp, FromPort: 22, ToPort: 22, CidrIp: 0.0.0.0/0, Description: SSH}
+        - {IpProtocol: tcp, FromPort: 8081, ToPort: 8081, CidrIp: 0.0.0.0/0, Description: Backend 1 Java}
+        - {IpProtocol: tcp, FromPort: 5000, ToPort: 5000, CidrIp: 0.0.0.0/0, Description: Backend 2 Python}
+
+  # IP publica fija: no cambia aunque la EC2 se detenga y arranque, asi el Frontend en S3 sigue funcionando
+  Eip:
+    Type: AWS::EC2::EIP
+    DependsOn: IgwAttach
+    Properties:
+      Domain: vpc
+      Tags: [{Key: Name, Value: taller-barato-ip}]
+  EipAsociacion:
+    Type: AWS::EC2::EIPAssociation
+    Properties:
+      AllocationId: !GetAtt Eip.AllocationId
+      InstanceId: !Ref Ec2Todo
+
+  # ---------------------------------------------------------------- Servicio 2: Amazon S3 (Frontend)
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    Properties:
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action: s3:GetObject
+            Resource: !Sub '${FrontendBucket.Arn}/*'
+
+  # ---------------------------------------------------------------- Servicios 3 y 4: Amazon EC2 + Amazon EBS
+  # CloudFormation solo permite Spot dentro de una plantilla de lanzamiento (Launch Template)
+  PlantillaEc2:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        ImageId: !Ref UbuntuAmi
+        InstanceType: !Ref InstanceType
+        KeyName: !Ref KeyName
+        IamInstanceProfile: {Name: LabInstanceProfile}   # permite a la EC2 subir el Frontend a S3
+        SecurityGroupIds: [!GetAtt SecurityGroup.GroupId]
+        InstanceMarketOptions: !If
+          - UsaSpot
+          - MarketType: spot
+            SpotOptions:
+              SpotInstanceType: persistent
+              InstanceInterruptionBehavior: stop       # si AWS reclama la capacidad se DETIENE (no se borra) y vuelve sola
+          - !Ref AWS::NoValue
+        BlockDeviceMappings:
+          - DeviceName: /dev/sda1
+            Ebs: {VolumeSize: 16, VolumeType: gp3}     # EBS: 16 GiB alcanzan para Ubuntu + 4 contenedores
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            curl -fsSL --retry 60 --retry-delay 2 --retry-all-errors ${ScriptsUrl}/instalar-todo.sh -o /root/instalar-todo.sh
+            BUCKET=${FrontendBucket} PUBLIC_IP=${Eip} DOCKER_USER=${DockerUser} bash /root/instalar-todo.sh
+
+  Ec2Todo:
+    Type: AWS::EC2::Instance
+    DependsOn: [DefaultRoute, SubnetRoute, FrontendBucketPolicy]
+    Properties:
+      LaunchTemplate:
+        LaunchTemplateId: !Ref PlantillaEc2
+        Version: !GetAtt PlantillaEc2.LatestVersionNumber
+      SubnetId: !Ref Subnet
+      Tags: [{Key: Name, Value: taller-todo-en-uno}]
+
+Outputs:
+  Frontend:
+    Value: !GetAtt FrontendBucket.WebsiteURL
+    Description: Frontend (Amazon S3)
+  Backend1Swagger:
+    Value: !Sub http://${Eip}:8081/swagger-ui.html
+  Backend2Swagger:
+    Value: !Sub http://${Eip}:5000/apidocs/
+  IpElastica:
+    Value: !Ref Eip
+  Bucket:
+    Value: !Ref FrontendBucket
+    Description: Hay que VACIAR este bucket antes de borrar el stack
