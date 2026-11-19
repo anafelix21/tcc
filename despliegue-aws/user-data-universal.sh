@@ -19,7 +19,7 @@ IMG_FRONT="$DOCKER_USER/agropacayales-frontend:2.0"
 IMG_BACK1="$DOCKER_USER/agropacayales-backend:2.0"
 IMG_BACK2="$DOCKER_USER/agropacayales-backend-analitico:2.0"
 # Fijado a un commit: aunque alguien suba cambios a main, los datos cargados no cambian
-RAW="https://raw.githubusercontent.com/anafelix21/tcc/8665dd9ba08e6a8d85827056c4e7fe29740966ff/scripts"
+RAW="https://raw.githubusercontent.com/anafelix21/tcc/e9d3df65377e2d58b12f6b768e57722d6f827305/scripts"
 
 log() { echo "[$(date +%H:%M:%S)] [AGRO] $*"; }
 imds() {
